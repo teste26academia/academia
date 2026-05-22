@@ -1004,14 +1004,7 @@
     }
 
     let currentAdmin = loadCurrentAdmin();
-    let state = loadState();
-    let editingId = null;
-    let studentUser = null;
-    let studentProfile = null;
-    let cloudReady = false;
-    let cloudLoading = false;
-    let cloudSyncTimer = null;
-    let lastCloudPush = 0;
+
     const DEVICE_ID_KEY = 'academia_pessoal_device_id_v1';
     const deviceId = (() => {
       try{
