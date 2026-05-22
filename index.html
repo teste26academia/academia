@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <title>Academia Pro | Gestão</title>
+  <style>
+    :root{
+      --bg:#081120;
+      --panel:#0f1830;
+      --panel2:#131f3d;
+      --panel3:#182644;
+      --text:#eef2ff;
+      --muted:#a5b2d8;
+      --soft:#d7ddff;
+      --accent:#8b5cf6;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+      --line:rgba(197,208,255,.13);
+      --shadow:0 22px 65px rgba(0,0,0,.32);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(139,92,246,.24), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(34,197,94,.12), transparent 28%),
+        linear-gradient(180deg, #07101f 0%, #091427 45%, #07101f 100%);
+      overflow-x:hidden;
+    }
+    body.locked{overflow:hidden}
+    a{color:inherit}
+    .wrap{min-height:100%; padding:18px 14px 28px; max-width:1450px; margin:0 auto}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      position:sticky; top:0; z-index:10;
+      padding:12px 12px; margin:-2px -2px 16px;
+      backdrop-filter: blur(14px);
+      background:rgba(7,16,31,.55);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:22px;
+    }
+    .brand{display:flex; align-items:center; gap:12px; min-width:0}
+    .logo{
+      width:46px; height:46px; border-radius:16px;
+      background:linear-gradient(135deg,#7c3aed,#22c55e);
+      display:grid; place-items:center;
+      box-shadow:0 12px 35px rgba(124,58,237,.35);
+      flex:0 0 auto;
+      font-weight:800;
+    }
+    .brand h1{font-size:1rem; line-height:1.15; margin:0}
+    .brand p{margin:2px 0 0; color:var(--muted); font-size:.82rem}
+    .rightbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .badge{
+      display:inline-flex; gap:8px; align-items:center;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+      padding:10px 12px; border-radius:999px; color:var(--soft); font-size:.88rem;
+    }
+    .btn{
+      appearance:none; border:none; cursor:pointer; color:var(--text);
+      border-radius:14px; padding:12px 14px; font-weight:700;
+      background:linear-gradient(135deg, rgba(124,58,237,.95), rgba(99,102,241,.9));
+      box-shadow:0 10px 26px rgba(124,58,237,.25);
+      transition:.2s transform, .2s opacity, .2s filter;
+      min-height:44px;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0); filter:brightness(.95)}
+    .btn.secondary{background:rgba(255,255,255,.05); box-shadow:none; border:1px solid var(--line)}
+    .btn.green{background:linear-gradient(135deg, rgba(34,197,94,.95), rgba(16,185,129,.9))}
+    .btn.red{background:linear-gradient(135deg, rgba(239,68,68,.95), rgba(220,38,38,.9))}
+    .btn.ghost{background:transparent; border:1px solid var(--line); box-shadow:none}
+    .grid{
+      display:grid;
+      grid-template-columns: 280px minmax(0,1fr);
+      gap:16px;
+      align-items:start;
+    }
+    .sidebar{
+      position:sticky; top:92px;
+      display:flex; flex-direction:column; gap:12px;
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      padding:14px; border-radius:22px;
+      box-shadow:var(--shadow);
+    }
+    .navbtn{
+      display:flex; align-items:center; gap:12px;
+      width:100%; text-align:left; padding:13px 14px;
+      border-radius:16px; border:1px solid transparent;
+      background:transparent; color:var(--soft); cursor:pointer;
+      min-height:48px; font-weight:700;
+    }
+    .navbtn.active{
+      background:linear-gradient(135deg, rgba(124,58,237,.2), rgba(34,197,94,.12));
+      border-color:rgba(124,58,237,.25);
+      color:var(--text);
+    }
+    .content{min-width:0}
+    .hero{
+      display:grid; grid-template-columns: repeat(4, minmax(0,1fr));
+      gap:14px; margin-bottom:16px;
+    }
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.025));
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      min-width:0;
+    }
+    .stat{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .stat h3{margin:0; font-size:.9rem; color:var(--muted); font-weight:700}
+    .stat .value{font-size:1.7rem; font-weight:800; margin-top:6px}
+    .stat .icon{
+      width:46px; height:46px; border-radius:16px; display:grid; place-items:center;
+      background:rgba(124,58,237,.14);
+      border:1px solid rgba(124,58,237,.16);
+      font-size:1.2rem;
+    }
+    .subgrid{display:grid; grid-template-columns: 1.45fr .9fr; gap:16px}
+    .section{
+      display:none;
+      animation:fade .18s ease;
+    }
+    .section.active{display:block}
+    @keyframes fade{from{opacity:.5; transform:translateY(4px)} to{opacity:1; transform:none}}
+    .sectionhead{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+      margin:8px 0 14px;
+    }
+    .sectionhead h2{margin:0 0 4px; font-size:1.18rem}
+    .sectionhead p{margin:0; color:var(--muted); font-size:.92rem}
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-end;
+    }
+    .kpi{
+      display:grid; gap:6px; padding:14px; border-radius:18px;
+      background:rgba(255,255,255,.03); border:1px solid var(--line);
+    }
+    .kpi span{color:var(--muted); font-size:.84rem}
+    .kpi strong{font-size:1.05rem}
+    .tablewrap{overflow:auto; border-radius:18px; border:1px solid var(--line)}
+    table{width:100%; border-collapse:collapse; min-width:760px; background:rgba(255,255,255,.02)}
+    th,td{padding:12px 12px; border-bottom:1px solid rgba(255,255,255,.06); text-align:left; vertical-align:top}
+    th{font-size:.84rem; color:var(--muted); background:rgba(255,255,255,.03); position:sticky; top:0}
+    tr:hover td{background:rgba(255,255,255,.02)}
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px; font-size:.78rem; font-weight:700;
+      background:rgba(255,255,255,.05); border:1px solid var(--line);
+    }
+    .pill.ok{background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.2)}
+    .pill.warn{background:rgba(245,158,11,.14); border-color:rgba(245,158,11,.22)}
+    .pill.bad{background:rgba(239,68,68,.14); border-color:rgba(239,68,68,.22)}
+    .form{
+      display:grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap:12px;
+    }
+    .field{grid-column: span 6; display:flex; flex-direction:column; gap:7px}
+    .field.sm{grid-column: span 3}
+    .field.lg{grid-column: span 12}
+    .field label{font-size:.82rem; color:var(--muted); font-weight:700}
+    .field input, .field select, .field textarea{
+      width:100%; padding:13px 14px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(5,12,26,.8);
+      color:var(--text);
+      outline:none;
+    }
+    .field textarea{min-height:96px; resize:vertical}
+    .field input:focus, .field select:focus, .field textarea:focus{border-color:rgba(139,92,246,.65)}
+    .formactions{grid-column: span 12; display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .muted{color:var(--muted)}
+    .small{font-size:.82rem}
+    .list{
+      display:grid; gap:10px;
+    }
+    .item{
+      display:flex; gap:12px; justify-content:space-between; align-items:flex-start;
+      padding:14px; border-radius:18px; border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+    .item h4{margin:0 0 4px}
+    .item p{margin:2px 0; color:var(--muted); font-size:.9rem}
+    .item .actions{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .dashgrid{display:grid; gap:16px}
+    .chartbox{
+      min-height:290px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .chart{
+      display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:10px; align-items:end; min-height:180px;
+      padding-top:8px;
+    }
+    .barwrap{display:flex; flex-direction:column; gap:8px; align-items:center}
+    .bar{
+      width:100%; min-height:12px; border-radius:14px 14px 8px 8px;
+      background:linear-gradient(180deg, rgba(124,58,237,.95), rgba(34,197,94,.85));
+      box-shadow:0 12px 26px rgba(124,58,237,.18);
+      position:relative;
+    }
+    .bar span{
+      position:absolute; top:-24px; left:50%; transform:translateX(-50%);
+      font-size:.78rem; color:var(--soft); white-space:nowrap;
+    }
+    .notice{
+      background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(124,58,237,.08));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      padding:14px;
+    }
+    .footer{
+      color:var(--muted); text-align:center; padding:18px 8px 4px; font-size:.84rem;
+    }
+    .overlay{
+      position:fixed; inset:0; z-index:50; display:none;
+      align-items:center; justify-content:center;
+      background:rgba(3,8,20,.82);
+      backdrop-filter:blur(10px);
+      padding:18px;
+    }
+    .loginbox{
+      width:min(1080px,100%);
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,.1);
+      background:linear-gradient(180deg, rgba(15,24,48,.98), rgba(9,16,31,.98));
+      box-shadow:0 28px 80px rgba(0,0,0,.45);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 1fr 1.1fr;
+    }
+    .loginleft{
+      padding:28px;
+      background:
+        radial-gradient(circle at top left, rgba(124,58,237,.22), transparent 46%),
+        linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+      border-right:1px solid rgba(255,255,255,.08);
+    }
+    .loginleft h1{margin:10px 0 8px; font-size:2rem; line-height:1.05}
+    .loginleft p{margin:0; color:var(--muted)}
+    .loginright{padding:22px}
+    .tabs2{display:flex; gap:10px; padding:4px; background:rgba(255,255,255,.03); border-radius:16px; border:1px solid var(--line); width:fit-content}
+    .tabs2 button{
+      border:none; background:transparent; color:var(--muted); padding:10px 14px; border-radius:12px; font-weight:800; cursor:pointer;
+    }
+    .tabs2 button.active{background:rgba(124,58,237,.18); color:var(--text)}
+    .loginpanel{display:none; margin-top:16px}
+    .loginpanel.active{display:block}
+    .notice2{
+      margin-top:16px; color:var(--soft); font-size:.92rem; line-height:1.55;
+      background:rgba(255,255,255,.03); border:1px solid var(--line);
+      padding:14px; border-radius:16px;
+    }
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%) translateY(18px);
+      background:rgba(9,16,31,.92); color:var(--text);
+      border:1px solid rgba(255,255,255,.1);
+      padding:12px 14px; border-radius:14px; opacity:0; pointer-events:none; transition:.22s;
+      z-index:80;
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+    .hide{display:none !important}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .spacer{height:8px}
+    .break{height:1px; background:rgba(255,255,255,.08); margin:16px 0}
+    .checkboxes{display:grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap:10px}
+    .check{
+      display:flex; gap:10px; align-items:flex-start; padding:12px 12px; border-radius:14px;
+      background:rgba(255,255,255,.03); border:1px solid var(--line);
+    }
+    .check input{margin-top:4px}
+    @media (max-width: 1120px){
+      .grid{grid-template-columns:1fr}
+      .sidebar{position:static}
+      .hero{grid-template-columns: repeat(2, minmax(0,1fr))}
+      .subgrid{grid-template-columns:1fr}
+      .loginbox{grid-template-columns:1fr}
+      .loginleft{border-right:none; border-bottom:1px solid rgba(255,255,255,.08)}
+    }
+    @media (max-width: 720px){
+      .wrap{padding:12px 10px 24px}
+      .topbar{border-radius:18px; padding:10px}
+      .hero{grid-template-columns:1fr}
+      .field,.field.sm,.field.lg{grid-column:span 12}
+      .sectionhead,.toolbar,.item{flex-direction:column; align-items:stretch}
+      .item .actions{justify-content:flex-start}
+      table{min-width:680px}
+      .brand h1{font-size:.96rem}
+      .brand p{font-size:.78rem}
+      .rightbar .badge{width:100%; justify-content:center}
+      .rightbar{width:100%}
+      .btn{width:100%}
+    }
+  </style>
+</head>
+<body class="locked">
+  <div class="overlay" id="loginOverlay">
+    <div class="loginbox" role="dialog" aria-modal="true">
+      <div class="loginleft">
+        <div class="badge">🔒 Acesso privado</div>
+        <h1>Academia Pro</h1>
+        <p>Cadastro de alunos, presenças, pagamentos, financeiro e login individual dos alunos em um painel pronto para celular e computador.</p>
+        <div class="break"></div>
+        <div class="notice2">
+          <strong>Admin local</strong><br>
+          Usuário: <strong>Admin26</strong><br>
+          Senha: <strong>Igorpacote2024</strong><br><br>
+          <strong>Aluno</strong><br>
+          Conta criada pelo Firebase Authentication, com perfil salvo no banco.
+        </div>
+        <div class="spacer"></div>
+        <div class="notice2">
+          Feito para funcionar bem no iPhone, com layout responsivo e opção de backup/exportação.
+        </div>
+      </div>
+      <div class="loginright">
+        <div class="tabs2">
+          <button class="active" data-login-tab="admin">Admin</button>
+          <button data-login-tab="aluno">Aluno</button>
+        </div>
+
+        <div class="loginpanel active" id="adminPanel">
+          <div class="form">
+            <div class="field lg">
+              <label>Usuário</label>
+              <input id="loginUser" autocomplete="username" placeholder="Admin26" />
+            </div>
+            <div class="field lg">
+              <label>Senha</label>
+              <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••••••" />
+            </div>
+            <div class="formactions">
+              <button class="btn" id="btnLogin">Entrar</button>
+              <button class="btn secondary" id="btnDemoFill" type="button">Preencher</button>
+            </div>
+          </div>
+          <div class="notice2 small">O login do admin é local neste navegador. O login do aluno usa Firebase Authentication.</div>
+        </div>
+
+        <div class="loginpanel" id="studentPanel">
+          <div class="form">
+            <div class="field lg">
+              <label>Nome</label>
+              <input id="studentName" autocomplete="name" placeholder="Nome do aluno" />
+            </div>
+            <div class="field lg">
+              <label>E-mail</label>
+              <input id="studentEmail" type="email" autocomplete="email" placeholder="aluno@email.com" />
+            </div>
+            <div class="field lg">
+              <label>Senha</label>
+              <input id="studentPass" type="password" autocomplete="new-password" placeholder="Crie uma senha" />
+            </div>
+            <div class="field lg">
+              <label>Código do aluno</label>
+              <input id="studentCode" placeholder="Opcional" />
+            </div>
+            <div class="formactions">
+              <button class="btn green" id="btnStudentRegister">Criar conta</button>
+              <button class="btn secondary" id="btnStudentLogin">Entrar</button>
+            </div>
+          </div>
+          <div class="notice2 small">Se o e-mail já existir no cadastro local, o perfil será vinculado automaticamente quando o aluno entrar.</div>
+        </div>
+
+        <div class="notice2 small" id="loginMsg" style="margin-top:16px; display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">A+</div>
+        <div>
+          <h1>Academia Pro | Gestão completa</h1>
+          <p id="statusLine">Pronto para abrir no iPhone ou no computador</p>
+        </div>
+      </div>
+      <div class="rightbar">
+        <div class="badge" id="clockBadge">🕒 <span id="clock"></span></div>
+        <button class="btn secondary" id="btnOpenLogin">Entrar</button>
+        <button class="btn ghost" id="btnLogoutAdmin">Sair</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <aside class="sidebar">
+        <button class="navbtn active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="navbtn" data-tab="alunos">👥 Alunos</button>
+        <button class="navbtn" data-tab="pagamentos">💳 Mensalidades</button>
+        <button class="navbtn" data-tab="presencas">📅 Presenças</button>
+        <button class="navbtn" data-tab="financeiro">💰 Financeiro</button>
+        <button class="navbtn" data-tab="portal">📱 Portal do aluno</button>
+        <button class="navbtn" data-tab="backup">☁️ Backup</button>
+        <button class="navbtn" data-tab="config">⚙️ Configurações</button>
+      </aside>
+
+      <main class="content">
+        <section class="hero" id="heroCards"></section>
+
+        <section class="section active" id="dashboard">
+          <div class="sectionhead">
+            <div>
+              <h2>Painel principal</h2>
+              <p>Resumo financeiro, alunos vencidos, calendário e movimentações recentes.</p>
+            </div>
+            <div class="toolbar">
+              <button class="btn secondary" data-go="alunos">Cadastrar aluno</button>
+              <button class="btn secondary" data-go="pagamentos">Lançar pagamento</button>
+              <button class="btn secondary" data-go="presencas">Registrar presença</button>
+            </div>
+          </div>
+
+          <div class="subgrid">
+            <div class="card chartbox">
+              <div class="row" style="justify-content:space-between">
+                <div>
+                  <h3 style="margin:0 0 4px">Evolução financeira</h3>
+                  <div class="muted small">Receitas e despesas dos últimos 6 meses</div>
+                </div>
+                <div class="pill" id="balancePill">Saldo do mês</div>
+              </div>
+              <div class="chart" id="financeChart"></div>
+            </div>
+            <div class="card">
+              <h3 style="margin-top:0">Ações rápidas</h3>
+              <div class="list">
+                <div class="item">
+                  <div>
+                    <h4>Backup</h4>
+                    <p>Exportar e importar todos os dados em JSON.</p>
+                  </div>
+                  <div class="actions">
+                    <button class="btn secondary" data-go="backup">Abrir</button>
+                  </div>
+                </div>
+                <div class="item">
+                  <div>
+                    <h4>Login dos alunos</h4>
+                    <p>Cadastro próprio via Firebase Authentication.</p>
+                  </div>
+                  <div class="actions">
+                    <button class="btn secondary" data-go="portal">Ver</button>
+                  </div>
+                </div>
+                <div class="item">
+                  <div>
+                    <h4>iPhone</h4>
+                    <p>Layout responsivo e pronto para tela inicial.</p>
+                  </div>
+                  <div class="actions">
+                    <button class="btn secondary" id="btnInstallInfo">Dica</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="alunos">
+          <div class="sectionhead">
+            <div>
+              <h2>Cadastro de alunos</h2>
+              <p>Crie, edite e remova alunos com vencimento, contato e plano.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <form id="studentForm" class="form">
+              <input type="hidden" id="studentId" />
+              <div class="field">
+                <label>Nome completo</label>
+                <input id="a_nome" required />
+              </div>
+              <div class="field">
+                <label>Telefone</label>
+                <input id="a_telefone" />
+              </div>
+              <div class="field">
+                <label>E-mail</label>
+                <input id="a_email" type="email" />
+              </div>
+              <div class="field">
+                <label>Documento</label>
+                <input id="a_documento" />
+              </div>
+              <div class="field">
+                <label>Plano</label>
+                <select id="a_plano">
+                  <option>Mensal</option>
+                  <option>Trimestral</option>
+                  <option>Semestral</option>
+                  <option>Anual</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Data de vencimento</label>
+                <input id="a_venc" type="date" />
+              </div>
+              <div class="field">
+                <label>Valor da mensalidade</label>
+                <input id="a_valor" type="number" step="0.01" />
+              </div>
+              <div class="field">
+                <label>Endereço</label>
+                <input id="a_endereco" />
+              </div>
+              <div class="formactions">
+                <button class="btn" type="submit">Salvar aluno</button>
+                <button class="btn secondary" type="button" id="btnResetStudent">Limpar</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="card">
+            <div class="sectionhead" style="margin-top:0">
+              <div>
+                <h3 style="margin:0">Lista de alunos</h3>
+                <p class="muted small">Clique em editar para atualizar os dados.</p>
+              </div>
+              <div class="toolbar">
+                <input id="searchAluno" placeholder="Buscar aluno..." style="min-width:220px" />
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Aluno</th><th>Contato</th><th>Plano / Vencimento</th><th>Valor</th><th>Status</th><th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="studentsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="pagamentos">
+          <div class="sectionhead">
+            <div>
+              <h2>Mensalidades</h2>
+              <p>Lance pagamentos, veja vencidos e acompanhe o histórico.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <form id="paymentForm" class="form">
+              <div class="field">
+                <label>Aluno</label>
+                <select id="m_aluno" required></select>
+              </div>
+              <div class="field">
+                <label>Valor</label>
+                <input id="m_valor" type="number" step="0.01" required />
+              </div>
+              <div class="field sm">
+                <label>Data</label>
+                <input id="m_data" type="date" required />
+              </div>
+              <div class="field">
+                <label>Forma de pagamento</label>
+                <select id="m_forma">
+                  <option>PIX</option>
+                  <option>Dinheiro</option>
+                  <option>Cartão</option>
+                  <option>Transferência</option>
+                </select>
+              </div>
+              <div class="field lg">
+                <label>Referência / observação</label>
+                <input id="m_ref" placeholder="Ex.: mensalidade maio/2026" />
+              </div>
+              <div class="formactions">
+                <button class="btn green" type="submit">Registrar pagamento</button>
+                <button class="btn secondary" type="button" id="btnFillPayment">Usar valor do aluno</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="card">
+            <div class="sectionhead" style="margin-top:0">
+              <div>
+                <h3 style="margin:0">Alertas de mensalidade</h3>
+                <p class="muted small">Ordenado por vencimento.</p>
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr><th>Aluno</th><th>Telefone</th><th>Plano</th><th>Vencimento</th><th>Status</th><th>Valor</th></tr>
+                </thead>
+                <tbody id="alertsTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="card">
+            <div class="sectionhead" style="margin-top:0">
+              <div>
+                <h3 style="margin:0">Pagamentos</h3>
+                <p class="muted small">Últimos lançamentos registrados.</p>
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr><th>Data</th><th>Aluno</th><th>Valor</th><th>Forma</th><th>Referência</th></tr>
+                </thead>
+                <tbody id="paymentsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="presencas">
+          <div class="sectionhead">
+            <div>
+              <h2>Registro de presenças</h2>
+              <p>Selecione os alunos presentes na aula e salve o registro.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <form id="presenceForm" class="form">
+              <div class="field lg">
+                <label>Quem veio</label>
+                <div class="checkboxes" id="presenceChecks"></div>
+              </div>
+              <div class="field">
+                <label>Aula / horário</label>
+                <input id="p_aula" placeholder="Ex.: Funcional 19h" />
+              </div>
+              <div class="field sm">
+                <label>Data</label>
+                <input id="p_data" type="date" required />
+              </div>
+              <div class="field sm">
+                <label>Hora</label>
+                <input id="p_hora" type="time" required />
+              </div>
+              <div class="formactions">
+                <button class="btn" type="submit">Salvar presença</button>
+                <button class="btn secondary" type="button" id="btnClearPresence">Limpar seleção</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="card">
+            <div class="sectionhead" style="margin-top:0">
+              <div>
+                <h3 style="margin:0">Últimas presenças</h3>
+                <p class="muted small">Histórico recente de check-ins.</p>
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr><th>Data</th><th>Hora</th><th>Aula</th><th>Aluno</th></tr>
+                </thead>
+                <tbody id="attendanceTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="financeiro">
+          <div class="sectionhead">
+            <div>
+              <h2>Controle financeiro</h2>
+              <p>Receitas, despesas e saldo do mês em um só lugar.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <form id="movementForm" class="form">
+              <div class="field">
+                <label>Tipo</label>
+                <select id="f_tipo">
+                  <option>Receita</option>
+                  <option>Despesa</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Valor</label>
+                <input id="f_valor" type="number" step="0.01" required />
+              </div>
+              <div class="field sm">
+                <label>Data</label>
+                <input id="f_data" type="date" required />
+              </div>
+              <div class="field lg">
+                <label>Descrição</label>
+                <input id="f_desc" placeholder="Ex.: aluguel, suplemento, mensalidade..." />
+              </div>
+              <div class="formactions">
+                <button class="btn" type="submit">Adicionar lançamento</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="spacer"></div>
+
+          <div class="card">
+            <div class="sectionhead" style="margin-top:0">
+              <div>
+                <h3 style="margin:0">Histórico financeiro</h3>
+                <p class="muted small">Receitas e despesas lançadas.</p>
+              </div>
+            </div>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr><th>Data</th><th>Tipo</th><th>Valor</th><th>Descrição</th></tr>
+                </thead>
+                <tbody id="movementsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="portal">
+          <div class="sectionhead">
+            <div>
+              <h2>Portal do aluno</h2>
+              <p>Cadastro próprio, login individual e dados do perfil.</p>
+            </div>
+            <div class="toolbar">
+              <button class="btn secondary" id="btnStudentLogout">Desconectar aluno</button>
+            </div>
+          </div>
+
+          <div class="subgrid">
+            <div class="card">
+              <h3 style="margin-top:0">Status do aluno</h3>
+              <div class="list" id="studentStatus"></div>
+            </div>
+            <div class="card">
+              <h3 style="margin-top:0">Histórico do aluno</h3>
+              <div class="list" id="studentHistory"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="config">
+          <div class="sectionhead">
+            <div>
+              <h2>Configurações de acesso</h2>
+              <p>Gerencie administradores, permissões e credenciais pelo painel.</p>
+            </div>
+          </div>
+
+          <div class="subgrid">
+            <div class="card">
+              <h3 style="margin-top:0">Novo administrador</h3>
+              <form id="adminForm" class="form">
+                <input type="hidden" id="adminId" />
+                <div class="field">
+                  <label>Usuário</label>
+                  <input id="ad_user" placeholder="novo usuário" />
+                </div>
+                <div class="field">
+                  <label>Senha</label>
+                  <input id="ad_pass" type="password" placeholder="crie uma senha" />
+                </div>
+                <div class="field">
+                  <label>Nome de exibição</label>
+                  <input id="ad_name" placeholder="Nome interno" />
+                </div>
+                <div class="field">
+                  <label>Perfil</label>
+                  <select id="ad_role">
+                    <option value="superadmin">Super admin</option>
+                    <option value="admin">Admin</option>
+                    <option value="finance">Financeiro</option>
+                    <option value="staff">Equipe</option>
+                    <option value="viewer">Leitura</option>
+                  </select>
+                </div>
+                <div class="field lg">
+                  <label>Permissões</label>
+                  <div class="checkboxes">
+                    <label class="check"><input type="checkbox" id="perm_students"> <span>Alunos</span></label>
+                    <label class="check"><input type="checkbox" id="perm_payments"> <span>Pagamentos</span></label>
+                    <label class="check"><input type="checkbox" id="perm_attendance"> <span>Presenças</span></label>
+                    <label class="check"><input type="checkbox" id="perm_finance"> <span>Financeiro</span></label>
+                    <label class="check"><input type="checkbox" id="perm_backup"> <span>Backup</span></label>
+                    <label class="check"><input type="checkbox" id="perm_admins"> <span>Administradores</span></label>
+                    <label class="check"><input type="checkbox" id="perm_portal"> <span>Portal aluno</span></label>
+                  </div>
+                </div>
+                <div class="field lg">
+                  <label class="check">
+                    <input type="checkbox" id="ad_active" checked>
+                    <span>Administrador ativo</span>
+                  </label>
+                </div>
+                <div class="formactions">
+                  <button class="btn" type="submit">Salvar administrador</button>
+                  <button class="btn secondary" type="button" id="btnAdminReset">Limpar</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-top:0">Administradores cadastrados</h3>
+              <div class="notice2 small" style="margin-bottom:12px">
+                O login do painel passa a usar esta lista. Se remover o último superadmin, ele será protegido automaticamente.
+              </div>
+              <div class="tablewrap">
+                <table style="min-width:unset">
+                  <thead><tr><th>Usuário</th><th>Perfil</th><th>Permissões</th><th>Status</th><th>Ações</th></tr></thead>
+                  <tbody id="adminsTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="footer">Feito para usar localmente e publicar online depois, com suporte a iPhone, desktop e login dos alunos.</div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA8Kd_TK9FnDQCdt9jRSUGx4dMOlJCvwO0",
+      authDomain: "garra-de-aguia-pg-dcb69.firebaseapp.com",
+      projectId: "garra-de-aguia-pg-dcb69",
+      storageBucket: "garra-de-aguia-pg-dcb69.firebasestorage.app",
+      messagingSenderId: "936731247032",
+      appId: "1:936731247032:web:3d47840a2004beb1480f4d",
+      measurementId: "G-WXHBP1PRQ1"
+    };
+    let fbAuth = null, fbDb = null, fbFieldValue = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      fbAuth = firebase.auth();
+      fbDb = firebase.firestore();
+      fbFieldValue = firebase.firestore.FieldValue;
+    } catch (err) {
+      console.warn('Firebase indisponível', err);
+    }
+  </script>
+  <script>
+    const STORAGE_KEY = 'academia_pessoal_v1';
+    const AUTH_KEY = 'academia_pessoal_auth_v1';
+    const CURRENT_ADMIN_KEY = 'academia_pessoal_current_admin_v1';
+    const ADMIN_USER = 'Admin26';
+    const ADMIN_PASS = 'Igorpacote2024';
+
+    const stateDefault = {
+      alunos: [],
+      pagamentos: [],
+      presencas: [],
+      movimentos: [],
+      admins: []
+    };
+    let state = loadState();
+    let editingId = null;
+    let studentUser = null;
+    let studentProfile = null;
+
+    const $ = (id) => document.getElementById(id);
+    const fmtBRL = (n) => Number(n || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const today = () => new Date().toISOString().slice(0, 10);
+    const nowTime = () => new Date().toTimeString().slice(0, 5);
+    const monthLabel = (dateStr) => new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+    const escapeHTML = (s) => String(s ?? '').replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    const uid = () => 'id_' + Math.random().toString(36).slice(2, 10);
+    const byId = (id) => state.alunos.find(a => a.id === id);
+    const lastPaymentDate = (alunoId) => state.pagamentos.filter(p => p.alunoId === alunoId).sort((a,b)=> (b.data||'').localeCompare(a.data||''))[0]?.data || '';
+    const daysBetween = (a,b) => Math.floor((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000);
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+
+    const defaultAdminPermissions = () => ({
+      students: true,
+      payments: true,
+      attendance: true,
+      finance: true,
+      backup: true,
+      admins: true,
+      portal: true
+    });
+
+    function seedDefaultAdmin(){
+      if(!Array.isArray(stateDefault.admins)) stateDefault.admins = [];
+      if(stateDefault.admins.length) return;
+      stateDefault.admins = [{
+        id: 'admin_default',
+        username: ADMIN_USER,
+        password: ADMIN_PASS,
+        name: 'Administrador principal',
+        role: 'superadmin',
+        active: true,
+        permissions: defaultAdminPermissions(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }];
+    }
+
+    function normalizeAdmins(list){
+      const admins = Array.isArray(list) ? list : [];
+      const clean = admins.map((a, idx) => ({
+        id: a.id || `admin_${idx}_${Date.now()}`,
+        username: String(a.username || a.user || '').trim(),
+        password: String(a.password || a.pass || ''),
+        name: String(a.name || a.displayName || a.username || a.user || 'Administrador').trim(),
+        role: ['superadmin','admin','finance','staff','viewer'].includes(a.role) ? a.role : 'admin',
+        active: a.active !== false,
+        permissions: {
+          ...defaultAdminPermissions(),
+          ...(a.permissions || {})
+        },
+        createdAt: a.createdAt || new Date().toISOString(),
+        updatedAt: a.updatedAt || new Date().toISOString()
+      })).filter(a => a.username && a.password);
+
+      // ensure at least one superadmin exists
+      if(!clean.some(a => a.role === 'superadmin')){
+        clean.unshift({
+          id: 'admin_default',
+          username: ADMIN_USER,
+          password: ADMIN_PASS,
+          name: 'Administrador principal',
+          role: 'superadmin',
+          active: true,
+          permissions: defaultAdminPermissions(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+      return clean;
+    }
+
+    function getAdmins(){
+      return normalizeAdmins(state.admins);
+    }
+
+    function getCurrentAdmin(){
+      const id = localStorage.getItem(CURRENT_ADMIN_KEY);
+      return getAdmins().find(a => a.id === id) || null;
+    }
+
+    function setCurrentAdmin(admin){
+      if(admin) localStorage.setItem(CURRENT_ADMIN_KEY, admin.id);
+      else localStorage.removeItem(CURRENT_ADMIN_KEY);
+    }
+
+    function hasPermission(permission){
+      const admin = getCurrentAdmin();
+      if(!admin) return false;
+      if(admin.role === 'superadmin') return true;
+      return !!(admin.permissions && admin.permissions[permission]);
+    }
+
+    function rolePreset(role){
+      const base = defaultAdminPermissions();
+      switch(role){
+        case 'viewer':
+          return { ...base, students:false, payments:false, attendance:false, finance:false, backup:false, admins:false, portal:true };
+        case 'staff':
+          return { ...base, finance:false, backup:false, admins:false };
+        case 'finance':
+          return { ...base, students:false, attendance:false, portal:false };
+        case 'admin':
+          return { ...base, admins:false };
+        case 'superadmin':
+        default:
+          return { ...base };
+      }
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw){
+          const base = structuredClone(stateDefault);
+          base.admins = normalizeAdmins(base.admins);
+          return base;
+        }
+        const parsed = JSON.parse(raw);
+        const merged = { ...structuredClone(stateDefault), ...parsed };
+        merged.admins = normalizeAdmins(merged.admins);
+        return merged;
+      }catch{
+        const base = structuredClone(stateDefault);
+        base.admins = normalizeAdmins(base.admins);
+        return base;
+      }
+    }
+    function saveState(show=true){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+      if(show) toast('Salvo');
+    }
+    function toast(msg){
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window.__toast);
+      window.__toast = setTimeout(() => t.classList.remove('show'), 1400);
+    }
+
+    function setAuthLocal(ok, adminId=''){
+      if(ok){
+        localStorage.setItem(AUTH_KEY, '1');
+        if(adminId) setCurrentAdmin({ id: adminId });
+      } else {
+        localStorage.removeItem(AUTH_KEY);
+        setCurrentAdmin(null);
+      }
+    }
+    function isAdminAuthed(){
+      return localStorage.getItem(AUTH_KEY) === '1' && !!getCurrentAdmin();
+    }
+
+    function openLogin(message=''){
+      document.body.classList.add('locked');
+      $('loginOverlay').style.display = 'flex';
+      $('loginMsg').style.display = message ? 'block' : 'none';
+      $('loginMsg').textContent = message;
+    }
+    function closeLogin(){
+      document.body.classList.remove('locked');
+      $('loginOverlay').style.display = 'none';
+      $('loginMsg').style.display = 'none';
+      $('loginMsg').textContent = '';
+    }
+    function showAdminArea(admin){
+      setAuthLocal(true, admin?.id || '');
+      closeLogin();
+      $('btnLogoutAdmin').style.display = 'inline-flex';
+      $('btnOpenLogin').textContent = admin ? admin.username : 'Admin ativo';
+      $('statusLine').textContent = admin
+        ? `Admin: ${admin.username} · ${admin.role}`
+        : 'Admin autenticado neste navegador';
+      toast('Acesso liberado');
+      renderAll();
+    }
+    function logoutAdmin(){
+      setAuthLocal(false);
+      $('btnLogoutAdmin').style.display = 'none';
+      $('btnOpenLogin').textContent = 'Entrar';
+      $('statusLine').textContent = 'Sessão do admin encerrada';
+      openLogin('');
+      toast('Saiu do admin');
+    }
+
+    function switchMainTab(tab){
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      $(tab).classList.add('active');
+      document.querySelectorAll('.navbtn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    }
+
+    function setLoginTab(tab){
+      document.querySelectorAll('[data-login-tab]').forEach(b => b.classList.toggle('active', b.dataset.loginTab === tab));
+      $('adminPanel').classList.toggle('active', tab === 'admin');
+      $('studentPanel').classList.toggle('active', tab === 'aluno');
+    }
+
+    function getStudentByEmail(email){
+      const target = String(email || '').trim().toLowerCase();
+      return state.alunos.find(a => String(a.email || '').trim().toLowerCase() === target);
+    }
+
+    function linkStudentProfile(user, extra = {}){
+      const email = (user.email || '').trim().toLowerCase();
+      let aluno = getStudentByEmail(email);
+      if(!aluno && extra.studentCode){
+        aluno = state.alunos.find(a => String(a.codigo || '').trim().toLowerCase() === String(extra.studentCode).trim().toLowerCase());
+      }
+      if(!aluno){
+        aluno = {
+          id: uid(),
+          nome: user.displayName || extra.name || 'Aluno',
+          telefone: '',
+          email: user.email || '',
+          documento: '',
+          plano: 'Mensal',
+          vencimento: today(),
+          valorMensalidade: 0,
+          endereco: '',
+          codigo: extra.studentCode || '',
+          criadoEm: new Date().toISOString()
+        };
+        state.alunos.push(aluno);
+      } else {
+        aluno.email = user.email || aluno.email || '';
+        if(user.displayName && !aluno.nome) aluno.nome = user.displayName;
+        if(extra.studentCode) aluno.codigo = extra.studentCode;
+      }
+      saveState(false);
+      return aluno;
+    }
+
+    function studentPayments(alunoId){
+      return state.pagamentos
+        .filter(p => p.alunoId === alunoId)
+        .sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+    }
+    function studentPresences(alunoId){
+      return state.presencas
+        .filter(p => (p.alunoIds || []).includes(alunoId))
+        .sort((a,b)=> (b.data||'').localeCompare(a.data||''));
+    }
+
+    function formatStatus(aluno){
+      const due = aluno.vencimento || '';
+      if(!due) return { text:'Sem vencimento', cls:'warn' };
+      const diff = daysBetween(today(), due);
+      if(diff < 0) return { text:`Vencido há ${Math.abs(diff)} dia(s)`, cls:'bad' };
+      if(diff <= 7) return { text:`Vence em ${diff} dia(s)`, cls:'warn' };
+      return { text:'Em dia', cls:'ok' };
+    }
+
+    function renderTopCards(){
+      const now = today();
+      const totalAlunos = state.alunos.length;
+      const emDia = state.alunos.filter(a => daysBetween(now, a.vencimento || now) >= 0).length;
+      const vencidos = state.alunos.filter(a => daysBetween(now, a.vencimento || now) < 0).length;
+      const receitaMes = state.movimentos.filter(m => m.tipo === 'Receita' && m.data.startsWith(now.slice(0,7))).reduce((s,m)=>s+Number(m.valor||0),0) + state.pagamentos.filter(p => p.data.startsWith(now.slice(0,7))).reduce((s,p)=>s+Number(p.valor||0),0);
+      const despesaMes = state.movimentos.filter(m => m.tipo === 'Despesa' && m.data.startsWith(now.slice(0,7))).reduce((s,m)=>s+Number(m.valor||0),0);
+      const saldoMes = receitaMes - despesaMes;
+
+      $('heroCards').innerHTML = [
+        ['👥','Alunos', totalAlunos, 'Base cadastrada'],
+        ['✅','Em dia', emDia, 'Mensalidades atuais'],
+        ['⏰','Vencidos', vencidos, 'Pendências'],
+        ['💰','Saldo do mês', fmtBRL(saldoMes), 'Receitas - despesas']
+      ].map(([icon,title,value,sub]) => `
+        <div class="card stat">
+          <div>
+            <h3>${title}</h3>
+            <div class="value">${value}</div>
+            <div class="muted small">${sub}</div>
+          </div>
+          <div class="icon">${icon}</div>
+        </div>
+      `).join('');
+
+      $('balancePill').className = 'pill ' + (saldoMes >= 0 ? 'ok' : 'bad');
+      $('balancePill').textContent = `Saldo do mês: ${fmtBRL(saldoMes)}`;
+    }
+
+    function renderChart(){
+      const chart = $('financeChart');
+      const months = [];
+      const now = new Date();
+      for(let i=5;i>=0;i--){
+        const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+        const key = d.toISOString().slice(0,7);
+        const label = d.toLocaleDateString('pt-BR', { month: 'short' });
+        const receita = state.pagamentos.filter(p => (p.data||'').startsWith(key)).reduce((s,p)=>s+Number(p.valor||0),0) +
+                        state.movimentos.filter(m => m.tipo==='Receita' && (m.data||'').startsWith(key)).reduce((s,m)=>s+Number(m.valor||0),0);
+        const despesa = state.movimentos.filter(m => m.tipo==='Despesa' && (m.data||'').startsWith(key)).reduce((s,m)=>s+Number(m.valor||0),0);
+        months.push({label, receita, despesa, total: Math.max(receita, despesa, 1)});
+      }
+      chart.innerHTML = months.map(m => {
+        const h = clamp((m.receita / Math.max(...months.map(x=>x.total))) * 100, 10, 100);
+        return `<div class="barwrap">
+          <div class="bar" style="height:${h}%"><span>${fmtBRL(m.receita - m.despesa)}</span></div>
+          <div class="muted small">${m.label}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderStudents(){
+      const q = ($('searchAluno').value || '').trim().toLowerCase();
+      const list = state.alunos
+        .filter(a => !q || [a.nome,a.telefone,a.email,a.documento,a.plano,a.endereco].join(' ').toLowerCase().includes(q))
+        .sort((a,b)=> (a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
+      $('studentsTable').innerHTML = list.map(a => {
+        const st = formatStatus(a);
+        return `<tr>
+          <td><strong>${escapeHTML(a.nome || '')}</strong><div class="muted small">${escapeHTML(a.email || '')}</div></td>
+          <td>${escapeHTML(a.telefone || '')}<div class="muted small">${escapeHTML(a.documento || '')}</div></td>
+          <td>${escapeHTML(a.plano || '')}<div class="muted small">${escapeHTML(a.vencimento || '')}</div></td>
+          <td>${fmtBRL(a.valorMensalidade || 0)}</td>
+          <td><span class="pill ${st.cls}">${st.text}</span></td>
+          <td>
+            <div class="row">
+              <button class="btn secondary" data-edit="${a.id}">Editar</button>
+              <button class="btn red" data-del="${a.id}">Excluir</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="6" class="muted">Nenhum aluno cadastrado.</td></tr>`;
+
+      $('m_aluno').innerHTML = `<option value="">Selecione</option>` + state.alunos.map(a => `<option value="${a.id}">${escapeHTML(a.nome)}</option>`).join('');
+      $('presenceChecks').innerHTML = state.alunos.map(a => `
+        <label class="check">
+          <input type="checkbox" value="${a.id}" class="presenceCheck">
+          <span>
+            <strong>${escapeHTML(a.nome)}</strong><br>
+            <span class="muted small">${escapeHTML(a.plano || '')} • ${escapeHTML(a.vencimento || '')}</span>
+          </span>
+        </label>
+      `).join('') || `<div class="muted">Cadastre alunos para registrar presença.</div>`;
+    }
+
+    function renderAlerts(){
+      const list = [...state.alunos].sort((a,b)=> (a.vencimento||'9999-99-99').localeCompare(b.vencimento||'9999-99-99'));
+      $('alertsTable').innerHTML = list.map(a => {
+        const st = formatStatus(a);
+        return `<tr>
+          <td><strong>${escapeHTML(a.nome || '')}</strong></td>
+          <td>${escapeHTML(a.telefone || '')}</td>
+          <td>${escapeHTML(a.plano || '')}</td>
+          <td>${escapeHTML(a.vencimento || '')}</td>
+          <td><span class="pill ${st.cls}">${st.text}</span></td>
+          <td>${fmtBRL(a.valorMensalidade || 0)}</td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="6" class="muted">Sem alertas no momento.</td></tr>`;
+    }
+
+    function renderPayments(){
+      const rows = [...state.pagamentos].sort((a,b)=> (b.data||'').localeCompare(a.data||'')).slice(0, 30);
+      $('paymentsTable').innerHTML = rows.map(p => `
+        <tr>
+          <td>${escapeHTML(p.data || '')}</td>
+          <td>${escapeHTML(byId(p.alunoId)?.nome || 'Aluno removido')}</td>
+          <td>${fmtBRL(p.valor || 0)}</td>
+          <td>${escapeHTML(p.forma || '')}</td>
+          <td>${escapeHTML(p.ref || '')}</td>
+        </tr>
+      `).join('') || `<tr><td colspan="5" class="muted">Nenhum pagamento lançado.</td></tr>`;
+    }
+
+    function renderAttendance(){
+      const rows = [...state.presencas].sort((a,b)=> (b.data||'').localeCompare(a.data||'')).slice(0, 30);
+      const items = [];
+      rows.forEach(p => {
+        const names = (p.alunoIds || []).map(id => byId(id)?.nome || 'Aluno removido');
+        names.forEach(nome => items.push({ ...p, nome }));
+      });
+      $('attendanceTable').innerHTML = items.slice(0, 30).map(p => `
+        <tr>
+          <td>${escapeHTML(p.data || '')}</td>
+          <td>${escapeHTML(p.hora || '')}</td>
+          <td>${escapeHTML(p.aula || '')}</td>
+          <td>${escapeHTML(p.nome || '')}</td>
+        </tr>
+      `).join('') || `<tr><td colspan="4" class="muted">Sem presenças registradas.</td></tr>`;
+    }
+
+    function renderMovements(){
+      const rows = [...state.movimentos].sort((a,b)=> (b.data||'').localeCompare(a.data||'')).slice(0, 30);
+      $('movementsTable').innerHTML = rows.map(m => `
+        <tr>
+          <td>${escapeHTML(m.data || '')}</td>
+          <td><span class="pill ${m.tipo === 'Receita' ? 'ok' : 'bad'}">${escapeHTML(m.tipo || '')}</span></td>
+          <td>${fmtBRL(m.valor || 0)}</td>
+          <td>${escapeHTML(m.desc || '')}</td>
+        </tr>
+      `).join('') || `<tr><td colspan="4" class="muted">Sem movimentações financeiras.</td></tr>`;
+    }
+
+    function renderStudentPortal(){
+      if(!studentUser){
+        $('studentStatus').innerHTML = `
+          <div class="notice">Nenhum aluno conectado no momento.</div>
+          <div class="muted small">Use a aba de login para criar conta ou entrar com e-mail e senha.</div>
+        `;
+        $('studentHistory').innerHTML = `<div class="muted">O histórico aparece após o login.</div>`;
+        return;
+      }
+      const aluno = studentProfile || linkStudentProfile(studentUser, {});
+      const st = formatStatus(aluno);
+      const pay = studentPayments(aluno.id).slice(0, 8);
+      const pres = studentPresences(aluno.id).slice(0, 8);
+      $('studentStatus').innerHTML = `
+        <div class="item">
+          <div>
+            <h4>${escapeHTML(aluno.nome || studentUser.displayName || 'Aluno')}</h4>
+            <p>${escapeHTML(aluno.email || studentUser.email || '')}</p>
+            <p>Código: ${escapeHTML(aluno.codigo || '—')}</p>
+          </div>
+          <div><span class="pill ${st.cls}">${st.text}</span></div>
+        </div>
+        <div class="item">
+          <div>
+            <h4>Plano</h4>
+            <p>${escapeHTML(aluno.plano || '')}</p>
+            <p>Vencimento: ${escapeHTML(aluno.vencimento || '')}</p>
+          </div>
+          <div><strong>${fmtBRL(aluno.valorMensalidade || 0)}</strong></div>
+        </div>
+        <div class="item">
+          <div>
+            <h4>Contato</h4>
+            <p>${escapeHTML(aluno.telefone || 'Sem telefone')}</p>
+            <p>${escapeHTML(aluno.endereco || '')}</p>
+          </div>
+        </div>
+      `;
+      const history = [
+        ...pay.map(p => ({ type:'Pagamento', date:p.data, text:`${fmtBRL(p.valor || 0)} • ${p.forma || ''} • ${p.ref || ''}` })),
+        ...pres.map(p => ({ type:'Presença', date:p.data, text:`${p.hora || ''} • ${p.aula || ''}` }))
+      ].sort((a,b)=> (b.date||'').localeCompare(a.date||'')).slice(0, 10);
+      $('studentHistory').innerHTML = history.map(h => `
+        <div class="item">
+          <div>
+            <h4>${escapeHTML(h.type)}</h4>
+            <p>${escapeHTML(h.date || '')}</p>
+            <p>${escapeHTML(h.text || '')}</p>
+          </div>
+        </div>
+      `).join('') || `<div class="muted">Sem histórico ainda.</div>`;
+    }
+
+    function renderClock(){
+      $('clock').textContent = new Date().toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+    }
+
+
+    function currentPermissionSummary(admin){
+      const perms = admin?.permissions || {};
+      const keys = ['students','payments','attendance','finance','backup','admins','portal'];
+      return keys.filter(k => perms[k] || admin?.role === 'superadmin').map(k => ({
+        students:'Alunos',
+        payments:'Pagamentos',
+        attendance:'Presenças',
+        finance:'Financeiro',
+        backup:'Backup',
+        admins:'Admins',
+        portal:'Portal'
+      }[k])).join(', ');
+    }
+
+    function renderAdmins(){
+      const tbody = $('adminsTable');
+      if(!tbody) return;
+      const admins = getAdmins();
+      const current = getCurrentAdmin();
+      tbody.innerHTML = admins.map(a => {
+        const perms = currentPermissionSummary(a) || '—';
+        const st = a.active ? '<span class="pill ok">Ativo</span>' : '<span class="pill bad">Inativo</span>';
+        const role = `<span class="pill">${escapeHTML(a.role)}</span>`;
+        return `<tr>
+          <td><strong>${escapeHTML(a.username)}</strong><div class="muted small">${escapeHTML(a.name || '')}</div></td>
+          <td>${role}</td>
+          <td class="small">${escapeHTML(perms)}</td>
+          <td>${st}</td>
+          <td>
+            <div class="row">
+              <button class="btn secondary" data-admin-edit="${a.id}">Editar</button>
+              <button class="btn red" data-admin-del="${a.id}">Excluir</button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="5" class="muted">Nenhum administrador cadastrado.</td></tr>`;
+
+      if(current && !hasPermission('admins')){
+        $('config').classList.add('hide');
+      } else {
+        $('config').classList.remove('hide');
+      }
+    }
+
+    function applyPermissionGuards(){
+      const admin = getCurrentAdmin();
+      const configTab = document.querySelector('[data-tab="config"]');
+      if(configTab) configTab.style.display = admin && hasPermission('admins') ? 'flex' : 'none';
+      // show status badge
+      const p = admin ? currentPermissionSummary(admin) : '';
+      if(admin){
+        $('statusLine').textContent = `${admin.username} · ${admin.role}${p ? ' · ' + p : ''}`;
+      }
+
+      const disabledStudents = admin ? !hasPermission('students') : false;
+      const disabledPayments = admin ? !hasPermission('payments') : false;
+      const disabledAttendance = admin ? !hasPermission('attendance') : false;
+      const disabledFinance = admin ? !hasPermission('finance') : false;
+      const disabledBackup = admin ? !hasPermission('backup') : false;
+
+      const studentForm = $('studentForm');
+      if(studentForm) studentForm.querySelectorAll('input,select,button').forEach(el => {
+        if(el.id === 'btnResetStudent') return;
+        el.disabled = disabledStudents;
+      });
+      const paymentForm = $('paymentForm');
+      if(paymentForm) paymentForm.querySelectorAll('input,select,button').forEach(el => el.disabled = disabledPayments);
+      const presForm = $('presenceForm');
+      if(presForm) presForm.querySelectorAll('input,select,button').forEach(el => el.disabled = disabledAttendance);
+      const movForm = $('movementForm');
+      if(movForm) movForm.querySelectorAll('input,select,button').forEach(el => el.disabled = disabledFinance);
+      const exportBtn = $('btnExport');
+      const importFile = $('importFile');
+      const clearAll = $('btnClearAll');
+      if(exportBtn) exportBtn.disabled = disabledBackup;
+      if(importFile) importFile.disabled = disabledBackup;
+      if(clearAll) clearAll.disabled = disabledBackup;
+
+      document.querySelectorAll('[data-edit]').forEach(btn => btn.disabled = disabledStudents);
+      document.querySelectorAll('[data-del]').forEach(btn => btn.disabled = disabledStudents);
+    }
+
+    function fillAdminForm(a){
+      $('adminId').value = a.id;
+      $('ad_user').value = a.username || '';
+      $('ad_pass').value = a.password || '';
+      $('ad_name').value = a.name || '';
+      $('ad_role').value = a.role || 'admin';
+      $('ad_active').checked = a.active !== false;
+      const perms = a.permissions || {};
+      $('perm_students').checked = !!perms.students || a.role === 'superadmin';
+      $('perm_payments').checked = !!perms.payments || a.role === 'superadmin';
+      $('perm_attendance').checked = !!perms.attendance || a.role === 'superadmin';
+      $('perm_finance').checked = !!perms.finance || a.role === 'superadmin';
+      $('perm_backup').checked = !!perms.backup || a.role === 'superadmin';
+      $('perm_admins').checked = !!perms.admins || a.role === 'superadmin';
+      $('perm_portal').checked = !!perms.portal || a.role === 'superadmin';
+      switchMainTab('config');
+      toast('Administrador carregado');
+    }
+
+    function clearAdminForm(){
+      $('adminForm').reset();
+      $('adminId').value = '';
+      $('ad_active').checked = true;
+      $('ad_role').value = 'admin';
+      const base = rolePreset('admin');
+      $('perm_students').checked = base.students;
+      $('perm_payments').checked = base.payments;
+      $('perm_attendance').checked = base.attendance;
+      $('perm_finance').checked = base.finance;
+      $('perm_backup').checked = base.backup;
+      $('perm_admins').checked = base.admins;
+      $('perm_portal').checked = base.portal;
+    }
+
+    function syncPermsByRole(){
+      const preset = rolePreset($('ad_role').value);
+      $('perm_students').checked = preset.students;
+      $('perm_payments').checked = preset.payments;
+      $('perm_attendance').checked = preset.attendance;
+      $('perm_finance').checked = preset.finance;
+      $('perm_backup').checked = preset.backup;
+      $('perm_admins').checked = preset.admins;
+      $('perm_portal').checked = preset.portal;
+    }
+
+        function renderAll(){
+      if(!state.alunos) state.alunos = [];
+      if(!state.pagamentos) state.pagamentos = [];
+      if(!state.presencas) state.presencas = [];
+      if(!state.movimentos) state.movimentos = [];
+      state.admins = normalizeAdmins(state.admins);
+      renderTopCards();
+      renderChart();
+      renderStudents();
+      renderAlerts();
+      renderPayments();
+      renderAttendance();
+      renderMovements();
+      renderStudentPortal();
+      renderAdmins();
+      applyPermissionGuards();
+    }
+
+    function fillStudentForm(a){
+      $('studentId').value = a.id;
+      $('a_nome').value = a.nome || '';
+      $('a_telefone').value = a.telefone || '';
+      $('a_email').value = a.email || '';
+      $('a_documento').value = a.documento || '';
+      $('a_plano').value = a.plano || 'Mensal';
+      $('a_venc').value = a.vencimento || today();
+      $('a_valor').value = a.valorMensalidade ?? '';
+      $('a_endereco').value = a.endereco || '';
+      editingId = a.id;
+      switchMainTab('alunos');
+      toast('Editando aluno');
+    }
+
+    function clearStudentForm(){
+      editingId = null;
+      $('studentId').value = '';
+      $('studentForm').reset();
+      $('a_plano').value = 'Mensal';
+      $('a_venc').value = today();
+    }
+
+    function fillPaymentAmount(){
+      const aluno = byId($('m_aluno').value);
+      if(aluno) $('m_valor').value = aluno.valorMensalidade || '';
+    }
+
+    function clearPresenceChecks(){
+      document.querySelectorAll('.presenceCheck').forEach(ch => ch.checked = false);
+      $('p_aula').value = '';
+      $('p_data').value = today();
+      $('p_hora').value = nowTime();
+    }
+
+    async function studentRegister(){
+      if(!fbAuth){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = 'Firebase não pôde ser carregado neste navegador.';
+        return;
+      }
+      const name = $('studentName').value.trim();
+      const email = $('studentEmail').value.trim();
+      const pass = $('studentPass').value;
+      const code = $('studentCode').value.trim();
+      if(!name || !email || !pass){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = 'Preencha nome, e-mail e senha.';
+        return;
+      }
+      try{
+        const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
+        await cred.user.updateProfile({ displayName: name });
+        studentUser = cred.user;
+        studentProfile = linkStudentProfile(cred.user, { name, studentCode: code });
+        renderStudentPortal();
+        switchMainTab('portal');
+        toast('Conta do aluno criada');
+      }catch(err){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = err?.message || 'Não foi possível criar a conta.';
+      }
+    }
+
+    async function studentLogin(){
+      if(!fbAuth){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = 'Firebase não pôde ser carregado neste navegador.';
+        return;
+      }
+      const email = $('studentEmail').value.trim();
+      const pass = $('studentPass').value;
+      if(!email || !pass){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = 'Informe e-mail e senha.';
+        return;
+      }
+      try{
+        const cred = await fbAuth.signInWithEmailAndPassword(email, pass);
+        studentUser = cred.user;
+        studentProfile = linkStudentProfile(cred.user, { studentCode: $('studentCode').value.trim() });
+        renderStudentPortal();
+        switchMainTab('portal');
+        toast('Aluno conectado');
+      }catch(err){
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = err?.message || 'Falha no login do aluno.';
+      }
+    }
+
+    async function studentLogout(){
+      try{ if(fbAuth) await fbAuth.signOut(); }catch{}
+      studentUser = null;
+      studentProfile = null;
+      renderStudentPortal();
+      switchMainTab('portal');
+      toast('Aluno desconectado');
+    }
+
+    function exportBackup(){
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        version: 1,
+        state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `academia-backup-${today()}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast('Backup exportado');
+    }
+
+    async function importBackup(file){
+      const txt = await file.text();
+      const parsed = JSON.parse(txt);
+      const incoming = parsed.state || parsed;
+      if(!incoming || typeof incoming !== 'object') throw new Error('Arquivo inválido.');
+      state = {
+        alunos: Array.isArray(incoming.alunos) ? incoming.alunos : [],
+        pagamentos: Array.isArray(incoming.pagamentos) ? incoming.pagamentos : [],
+        presencas: Array.isArray(incoming.presencas) ? incoming.presencas : [],
+        movimentos: Array.isArray(incoming.movimentos) ? incoming.movimentos : []
+      };
+      saveState(false);
+      toast('Backup importado');
+    }
+
+    function clearAllData(){
+      if(!confirm('Tem certeza que deseja apagar todos os dados?')) return;
+      state = structuredClone(stateDefault);
+      localStorage.removeItem(STORAGE_KEY);
+      clearStudentForm();
+      saveState(false);
+      toast('Dados apagados');
+    }
+
+    document.querySelectorAll('.navbtn').forEach(btn => btn.addEventListener('click', () => {
+      if(btn.dataset.tab === 'config' && !hasPermission('admins')){
+        toast('Sem permissão para acessar configurações');
+        return;
+      }
+      switchMainTab(btn.dataset.tab);
+    }));
+    document.querySelectorAll('[data-go]').forEach(btn => btn.addEventListener('click', () => {
+      if(btn.dataset.go === 'config' && !hasPermission('admins')){
+        toast('Sem permissão para acessar configurações');
+        return;
+      }
+      switchMainTab(btn.dataset.go);
+    }));
+    document.querySelectorAll('[data-login-tab]').forEach(btn => btn.addEventListener('click', () => setLoginTab(btn.dataset.loginTab)));
+
+    $('btnOpenLogin').addEventListener('click', () => openLogin(''));
+    $('btnDemoFill').addEventListener('click', () => {
+      $('loginUser').value = ADMIN_USER;
+      $('loginPass').value = ADMIN_PASS;
+    });
+    $('btnLogin').addEventListener('click', () => {
+      const u = $('loginUser').value.trim();
+      const p = $('loginPass').value;
+      const admin = getAdmins().find(a => a.active && a.username === u && a.password === p);
+      if(admin){
+        showAdminArea(admin);
+      } else {
+        $('loginMsg').style.display = 'block';
+        $('loginMsg').textContent = 'Usuário ou senha incorretos.';
+      }
+    });
+    $('loginPass').addEventListener('keydown', e => { if(e.key === 'Enter') $('btnLogin').click(); });
+    $('loginUser').addEventListener('keydown', e => { if(e.key === 'Enter') $('btnLogin').click(); });
+    $('btnLogoutAdmin').addEventListener('click', logoutAdmin);
+
+    $('studentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const obj = {
+        id: editingId || uid(),
+        nome: $('a_nome').value.trim(),
+        telefone: $('a_telefone').value.trim(),
+        email: $('a_email').value.trim(),
+        documento: $('a_documento').value.trim(),
+        plano: $('a_plano').value,
+        vencimento: $('a_venc').value || today(),
+        valorMensalidade: Number($('a_valor').value || 0),
+        endereco: $('a_endereco').value.trim(),
+        codigo: ''
+      };
+      if(!obj.nome){
+        toast('Informe o nome do aluno');
+        return;
+      }
+      const idx = state.alunos.findIndex(a => a.id === obj.id);
+      if(idx >= 0) state.alunos[idx] = { ...state.alunos[idx], ...obj };
+      else state.alunos.unshift({ ...obj, criadoEm: new Date().toISOString() });
+      saveState(false);
+      clearStudentForm();
+      toast('Aluno salvo');
+    });
+
+    $('btnResetStudent').addEventListener('click', clearStudentForm);
+    $('searchAluno').addEventListener('input', renderStudents);
+
+    $('studentsTable').addEventListener('click', (e) => {
+      const editId = e.target?.dataset?.edit;
+      const delId = e.target?.dataset?.del;
+      if(editId){
+        const aluno = byId(editId);
+        if(aluno) fillStudentForm(aluno);
+      }
+      if(delId){
+        const aluno = byId(delId);
+        if(!aluno) return;
+        if(!confirm(`Excluir ${aluno.nome}?`)) return;
+        state.alunos = state.alunos.filter(a => a.id !== delId);
+        state.pagamentos = state.pagamentos.filter(p => p.alunoId !== delId);
+        state.presencas = state.presencas.map(p => ({...p, alunoIds: (p.alunoIds || []).filter(id => id !== delId)})).filter(p => (p.alunoIds || []).length);
+        saveState(false);
+        toast('Aluno excluído');
+      }
+    });
+
+    $('btnFillPayment').addEventListener('click', fillPaymentAmount);
+    $('paymentForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const alunoId = $('m_aluno').value;
+      if(!alunoId){ toast('Selecione um aluno'); return; }
+      state.pagamentos.unshift({
+        id: uid(),
+        alunoId,
+        valor: Number($('m_valor').value || 0),
+        data: $('m_data').value || today(),
+        forma: $('m_forma').value,
+        ref: $('m_ref').value.trim()
+      });
+      saveState(false);
+      $('paymentForm').reset();
+      $('m_data').value = today();
+      $('m_ref').value = `mensalidade ${new Date().toLocaleDateString('pt-BR', { month:'long', year:'numeric' })}`;
+      toast('Pagamento registrado');
+    });
+
+    $('presenceForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const ids = [...document.querySelectorAll('.presenceCheck:checked')].map(i => i.value);
+      if(!ids.length){ toast('Selecione ao menos um aluno'); return; }
+      state.presencas.unshift({
+        id: uid(),
+        alunoIds: ids,
+        aula: $('p_aula').value.trim(),
+        data: $('p_data').value || today(),
+        hora: $('p_hora').value || nowTime()
+      });
+      saveState(false);
+      clearPresenceChecks();
+      toast('Presença salva');
+    });
+    $('btnClearPresence').addEventListener('click', clearPresenceChecks);
+
+    $('movementForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      state.movimentos.unshift({
+        id: uid(),
+        tipo: $('f_tipo').value,
+        valor: Number($('f_valor').value || 0),
+        data: $('f_data').value || today(),
+        desc: $('f_desc').value.trim()
+      });
+      saveState(false);
+      $('movementForm').reset();
+      $('f_tipo').value = 'Receita';
+      $('f_data').value = today();
+      toast('Lançamento adicionado');
+    });
+
+    $('btnExport').addEventListener('click', exportBackup);
+    $('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if(!file) return;
+      try{
+        await importBackup(file);
+      }catch(err){
+        alert(err.message || 'Falha ao importar backup');
+      }finally{
+        e.target.value = '';
+      }
+    });
+    $('btnClearAll').addEventListener('click', clearAllData);
+
+    $('btnStudentRegister').addEventListener('click', studentRegister);
+    $('btnStudentLogin').addEventListener('click', studentLogin);
+    $('studentPass').addEventListener('keydown', e => { if(e.key === 'Enter') studentLogin(); });
+    $('studentEmail').addEventListener('keydown', e => { if(e.key === 'Enter') studentLogin(); });
+    $('btnStudentLogout').addEventListener('click', studentLogout);
+
+    $('adminForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const obj = {
+        id: $('adminId').value || uid(),
+        username: $('ad_user').value.trim(),
+        password: $('ad_pass').value,
+        name: $('ad_name').value.trim(),
+        role: $('ad_role').value,
+        active: $('ad_active').checked,
+        permissions: {
+          students: $('perm_students').checked,
+          payments: $('perm_payments').checked,
+          attendance: $('perm_attendance').checked,
+          finance: $('perm_finance').checked,
+          backup: $('perm_backup').checked,
+          admins: $('perm_admins').checked,
+          portal: $('perm_portal').checked
+        },
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      };
+      if(!obj.username || !obj.password){
+        toast('Informe usuário e senha');
+        return;
+      }
+      const idx = state.admins.findIndex(a => a.id === obj.id);
+      if(idx >= 0){
+        obj.createdAt = state.admins[idx].createdAt || obj.createdAt;
+        state.admins[idx] = { ...state.admins[idx], ...obj };
+      } else {
+        state.admins.unshift(obj);
+      }
+      state.admins = normalizeAdmins(state.admins);
+      saveState(false);
+      clearAdminForm();
+      toast('Administrador salvo');
+    });
+    $('btnAdminReset').addEventListener('click', clearAdminForm);
+    $('ad_role').addEventListener('change', syncPermsByRole);
+
+    $('adminsTable').addEventListener('click', (e) => {
+      const editId = e.target?.dataset?.adminEdit;
+      const delId = e.target?.dataset?.adminDel;
+      if(editId){
+        const admin = getAdmins().find(a => a.id === editId);
+        if(admin) fillAdminForm(admin);
+      }
+      if(delId){
+        const admin = getAdmins().find(a => a.id === delId);
+        if(!admin) return;
+        const totalSuper = getAdmins().filter(a => a.role === 'superadmin' && a.id !== delId && a.active !== false).length;
+        if(admin.role === 'superadmin' && totalSuper < 1){
+          alert('Não é permitido excluir o último superadmin.');
+          return;
+        }
+        if(!confirm(`Excluir administrador ${admin.username}?`)) return;
+        state.admins = state.admins.filter(a => a.id !== delId);
+        state.admins = normalizeAdmins(state.admins);
+        saveState(false);
+        toast('Administrador excluído');
+      }
+    });
+
+    $('btnInstallInfo').addEventListener('click', () => {
+      alert('No iPhone: Compartilhar > Adicionar à Tela de Início. No Android/desktop: usar o menu do navegador para instalar o app, quando disponível.');
+    });
+
+    function setDefaults(){
+      $('a_venc').value = today();
+      $('m_data').value = today();
+      $('m_ref').value = `mensalidade ${new Date().toLocaleDateString('pt-BR', { month:'long', year:'numeric' })}`;
+      $('p_data').value = today();
+      $('p_hora').value = nowTime();
+      $('f_data').value = today();
+    }
+
+    if(fbAuth){
+      fbAuth.onAuthStateChanged(async (user) => {
+        studentUser = user || null;
+        if(user){
+          studentProfile = linkStudentProfile(user, {});
+          renderStudentPortal();
+          $('statusLine').textContent = 'Aluno autenticado via Firebase';
+          switchMainTab('portal');
+        } else {
+          studentProfile = null;
+          renderStudentPortal();
+        }
+      });
+    }
+
+    window.addEventListener('beforeunload', () => {
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch{}
+    });
+
+    window.addEventListener('resize', () => renderChart());
+
+    setDefaults();
+    state.admins = normalizeAdmins(state.admins);
+    const currentAdmin = getCurrentAdmin();
+    $('btnLogoutAdmin').style.display = currentAdmin ? 'inline-flex' : 'none';
+    $('btnOpenLogin').textContent = currentAdmin ? currentAdmin.username : 'Entrar';
+    $('statusLine').textContent = currentAdmin
+      ? `Admin: ${currentAdmin.username} · ${currentAdmin.role}`
+      : 'Pronto para abrir no iPhone ou no computador';
+
+    if(currentAdmin) closeLogin(); else openLogin('');
+    renderAll();
+    renderClock();
+    setInterval(renderClock, 60000);
+  </script>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+    }
+  </script>
+</body>
+</html>
