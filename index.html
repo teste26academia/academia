@@ -1,0 +1,44 @@
+from pathlib import Path
+import base64
+
+img_path = Path("/mnt/data/image(46).png")
+data = base64.b64encode(img_path.read_bytes()).decode("ascii")
+
+html = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>Garra de Águia PG</title>
+  <style>
+    html, body {{
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      background: #050505;
+      overflow: hidden;
+    }}
+    body {{
+      display: grid;
+      place-items: center;
+    }}
+    img {{
+      width: 100vw;
+      height: 100vh;
+      object-fit: contain;
+      object-position: center center;
+      display: block;
+      background: #050505;
+    }}
+  </style>
+</head>
+<body>
+  <img alt="Garra de Águia PG" src="data:image/png;base64,{data}">
+</body>
+</html>
+"""
+
+out = Path("/mnt/data/index_mockup_embedded.html")
+out.write_text(html, encoding="utf-8")
+print(out)
