@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garra de Águia PG — Premium Build</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      background:#07111f;
+      color:#fff;
+      min-height:100vh;
+      padding-bottom:90px;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      backdrop-filter:blur(12px);
+      background:rgba(8,16,30,.92);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .logo{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#ef4444,#dc2626);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      box-shadow:0 10px 30px rgba(239,68,68,.35);
+    }
+
+    .brand h1{
+      font-size:16px;
+      margin-bottom:2px;
+    }
+
+    .brand p{
+      color:#94a3b8;
+      font-size:12px;
+    }
+
+    .container{
+      padding:14px;
+      display:grid;
+      gap:14px;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:22px;
+      padding:16px;
+      box-shadow:0 14px 40px rgba(0,0,0,.28);
+    }
+
+    .card h3{
+      color:#94a3b8;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .value{
+      font-size:28px;
+      font-weight:bold;
+    }
+
+    .dashboard{
+      display:grid;
+      gap:14px;
+    }
+
+    .section-title{
+      font-size:18px;
+      margin-bottom:10px;
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+    }
+
+    .item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px;
+      border-radius:18px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.05);
+    }
+
+    .item strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .status{
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(34,197,94,.15);
+      color:#4ade80;
+      font-size:12px;
+      font-weight:bold;
+    }
+
+    .finance{
+      height:180px;
+      border-radius:18px;
+      background:linear-gradient(180deg,#0f172a,#111827);
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-around;
+      padding:20px;
+      overflow:hidden;
+    }
+
+    .bar{
+      width:28px;
+      border-radius:14px 14px 0 0;
+      background:linear-gradient(180deg,#ef4444,#dc2626);
+    }
+
+    .menu-bottom{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(8,16,30,.96);
+      backdrop-filter:blur(12px);
+      border-top:1px solid rgba(255,255,255,.06);
+      padding:10px;
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:8px;
+      z-index:30;
+    }
+
+    .menu-btn{
+      background:rgba(255,255,255,.04);
+      border:none;
+      color:#fff;
+      padding:10px 4px;
+      border-radius:16px;
+      font-size:11px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+    }
+
+    .menu-btn.active{
+      background:linear-gradient(135deg,#ef4444,#b91c1c);
+    }
+
+    @media(min-width:900px){
+      .container{
+        max-width:1400px;
+        margin:0 auto;
+        grid-template-columns:320px 1fr;
+      }
+
+      .sidebar{
+        display:grid;
+        gap:14px;
+        align-self:start;
+        position:sticky;
+        top:80px;
+      }
+
+      .menu-bottom{
+        display:none;
+      }
+
+      .hero{
+        grid-template-columns:repeat(4,1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">🥋</div>
+      <div>
+        <h1>Garra de Águia PG</h1>
+        <p>Premium Build — Fase 2</p>
+      </div>
+    </div>
+
+    <div>⚡ Mobile Premium</div>
+  </header>
+
+  <main class="container">
+
+    <aside class="sidebar">
+      <div class="card">
+        <h3>Menu rápido</h3>
+        <div class="list">
+          <div class="item"><strong>Dashboard</strong></div>
+          <div class="item"><strong>Alunos</strong></div>
+          <div class="item"><strong>Mensalidades</strong></div>
+          <div class="item"><strong>Presenças</strong></div>
+          <div class="item"><strong>Financeiro</strong></div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="dashboard">
+
+      <div class="hero">
+        <div class="card">
+          <h3>Alunos</h3>
+          <div class="value">124</div>
+        </div>
+
+        <div class="card">
+          <h3>Presenças</h3>
+          <div class="value">87%</div>
+        </div>
+
+        <div class="card">
+          <h3>Vencidos</h3>
+          <div class="value">18</div>
+        </div>
+
+        <div class="card">
+          <h3>Saldo</h3>
+          <div class="value">R$ 12k</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Painel financeiro</div>
+
+        <div class="finance">
+          <div class="bar" style="height:60px"></div>
+          <div class="bar" style="height:90px"></div>
+          <div class="bar" style="height:120px"></div>
+          <div class="bar" style="height:160px"></div>
+          <div class="bar" style="height:110px"></div>
+          <div class="bar" style="height:140px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Últimas movimentações</div>
+
+        <div class="list">
+          <div class="item">
+            <div>
+              <strong>Pagamento recebido</strong>
+              <span>Plano Premium</span>
+            </div>
+            <div class="status">Pago</div>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>Novo aluno cadastrado</strong>
+              <span>Turma infantil</span>
+            </div>
+            <div class="status">Novo</div>
+          </div>
+
+          <div class="item">
+            <div>
+              <strong>Presença registrada</strong>
+              <span>Aula noturna</span>
+            </div>
+            <div class="status">OK</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <nav class="menu-bottom">
+    <button class="menu-btn active">🏠<span>Início</span></button>
+    <button class="menu-btn">👥<span>Alunos</span></button>
+    <button class="menu-btn">📅<span>Presenças</span></button>
+    <button class="menu-btn">💳<span>Planos</span></button>
+    <button class="menu-btn">⚙️<span>Mais</span></button>
+  </nav>
+
+</body>
+</html>
