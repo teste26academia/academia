@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Liga Garra de Águia PG" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="logo.png" />
+  <title>Liga Garra de Águia PG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#060606;
+      --panel:#111111;
+      --panel2:#171717;
+      --line:#272727;
+      --text:#f5f5f5;
+      --muted:#a1a1aa;
+      --red:#b91c1c;
+      --red2:#dc2626;
+      --gold:#f59e0b;
+      --shadow: 0 20px 50px rgba(0,0,0,.35);
+      --radius: 28px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:
+      radial-gradient(circle at top, rgba(220,38,38,.20), transparent 30%),
+      linear-gradient(180deg,#050505,#0a0a0a 50%, #050505);
+      color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 92px}
+    .topbar{
+      position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);
+      background:rgba(6,6,6,.72);border-bottom:1px solid rgba(39,39,39,.9)
+    }
+    .topbar .inner{
+      max-width:1180px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{
+      width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#111,#400);
+      border:1px solid rgba(220,38,38,.45);overflow:hidden;display:grid;place-items:center;box-shadow:var(--shadow)
+    }
+    .logo img{width:100%;height:100%;object-fit:cover}
+    .brand h1{margin:0;font-size:15px;line-height:1.1}
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .status{display:flex;gap:8px;flex-wrap:wrap}
+    .pill{
+      padding:8px 12px;border-radius:999px;background:#0d0d0d;border:1px solid var(--line);color:#d4d4d8;font-size:12px
+    }
+    .pill.red{background:linear-gradient(135deg,var(--red),var(--red2));border-color:transparent}
+    .hero{
+      margin-top:16px;display:grid;grid-template-columns:1.3fr .9fr;gap:18px;align-items:stretch
+    }
+    .card{
+      background:linear-gradient(180deg,rgba(17,17,17,.98),rgba(10,10,10,.98));
+      border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)
+    }
+    .hero-main{padding:28px}
+    .kicker{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#bdbdbd}
+    .title{margin:14px 0 12px;font-size:clamp(34px,6vw,64px);line-height:.95;font-weight:900}
+    .title span{color:#ef4444}
+    .subtitle{margin:0;max-width:760px;color:#d4d4d8;line-height:1.7}
+    .hero-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+    .mini{
+      padding:16px;border-radius:22px;background:#0b0b0b;border:1px solid #262626;color:#e5e7eb
+    }
+    .mini strong{display:block;font-size:18px;margin-bottom:4px}
+    .login{padding:28px}
+    .login h2,.section h2{margin:0 0 8px;font-size:24px}
+    .login p,.section p{margin:0;color:var(--muted);line-height:1.6}
+    .field{margin-top:14px}
+    .field label{display:block;font-size:12px;color:#9ca3af;margin:0 0 8px}
+    .field input{
+      width:100%;padding:15px 16px;border-radius:18px;border:1px solid var(--line);
+      background:#090909;color:#f3f4f6;outline:none
+    }
+    .field input::placeholder{color:#52525b}
+    .btn{
+      width:100%;margin-top:14px;padding:15px 16px;border:0;border-radius:18px;
+      background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-weight:800;cursor:pointer
+    }
+    .btn.secondary{
+      background:#111;border:1px solid var(--line);color:#e5e7eb
+    }
+    .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+    .stat{
+      padding:18px;border-radius:24px;background:linear-gradient(180deg,#111,#0b0b0b);
+      border:1px solid #262626
+    }
+    .stat .label{color:var(--muted);font-size:13px}
+    .stat .value{margin-top:8px;font-size:28px;font-weight:900;color:#ef4444}
+    .section{margin-top:18px;padding:24px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .list{display:grid;gap:12px;margin-top:16px}
+    .row{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:15px;border-radius:20px;background:#0f0f0f;border:1px solid #262626
+    }
+    .row b{display:block}
+    .row small{color:var(--muted)}
+    .time{font-weight:800;color:#fca5a5}
+    .modules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+    .module{
+      padding:15px;border-radius:18px;background:#141414;border:1px solid #2a2a2a;color:#e5e7eb;font-size:14px
+    }
+    .features{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+    .feature{padding:15px;border-radius:18px;background:#101010;border:1px solid #262626;color:#d4d4d8}
+    .bottomnav{
+      position:fixed;left:0;right:0;bottom:0;z-index:25;background:rgba(6,6,6,.92);
+      border-top:1px solid rgba(39,39,39,.9);display:none
+    }
+    .bottomnav .inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+    .navbtn{
+      background:none;border:0;color:#d4d4d8;padding:14px 10px;font-weight:600;cursor:pointer
+    }
+    .navbtn:hover{color:#ef4444}
+    .chipline{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .chip{padding:10px 12px;border-radius:999px;background:#101010;border:1px solid #282828;color:#e5e7eb;font-size:12px}
+    @media (max-width: 980px){
+      .hero,.grid2{grid-template-columns:1fr}
+      .grid4,.features{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width: 720px){
+      .wrap{padding-bottom:84px}
+      .hero-main,.login,.section{padding:18px}
+      .grid4,.modules,.hero-grid,.features{grid-template-columns:1fr}
+      .bottomnav{display:block}
+      .status{display:none}
+      .brand p{white-space:normal}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <div class="logo">
+          <img src="logo.png" alt="Logo da academia" />
+        </div>
+        <div style="min-width:0">
+          <h1>Liga Garra de Águia PG</h1>
+          <p>Kung Fu Garra de Águia Praia Grande</p>
+        </div>
+      </div>
+      <div class="status">
+        <span class="pill">Sistema online</span>
+        <span class="pill red">Privado</span>
+        <span class="pill">App instalável</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="card hero-main">
+        <div class="kicker">Sistema da academia</div>
+        <h1 class="title">Liga Garra de <span>Águia</span> PG</h1>
+        <p class="subtitle">
+          Painel moderno para gestão de alunos, presença, mensalidades, graduação, agenda e conteúdo técnico.
+          Pronto para usar como base do app, publicar no GitHub Pages e evoluir para Firebase.
+        </p>
+
+        <div class="chipline">
+          <span class="chip">Login individual</span>
+          <span class="chip">Firebase ready</span>
+          <span class="chip">PWA</span>
+          <span class="chip">Responsivo</span>
+        </div>
+
+        <div class="hero-grid">
+          <div class="mini"><strong>Visual premium</strong>Inspirado no logo da academia e com identidade forte.</div>
+          <div class="mini"><strong>Mobile first</strong>Perfeito para iPhone, Android e navegador.</div>
+          <div class="mini"><strong>Base online</strong>Estrutura para publicação e sincronização.</div>
+          <div class="mini"><strong>Pronto para crescer</strong>Cadastro, financeiro, presença e muito mais.</div>
+        </div>
+      </div>
+
+      <div class="card login">
+        <h2>Acesso rápido</h2>
+        <p>Área pronta para login e navegação do sistema.</p>
+
+        <div class="field">
+          <label>Usuário</label>
+          <input type="email" value="admin@garraaguia.com" />
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" value="••••••••••" />
+        </div>
+        <button class="btn" id="enterBtn">Entrar no sistema</button>
+        <button class="btn secondary" id="installBtn" style="display:none">Instalar app</button>
+
+        <p style="margin-top:14px;font-size:12px">
+          Estrutura visual pronta para conectar Firebase Auth, Firestore e recursos de instalação como aplicativo.
+        </p>
+      </div>
+    </section>
+
+    <section class="grid4">
+      <div class="stat"><div class="label">Alunos</div><div class="value">128</div></div>
+      <div class="stat"><div class="label">Mensalidades</div><div class="value">R$ 12.450</div></div>
+      <div class="stat"><div class="label">Presenças Hoje</div><div class="value">34</div></div>
+      <div class="stat"><div class="label">Faixas Ativas</div><div class="value">7</div></div>
+    </section>
+
+    <section class="grid2">
+      <div class="card section">
+        <h2>Próximas aulas</h2>
+        <p>Agenda principal da academia.</p>
+        <div class="list">
+          <div class="row"><div><b>Kung Fu Infantil</b><small>Segunda</small></div><div class="time">19:00</div></div>
+          <div class="row"><div><b>Adulto Intermediário</b><small>Quarta</small></div><div class="time">20:00</div></div>
+          <div class="row"><div><b>Defesa Pessoal</b><small>Sexta</small></div><div class="time">19:30</div></div>
+        </div>
+      </div>
+
+      <div class="card section">
+        <h2>Módulos do sistema</h2>
+        <p>Tudo que entra na versão completa.</p>
+        <div class="modules">
+          <div class="module">Cadastro de alunos</div>
+          <div class="module">Controle de presença</div>
+          <div class="module">Financeiro</div>
+          <div class="module">Graduação / faixas</div>
+          <div class="module">Agenda de aulas</div>
+          <div class="module">Biblioteca de técnicas</div>
+          <div class="module">Avisos e mensagens</div>
+          <div class="module">Área administrativa</div>
+          <div class="module">Área do professor</div>
+          <div class="module">Login individual</div>
+          <div class="module">Firebase sincronizado</div>
+          <div class="module">Modo app instalável</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card section">
+      <h2>Recursos prontos para a versão final</h2>
+      <p>Base organizada para continuar a construção do sistema completo.</p>
+      <div class="features">
+        <div class="feature">✔ Login individual</div>
+        <div class="feature">✔ Firebase sincronizado</div>
+        <div class="feature">✔ App instalável iPhone/Android</div>
+        <div class="feature">✔ Controle de mensalidades</div>
+        <div class="feature">✔ Área do aluno</div>
+        <div class="feature">✔ Painel administrativo</div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottomnav">
+    <div class="inner">
+      <button class="navbtn">Início</button>
+      <button class="navbtn">Alunos</button>
+      <button class="navbtn">Agenda</button>
+      <button class="navbtn">Perfil</button>
+    </div>
+  </nav>
+
+  <script>
+    let deferredPrompt = null;
+    const installBtn = document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+
+    installBtn?.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.style.display = 'none';
+    });
+
+    document.getElementById('enterBtn')?.addEventListener('click', () => {
+      alert('Tela de login visual pronta. Próximo passo: conectar Firebase Auth.');
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
