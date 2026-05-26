@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05080f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Garra de Águia PG | Premium</title>
+  <style>
+    :root{
+      --bg:#05080f; --bg2:#0a1020; --card:#101826; --line:rgba(255,255,255,.08);
+      --text:#f2f5ff; --muted:#95a0b8; --red:#ef1d23; --red2:#c8102e;
+      --gold:#f2b233; --green:#28d17c; --shadow:0 18px 60px rgba(0,0,0,.35);
+      --r18:18px; --r22:22px;
+    }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top, rgba(239,29,35,.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(242,178,51,.08), transparent 28%),
+        linear-gradient(180deg, #05080f 0%, #070d18 50%, #05080f 100%);
+      overflow-x:hidden;
+    }
+    .app{min-height:100vh; padding-bottom:96px}
+    .page{display:none; min-height:100vh}
+    .page.active{display:block}
+    .splash,.login{display:grid; place-items:center; min-height:100vh; padding:24px}
+    .splash-card,.login-card,.glass{
+      border:1px solid var(--line); background:rgba(10,16,30,.82); box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+    }
+    .splash-card{width:min(430px,100%); padding:26px 22px; border-radius:30px; text-align:center}
+    .big-logo,.mini-crest{
+      margin:0 auto 12px; display:grid; place-items:center; background:#09090b;
+      border:1px solid rgba(255,255,255,.08); position:relative; overflow:hidden;
+    }
+    .big-logo{width:190px; height:190px; border-radius:34px}
+    .mini-crest{width:120px; height:120px; border-radius:24px}
+    .crest{
+      width:146px; height:146px; border-radius:26px; background:#09090b;
+      border:1px solid rgba(255,255,255,.06); display:grid; place-items:center;
+      color:var(--gold); position:relative; overflow:hidden;
+    }
+    .crest::before,.mini-crest::before,.big-logo::before{
+      content:""; position:absolute; inset:14px; border-radius:18px; border:3px solid var(--red);
+      transform:skewY(-6deg); opacity:.95;
+    }
+    .crest span,.mini-crest span{position:relative; font-size:62px; line-height:1}
+    .mini-crest span{font-size:42px}
+    .splash h1{margin:18px 0 6px; font-size:34px; letter-spacing:.6px; color:var(--gold)}
+    .splash p,.login-footer{margin:0; color:var(--muted); line-height:1.45}
+    .loader{margin:24px auto 0; width:32px; height:32px; border-radius:50%;
+      border:3px solid rgba(255,255,255,.12); border-top-color:var(--red); animation:spin .9s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .login-card{width:min(430px,100%); padding:22px; border-radius:30px}
+    .login-brand{text-align:center; margin-bottom:16px}
+    .login-brand h2{margin:0; font-size:24px; color:var(--gold)}
+    .login-brand small{display:block; margin-top:6px; color:var(--muted)}
+    .field{display:flex; flex-direction:column; gap:8px; margin-top:14px}
+    .field label{font-size:13px; font-weight:700; color:#d9def0}
+    .input{
+      width:100%; height:50px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03); color:var(--text); padding:0 14px; outline:none; font-size:15px;
+    }
+    .input:focus{border-color:rgba(239,29,35,.4); box-shadow:0 0 0 3px rgba(239,29,35,.12)}
+    .row{display:flex; gap:12px; align-items:center}.row > *{flex:1}
+    .btn{
+      appearance:none; border:none; cursor:pointer; border-radius:14px; min-height:50px;
+      font-weight:800; padding:0 16px; color:var(--text);
+    }
+    .btn-red{background:linear-gradient(135deg, var(--red), var(--red2)); box-shadow:0 10px 26px rgba(239,29,35,.18)}
+    .btn-dark{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10)}
+    .btn:active{transform:translateY(1px)}
+    .login-footer{margin-top:12px; text-align:center; font-size:12px}
+    .topbar{
+      position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:14px; border-bottom:1px solid rgba(255,255,255,.06); background:rgba(6,10,16,.88); backdrop-filter:blur(14px);
+    }
+    .top-left{display:flex; align-items:center; gap:12px; min-width:0}
+    .brand-badge{
+      width:44px; height:44px; border-radius:14px; background:#09090b; border:1px solid rgba(255,255,255,.08);
+      display:grid; place-items:center; flex:0 0 auto;
+    }
+    .brand-badge span{font-size:24px; color:var(--gold)}
+    .title-wrap{min-width:0}
+    .title-wrap h3{margin:0; font-size:17px}
+    .title-wrap p{margin:4px 0 0; font-size:12px; color:var(--muted)}
+    .top-actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .chip,.icon-btn{
+      border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.03); color:var(--text);
+      border-radius:999px; padding:10px 14px; min-height:42px;
+    }
+    .icon-btn{width:42px; padding:0; display:grid; place-items:center}
+    .menu-btn{display:none}
+    .layout{
+      display:grid; grid-template-columns:268px minmax(0,1fr); gap:16px; align-items:start;
+      max-width:1400px; margin:0 auto; padding:16px 14px 0;
+    }
+    .sidebar{
+      position:sticky; top:86px; display:flex; flex-direction:column; gap:12px; padding:14px;
+    }
+    .sidebar .nav{
+      display:flex; align-items:center; gap:12px; width:100%; text-align:left; min-height:50px; padding:12px 14px;
+      border:none; border-radius:16px; color:#dbe3fb; background:rgba(255,255,255,.03); cursor:pointer; font-weight:800;
+    }
+    .sidebar .nav.active{
+      background:linear-gradient(135deg, rgba(239,29,35,.18), rgba(242,178,51,.08));
+      border:1px solid rgba(239,29,35,.16); color:#fff;
+    }
+    .content{min-width:0}
+    .hero-grid{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px}
+    .kpi{padding:16px; border-radius:22px}
+    .kpi .label{font-size:13px; color:var(--muted); font-weight:700}
+    .kpi .num{font-size:30px; font-weight:900; margin-top:8px}
+    .kpi .sub{margin-top:6px; font-size:12px; color:#d0d7ea}
+    .kpi .badge{
+      width:40px; height:40px; border-radius:14px; display:grid; place-items:center; background:rgba(239,29,35,.12);
+      border:1px solid rgba(239,29,35,.14); font-size:18px;
+    }
+    .kpi-head{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .section{margin-top:14px; padding:16px; border-radius:24px}
+    .section h4{margin:0 0 6px; font-size:18px}
+    .section p.head{margin:0 0 14px; color:var(--muted); line-height:1.5}
+    .grid-2{display:grid; grid-template-columns:1.4fr .9fr; gap:12px}
+    .panel{padding:14px; border-radius:20px}
+    .panel h5{margin:0 0 10px; font-size:16px}
+    .chart{
+      height:190px; display:flex; align-items:flex-end; gap:10px; padding:18px; border-radius:18px;
+      background:linear-gradient(180deg,#0d1422,#11192a); border:1px solid rgba(255,255,255,.06);
+    }
+    .bar{width:100%; border-radius:14px 14px 0 0; background:linear-gradient(180deg,var(--red),var(--red2)); box-shadow:0 10px 26px rgba(239,29,35,.18)}
+    .quick-list{display:grid; gap:10px}
+    .item{
+      display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px; border-radius:18px;
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+    }
+    .item strong{display:block; margin-bottom:4px}.item span{color:var(--muted); font-size:13px}
+    .tag{padding:7px 11px; border-radius:999px; font-size:12px; font-weight:800; background:rgba(40,209,124,.12); color:#71f0ad}
+    .tag.red{background:rgba(239,29,35,.14); color:#ff7477}.tag.gold{background:rgba(242,178,51,.14); color:#ffd46b}
+    .bottomnav{
+      position:fixed; left:0; right:0; bottom:0; z-index:40; display:grid; grid-template-columns:repeat(5,1fr); gap:8px;
+      padding:10px; background:rgba(6,10,16,.94); backdrop-filter:blur(14px); border-top:1px solid rgba(255,255,255,.06);
+    }
+    .bottomnav button{
+      border:none; background:rgba(255,255,255,.03); color:#dbe3fb; border-radius:16px; min-height:54px;
+      display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; font-size:11px; font-weight:800;
+    }
+    .bottomnav button.active{background:linear-gradient(135deg,var(--red),var(--red2)); color:#fff}
+    .more-list{display:grid; gap:10px}
+    .more-link{
+      display:flex; justify-content:space-between; align-items:center; padding:14px 14px; border-radius:18px;
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+    }
+    .more-link b{font-size:14px}.more-link small{display:block; margin-top:3px; color:var(--muted)} .more-link span{color:var(--muted)}
+    .table{display:grid; gap:10px}
+    .student{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:18px;
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+    }
+    .avatar{
+      width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#704f2b,#c48b4d);
+      display:grid; place-items:center; font-size:18px; flex:0 0 auto;
+    }
+    .student .left{display:flex; align-items:center; gap:12px}
+    .student strong{display:block; margin-bottom:4px}.student small{color:var(--muted)}
+    .install-modal{
+      position:fixed; inset:0; z-index:60; display:none; place-items:center; background:rgba(0,0,0,.72);
+      backdrop-filter:blur(10px); padding:18px;
+    }
+    .install-card{
+      width:min(480px,100%); border-radius:28px; padding:18px; background:linear-gradient(180deg, rgba(20,25,38,.98), rgba(10,15,24,.98));
+      border:1px solid rgba(255,255,255,.08); box-shadow:var(--shadow); position:relative;
+    }
+    .install-step{
+      display:grid; grid-template-columns:44px 1fr; gap:12px; align-items:center; margin:14px 0; padding:12px;
+      border-radius:18px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+    }
+    .step-num{
+      width:44px; height:44px; border-radius:14px; display:grid; place-items:center;
+      background:linear-gradient(135deg,var(--red),var(--red2)); font-weight:900;
+    }
+    .close-x{
+      position:absolute; top:18px; right:18px; width:38px; height:38px; border:none; border-radius:999px; background:rgba(255,255,255,.06); color:#fff;
+    }
+    .hidden{display:none !important}
+    @media (max-width:1024px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:fixed; top:0; left:-110%; width:min(84vw,320px); height:100vh; z-index:50; background:#0a1020;
+        border-right:1px solid rgba(255,255,255,.06); transition:.25s ease; padding-top:88px;
+      }
+      .sidebar.open{left:0}
+      .menu-btn{display:grid}
+      .hero-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .grid-2{grid-template-columns:1fr}
+    }
+    @media (max-width:720px){
+      .topbar{padding:12px}.title-wrap h3{font-size:15px}.title-wrap p{font-size:11px}
+      .hero-grid{grid-template-columns:1fr}.top-actions .chip{display:none}
+      .kpi .num{font-size:26px}.section{padding:14px}.panel{padding:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <section class="page active" id="pageSplash">
+      <div class="splash">
+        <div class="splash-card">
+          <div class="big-logo"><div class="crest"><span>🦅</span></div></div>
+          <h1>GARRA DE ÁGUIA PG</h1>
+          <p>Disciplina • Respeito • Foco • Superação</p>
+          <div class="loader"></div>
+          <p style="margin-top:18px">Carregando...</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="pageLogin">
+      <div class="login">
+        <div class="login-card">
+          <div class="login-brand">
+            <div class="mini-crest"><span>🦅</span></div>
+            <h2>Garra de Águia PG</h2>
+            <small>Login Administrador</small>
+          </div>
+          <div class="field"><label>Usuário</label><input class="input" id="user" placeholder="Usuário" autocomplete="username" /></div>
+          <div class="field"><label>Senha</label><input class="input" id="pass" type="password" placeholder="Senha" autocomplete="current-password" /></div>
+          <div class="row" style="margin-top:16px"><button class="btn btn-red" id="btnEnter">ENTRAR</button></div>
+          <div class="row" style="margin-top:10px"><button class="btn btn-dark" id="btnStudent">CADASTRO DO ALUNO</button></div>
+          <div class="login-footer">© 2025 Garra de Águia PG</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="pageApp">
+      <header class="topbar">
+        <div class="top-left">
+          <button class="icon-btn menu-btn" id="btnMenu">☰</button>
+          <div class="brand-badge"><span>🦅</span></div>
+          <div class="title-wrap">
+            <h3 id="appTitle">Painel Principal</h3>
+            <p id="appSubtitle">Bem-vindo ao sistema da Garra de Águia PG</p>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="chip">🕒 <span id="clock">11:30</span></div>
+          <button class="chip" id="btnOpenInstall">Instalar</button>
+          <button class="chip" id="btnLogout">Sair</button>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar glass" id="sidebar">
+          <button class="nav active" data-tab="home">🏠 Início</button>
+          <button class="nav" data-tab="students">👥 Alunos</button>
+          <button class="nav" data-tab="attendance">📅 Presenças</button>
+          <button class="nav" data-tab="plans">💳 Planos</button>
+          <button class="nav" data-tab="more">⋯ Mais</button>
+        </aside>
+
+        <main class="content">
+          <div class="hero-grid">
+            <div class="glass kpi"><div class="kpi-head"><div><div class="label">Alunos</div><div class="num">128</div><div class="sub">Alunos ativos</div></div><div class="badge">👥</div></div></div>
+            <div class="glass kpi"><div class="kpi-head"><div><div class="label">Presenças</div><div class="num">56</div><div class="sub">Hoje</div></div><div class="badge">📅</div></div></div>
+            <div class="glass kpi"><div class="kpi-head"><div><div class="label">Vencimentos</div><div class="num">18</div><div class="sub">Pendências</div></div><div class="badge">💰</div></div></div>
+            <div class="glass kpi"><div class="kpi-head"><div><div class="label">Saldo</div><div class="num">R$ 0,00</div><div class="sub">Receitas - despesas</div></div><div class="badge">📈</div></div></div>
+          </div>
+
+          <section class="glass section" id="tab-home">
+            <h4>Painel Principal</h4>
+            <p class="head">Resumo financeiro, alunos, calendário e movimentações recentes.</p>
+            <div class="grid-2">
+              <div class="glass panel">
+                <h5>Evolução financeira</h5>
+                <div class="chart">
+                  <div class="bar" style="height:64px"></div>
+                  <div class="bar" style="height:98px"></div>
+                  <div class="bar" style="height:122px"></div>
+                  <div class="bar" style="height:150px"></div>
+                  <div class="bar" style="height:108px"></div>
+                  <div class="bar" style="height:138px"></div>
+                </div>
+              </div>
+              <div class="glass panel">
+                <h5>Ações rápidas</h5>
+                <div class="quick-list">
+                  <div class="item"><div><strong>Cadastrar aluno</strong><span>Criar novo aluno</span></div><div class="tag gold">Novo</div></div>
+                  <div class="item"><div><strong>Lançar pagamento</strong><span>Adicionar mensalidade</span></div><div class="tag">Ok</div></div>
+                  <div class="item"><div><strong>Registrar presença</strong><span>Presença da turma</span></div><div class="tag red">Hoje</div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass section hidden" id="tab-students">
+            <h4>Alunos</h4>
+            <p class="head">Lista moderna com busca rápida e visual de aplicativo.</p>
+            <div class="table">
+              <div class="student"><div class="left"><div class="avatar">J</div><div><strong>João Silva</strong><small>Ativo • Plano Gold</small></div></div><div class="tag">Ativo</div></div>
+              <div class="student"><div class="left"><div class="avatar">M</div><div><strong>Maria Santos</strong><small>Ativo • Plano Silver</small></div></div><div class="tag">Ativo</div></div>
+              <div class="student"><div class="left"><div class="avatar">C</div><div><strong>Carlos Oliveira</strong><small>Ativo • Plano Gold</small></div></div><div class="tag">Ativo</div></div>
+              <div class="student"><div class="left"><div class="avatar">A</div><div><strong>Ana Souza</strong><small>Ativo • Plano Silver</small></div></div><div class="tag">Ativo</div></div>
+              <div class="student"><div class="left"><div class="avatar">P</div><div><strong>Pedro Lima</strong><small>Inativo • Plano Básico</small></div></div><div class="tag red">Inativo</div></div>
+            </div>
+          </section>
+
+          <section class="glass section hidden" id="tab-attendance">
+            <h4>Registrar Presença</h4>
+            <p class="head">Fluxo simples para marcar presença por aluno, com interface semelhante ao mockup.</p>
+            <div class="quick-list">
+              <div class="item"><div><strong>João Silva</strong><span>Presente</span></div><div class="tag">OK</div></div>
+              <div class="item"><div><strong>Maria Santos</strong><span>Presente</span></div><div class="tag">OK</div></div>
+              <div class="item"><div><strong>Carlos Oliveira</strong><span>Ausente</span></div><div class="tag red">Ausente</div></div>
+              <div class="item"><div><strong>Ana Souza</strong><span>Presente</span></div><div class="tag">OK</div></div>
+              <div class="item"><div><strong>Pedro Lima</strong><span>Ausente</span></div><div class="tag red">Ausente</div></div>
+            </div>
+          </section>
+
+          <section class="glass section hidden" id="tab-plans">
+            <h4>Planos</h4>
+            <p class="head">Mensalidades e planos em cards premium.</p>
+            <div class="quick-list">
+              <div class="item"><div><strong>Plano Gold</strong><span>R$ 150,00 / mês</span></div><div class="tag">Ativo</div></div>
+              <div class="item"><div><strong>Plano Silver</strong><span>R$ 100,00 / mês</span></div><div class="tag">Ativo</div></div>
+              <div class="item"><div><strong>Plano Básico</strong><span>R$ 70,00 / mês</span></div><div class="tag">Ativo</div></div>
+              <div class="item"><div><strong>Plano Trimestral</strong><span>R$ 250,00 / 3 meses</span></div><div class="tag">Ativo</div></div>
+            </div>
+          </section>
+
+          <section class="glass section hidden" id="tab-more">
+            <h4>Mais</h4>
+            <p class="head">Acesso a financeiro, relatórios, backup e configurações.</p>
+            <div class="more-list">
+              <div class="more-link"><div><b>Financeiro</b><small>Resumo e registros</small></div><span>›</span></div>
+              <div class="more-link"><div><b>Mensalidades</b><small>Lançar pagamentos</small></div><span>›</span></div>
+              <div class="more-link"><div><b>Relatórios</b><small>Histórico completo</small></div><span>›</span></div>
+              <div class="more-link"><div><b>Backup</b><small>Exportar / importar</small></div><span>›</span></div>
+              <div class="more-link"><div><b>Configurações</b><small>Preferências do app</small></div><span>›</span></div>
+              <div class="more-link"><div><b>Sair</b><small>Encerrar sessão</small></div><span>›</span></div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      <nav class="bottomnav">
+        <button class="active" data-tab="home">🏠<span>Início</span></button>
+        <button data-tab="students">👥<span>Alunos</span></button>
+        <button data-tab="attendance">📅<span>Presenças</span></button>
+        <button data-tab="plans">💳<span>Planos</span></button>
+        <button data-tab="more">⋯<span>Mais</span></button>
+      </nav>
+    </section>
+
+    <div class="install-modal" id="installModal" aria-hidden="true">
+      <div class="install-card">
+        <button class="close-x" id="closeInstall">✕</button>
+        <h3>Instalar App</h3>
+        <p style="color:var(--muted);line-height:1.5">Siga o fluxo abaixo para adicionar na tela inicial.</p>
+        <div class="install-step"><div class="step-num">1</div><div><strong>Toque em Compartilhar</strong><br><span style="color:var(--muted)">No Safari ou no navegador.</span></div></div>
+        <div class="install-step"><div class="step-num">2</div><div><strong>Adicionar à Tela de Início</strong><br><span style="color:var(--muted)">Escolha a opção de instalar.</span></div></div>
+        <div class="install-step"><div class="step-num">3</div><div><strong>Pronto</strong><br><span style="color:var(--muted)">O app será aberto como aplicativo.</span></div></div>
+        <button class="btn btn-red" id="understood" style="width:100%; margin-top:8px">ENTENDI</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const pages = {
+      splash: document.getElementById('pageSplash'),
+      login: document.getElementById('pageLogin'),
+      app: document.getElementById('pageApp')
+    };
+    function showPage(name){ Object.values(pages).forEach(p => p.classList.remove('active')); pages[name].classList.add('active'); }
+
+    setTimeout(() => showPage('login'), 1200);
+    setTimeout(() => { if (window.__autoLogin !== false) showPage('app'); }, 2600);
+
+    document.getElementById('btnEnter').addEventListener('click', () => showPage('app'));
+    document.getElementById('btnStudent').addEventListener('click', () => alert('Cadastro do aluno em breve nesta etapa visual.'));
+    document.getElementById('btnLogout').addEventListener('click', () => showPage('login'));
+
+    function tick(){ const now = new Date(); document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}); }
+    tick(); setInterval(tick, 60000);
+
+    const titleMap = {
+      home: ['Painel Principal', 'Bem-vindo ao sistema da Garra de Águia PG'],
+      students: ['Alunos', 'Gerenciar alunos'],
+      attendance: ['Presenças', 'Registrar presença'],
+      plans: ['Planos', 'Gerenciar planos'],
+      more: ['Mais', 'Configurações e backup']
+    };
+
+    function setTab(tab){
+      document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+      document.getElementById('tab-' + tab).classList.remove('hidden');
+      document.getElementById('appTitle').textContent = titleMap[tab][0];
+      document.getElementById('appSubtitle').textContent = titleMap[tab][1];
+      if (window.innerWidth <= 1024) closeSidebar();
+    }
+    document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+
+    const sidebar = document.getElementById('sidebar');
+    const btnMenu = document.getElementById('btnMenu');
+    function openSidebar(){ sidebar.classList.add('open'); }
+    function closeSidebar(){ sidebar.classList.remove('open'); }
+    btnMenu.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 1024) {
+        const clickedInside = sidebar.contains(e.target) || btnMenu.contains(e.target);
+        if (!clickedInside && sidebar.classList.contains('open')) closeSidebar();
+      }
+    });
+    window.addEventListener('resize', () => { if (window.innerWidth > 1024) closeSidebar(); });
+
+    const modal = document.getElementById('installModal');
+    document.getElementById('btnOpenInstall').addEventListener('click', () => modal.style.display = 'grid');
+    document.getElementById('closeInstall').addEventListener('click', () => modal.style.display = 'none');
+    document.getElementById('understood').addEventListener('click', () => modal.style.display = 'none');
+
+    document.querySelectorAll('.bottomnav button').forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
+  </script>
+</body>
+</html>
