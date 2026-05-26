@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liga Garra de Águia PG - Fase 2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module" src="app.js"></script>
+</head>
+<body class="bg-black text-white min-h-screen">
+<header class="bg-zinc-900 border-b border-red-700 p-4">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-red-500">Liga Garra de Águia PG</h1>
+      <p class="text-zinc-400">Kung Fu Garra de Águia Praia Grande</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="showPanel('admin')" class="bg-red-700 px-4 py-2 rounded-xl">Painel Admin</button>
+      <button onclick="showPanel('aluno')" class="bg-blue-700 px-4 py-2 rounded-xl">Área do Aluno</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto p-6 space-y-6">
+  <section class="grid md:grid-cols-4 gap-4">
+    <div class="bg-zinc-900 p-5 rounded-2xl">
+      <p class="text-zinc-400">Alunos</p>
+      <h2 id="totalAlunos" class="text-3xl font-bold text-red-500">0</h2>
+    </div>
+
+    <div class="bg-zinc-900 p-5 rounded-2xl">
+      <p class="text-zinc-400">Presenças</p>
+      <h2 id="totalPresencas" class="text-3xl font-bold text-yellow-500">0</h2>
+    </div>
+
+    <div class="bg-zinc-900 p-5 rounded-2xl">
+      <p class="text-zinc-400">Mensalidades</p>
+      <h2 class="text-3xl font-bold text-green-500">Online</h2>
+    </div>
+
+    <div class="bg-zinc-900 p-5 rounded-2xl">
+      <p class="text-zinc-400">Firebase</p>
+      <h2 class="text-2xl font-bold text-blue-500">Conectado</h2>
+    </div>
+  </section>
+
+  <section id="adminPanel" class="bg-zinc-900 rounded-3xl p-6">
+    <h2 class="text-2xl font-bold text-red-500 mb-6">Painel Administrativo</h2>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <input id="nome" placeholder="Nome do aluno" class="bg-zinc-800 p-4 rounded-xl">
+      <input id="faixa" placeholder="Faixa" class="bg-zinc-800 p-4 rounded-xl">
+      <input id="telefone" placeholder="Telefone" class="bg-zinc-800 p-4 rounded-xl">
+      <input id="mensalidade" placeholder="Mensalidade" class="bg-zinc-800 p-4 rounded-xl">
+    </div>
+
+    <button id="salvarAluno" class="mt-6 bg-red-700 px-6 py-4 rounded-xl font-bold">
+      Salvar aluno
+    </button>
+
+    <div id="listaAlunos" class="grid md:grid-cols-2 gap-4 mt-8"></div>
+  </section>
+
+  <section id="alunoPanel" class="hidden bg-zinc-900 rounded-3xl p-6">
+    <h2 class="text-2xl font-bold text-blue-500 mb-6">Área do Aluno</h2>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="bg-zinc-800 rounded-2xl p-4">
+        <h3 class="font-bold">Presença</h3>
+        <p>Sincronizada online</p>
+      </div>
+
+      <div class="bg-zinc-800 rounded-2xl p-4">
+        <h3 class="font-bold">Mensalidade</h3>
+        <p>Status online</p>
+      </div>
+
+      <div class="bg-zinc-800 rounded-2xl p-4">
+        <h3 class="font-bold">Faixa</h3>
+        <p>Atualizada</p>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
