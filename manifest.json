@@ -1,8 +1,0 @@
-{
-  "name": "Liga Garra de \u00c1guia PG",
-  "short_name": "GarraPG",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#111111",
-  "start_url": "./"
-}
