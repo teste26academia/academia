@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liga Garra de Águia PG</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="module" src="app.js"></script>
+</head>
+
+<body class="bg-black text-white min-h-screen">
+
+<header class="border-b border-red-700 bg-zinc-950">
+<div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+<div>
+<h1 class="text-4xl font-black text-red-500">Liga Garra de Águia PG</h1>
+<p class="text-zinc-400">Kung Fu Garra de Águia Praia Grande</p>
+</div>
+
+<div class="flex gap-3">
+<button id="homeBtn" class="bg-zinc-800 px-4 py-2 rounded-xl">Início</button>
+<button id="openAluno" class="bg-emerald-700 px-4 py-2 rounded-xl">Área do aluno</button>
+<button id="openAdmin" class="bg-purple-700 px-4 py-2 rounded-xl">Administrador</button>
+</div>
+</div>
+</header>
+
+<main class="max-w-7xl mx-auto p-6">
+
+<section id="home">
+<div class="grid lg:grid-cols-2 gap-6">
+
+<div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+<p class="tracking-[0.4em] text-zinc-400 text-xs uppercase">Sistema da academia</p>
+
+<h2 class="mt-3 text-6xl font-black leading-tight">
+<span class="text-white">Liga Garra de</span><br>
+<span class="text-red-500">Águia</span> PG
+</h2>
+
+<p class="mt-5 text-zinc-300 text-lg">
+Plataforma para alunos e administração da academia.
+</p>
+</div>
+
+<div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+
+<h2 class="text-4xl font-black mb-4">Acesso rápido</h2>
+
+<div class="bg-zinc-950 rounded-2xl p-5 border border-zinc-800 mb-5">
+<h3 class="text-red-400 font-bold mb-3">Login do aluno</h3>
+
+<div id="recaptcha-container"></div>
+
+<input id="phone" placeholder="+5513999999999"
+class="w-full mt-3 bg-zinc-800 p-4 rounded-xl border border-zinc-700">
+
+<button id="sendCode"
+class="w-full mt-3 bg-blue-700 p-4 rounded-xl font-bold">
+Enviar código
+</button>
+
+<input id="smsCode" placeholder="Código SMS"
+class="w-full mt-3 bg-zinc-800 p-4 rounded-xl border border-zinc-700">
+
+<button id="confirmCode"
+class="w-full mt-3 bg-green-700 p-4 rounded-xl font-bold">
+Confirmar login
+</button>
+
+<p id="status" class="mt-3 text-zinc-400 text-sm">Desconectado</p>
+</div>
+
+<div class="bg-zinc-950 rounded-2xl p-5 border border-zinc-800">
+<h3 class="text-purple-400 font-bold mb-3">Administrador</h3>
+
+<input id="adminPassword" type="password" placeholder="Senha do admin"
+class="w-full bg-zinc-800 p-4 rounded-xl border border-zinc-700">
+
+<button id="loginAdmin"
+class="w-full mt-3 bg-purple-700 p-4 rounded-xl font-bold">
+Entrar como administrador
+</button>
+
+<p class="mt-3 text-zinc-500 text-sm">Senha padrão: 2468</p>
+</div>
+
+</div>
+</div>
+</section>
+
+<section id="adminPanel" class="hidden">
+<div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+<div class="flex justify-between items-center">
+<h2 class="text-4xl font-black text-purple-400">Painel Administrativo</h2>
+<button id="backAdmin" class="bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+</div>
+
+<div class="mt-6 bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+<h3 class="text-xl font-bold mb-4">Cadastros</h3>
+<div id="adminList">Nenhum cadastro.</div>
+</div>
+</div>
+</section>
+
+<section id="alunoPanel" class="hidden">
+<div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+<div class="flex justify-between items-center">
+<h2 class="text-4xl font-black text-emerald-400">Área do aluno</h2>
+<button id="backAluno" class="bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+</div>
+
+<div class="mt-6 bg-zinc-950 p-6 rounded-2xl border border-zinc-800">
+<h3 class="text-xl font-bold mb-4">Meu perfil</h3>
+
+<input id="nomeAluno" placeholder="Nome completo"
+class="w-full bg-zinc-800 p-4 rounded-xl border border-zinc-700 mb-3">
+
+<input id="faixaAluno" placeholder="Faixa"
+class="w-full bg-zinc-800 p-4 rounded-xl border border-zinc-700 mb-3">
+
+<button id="saveAluno"
+class="w-full bg-emerald-700 p-4 rounded-xl font-bold">
+Salvar cadastro
+</button>
+
+<div id="perfil" class="mt-5 text-zinc-300"></div>
+
+</div>
+</div>
+</section>
+
+</main>
+
+</body>
+</html>
