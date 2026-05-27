@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Liga Garra de Águia PG" />
+  <title>Liga Garra de Águia PG</title>
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body class="bg-black text-white min-h-screen">
+  <header class="sticky top-0 z-30 bg-zinc-950/95 backdrop-blur border-b border-red-700">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl border border-zinc-700 bg-zinc-900 flex items-center justify-center overflow-hidden">
+          <div class="text-red-500 font-black text-xl">G</div>
+        </div>
+        <div>
+          <h1 class="text-3xl font-black text-red-500">Liga Garra de Águia PG</h1>
+          <p class="text-zinc-400 text-sm">Kung Fu Garra de Águia Praia Grande</p>
+        </div>
+      </div>
+      <div class="flex gap-3 flex-wrap">
+        <button id="btnHome" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl">Início</button>
+        <button id="btnAluno" class="bg-emerald-700 hover:bg-emerald-600 px-4 py-2 rounded-xl font-semibold">Área do aluno</button>
+        <button id="btnCarteirinha" class="bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-xl font-semibold">Carteirinha</button>
+        <button id="btnAdmin" class="bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-xl font-semibold">Administrador</button>
+        <button id="btnInstall" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl font-semibold hidden">Instalar app</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <section id="homeSection" class="space-y-6">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+          <p class="tracking-[0.4em] text-zinc-400 text-xs uppercase">Sistema da academia</p>
+          <h2 class="mt-3 text-5xl md:text-6xl font-black leading-tight">
+            <span class="text-white">Liga Garra de</span><br>
+            <span class="text-red-500">Águia</span> <span class="text-white">PG</span>
+          </h2>
+          <p class="mt-5 text-zinc-300 text-lg max-w-xl">
+            Agora com foto do aluno, carteirinha digital, login por e-mail e painel administrativo.
+          </p>
+          <div class="mt-6 flex flex-wrap gap-3">
+            <span class="px-4 py-2 rounded-full bg-zinc-800 border border-zinc-700 text-sm">Foto do aluno</span>
+            <span class="px-4 py-2 rounded-full bg-zinc-800 border border-zinc-700 text-sm">Carteirinha digital</span>
+            <span class="px-4 py-2 rounded-full bg-zinc-800 border border-zinc-700 text-sm">Admin</span>
+            <span class="px-4 py-2 rounded-full bg-zinc-800 border border-zinc-700 text-sm">PWA</span>
+          </div>
+        </div>
+
+        <div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+          <h2 class="text-3xl font-black text-white">Acesso rápido</h2>
+          <p class="text-zinc-400 mt-2">Entre como aluno ou libere a área administrativa nesta mesma tela.</p>
+          <div class="mt-6 grid gap-4">
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3">
+              <h3 class="font-bold text-red-400">Login do aluno</h3>
+              <input id="emailLogin" type="email" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="seuemail@email.com" />
+              <input id="passLogin" type="password" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Senha" />
+              <button id="btnLoginEmail" class="w-full bg-blue-700 hover:bg-blue-600 rounded-xl px-4 py-3 font-semibold">Entrar</button>
+              <button id="btnLogout" class="w-full bg-zinc-700 hover:bg-zinc-600 rounded-xl px-4 py-3 font-semibold">Sair</button>
+              <p id="authStatus" class="text-xs text-zinc-500">Desconectado</p>
+            </div>
+
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3">
+              <h3 class="font-bold text-purple-400">Criar conta do aluno</h3>
+              <input id="emailCreate" type="email" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="seuemail@email.com" />
+              <input id="passCreate" type="password" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Crie uma senha" />
+              <button id="btnCreateAccount" class="w-full bg-emerald-700 hover:bg-emerald-600 rounded-xl px-4 py-3 font-semibold">Criar conta</button>
+              <p class="text-xs text-zinc-500">Depois da conta, o aluno completa o cadastro com foto.</p>
+            </div>
+
+            <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 space-y-3">
+              <h3 class="font-bold text-purple-400">Administração</h3>
+              <p class="text-zinc-400 text-sm">Digite a senha para abrir o painel administrativo.</p>
+              <input id="adminPass" type="password" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Senha do admin" />
+              <button id="unlockAdminBtn" class="w-full bg-purple-700 hover:bg-purple-600 rounded-xl px-4 py-3 font-semibold">Entrar como admin</button>
+              <p class="text-xs text-zinc-500">Senha padrão: 2468</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-4">
+        <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <p class="text-zinc-400">Alunos</p>
+          <h2 id="statAlunos" class="text-3xl font-bold text-red-500">0</h2>
+        </div>
+        <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <p class="text-zinc-400">Cadastros pendentes</p>
+          <h2 id="statPendentes" class="text-3xl font-bold text-yellow-500">0</h2>
+        </div>
+        <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <p class="text-zinc-400">Presenças</p>
+          <h2 id="statPresencas" class="text-3xl font-bold text-emerald-500">0</h2>
+        </div>
+        <div class="bg-zinc-900 rounded-2xl p-5 border border-zinc-800">
+          <p class="text-zinc-400">Banco</p>
+          <h2 id="statBanco" class="text-2xl font-bold text-purple-500">Conectando...</h2>
+        </div>
+      </div>
+    </section>
+
+    <section id="createSection" class="hidden bg-zinc-900 rounded-3xl p-6 border border-zinc-800">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-2xl font-bold text-blue-500">Criar perfil do aluno</h2>
+          <p class="text-zinc-400 text-sm">O aluno preenche os dados, faz upload da foto e depois aguarda aprovação.</p>
+        </div>
+        <button id="backFromCreate" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6 mt-6">
+        <div class="space-y-4">
+          <input id="nomeAluno" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Nome completo" />
+          <input id="telefoneAluno" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Telefone" />
+          <input id="faixaAluno" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Faixa" />
+          <input id="fotoAluno" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="URL da foto (opcional)" />
+          <input id="fotoFile" type="file" accept="image/*" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" />
+          <textarea id="observacaoAluno" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" rows="4" placeholder="Observação opcional"></textarea>
+          <button id="savePublicProfileBtn" class="w-full bg-blue-700 hover:bg-blue-600 rounded-xl px-4 py-3 font-semibold">Salvar cadastro</button>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Prévia do perfil</h3>
+          <div id="profilePreview" class="text-zinc-300">Ainda não salvo.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="alunoSection" class="hidden bg-zinc-900 rounded-3xl p-6 border border-zinc-800 space-y-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-2xl font-bold text-emerald-500">Área do aluno</h2>
+          <p class="text-zinc-400 text-sm">Veja seu perfil, presença e mensalidade.</p>
+        </div>
+        <button id="backFromAluno" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <div id="studentProfile" class="text-zinc-300">Faça login e complete o cadastro.</div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 content-start">
+          <div class="bg-zinc-800 rounded-2xl p-4"><h3 class="font-bold">Status</h3><p id="studentStatus">Pendente</p></div>
+          <div class="bg-zinc-800 rounded-2xl p-4"><h3 class="font-bold">Faixa</h3><p id="studentFaixa">-</p></div>
+          <div class="bg-zinc-800 rounded-2xl p-4"><h3 class="font-bold">Presenças</h3><p id="studentPresencas">0</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cardSection" class="hidden bg-zinc-900 rounded-3xl p-6 border border-zinc-800 space-y-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-2xl font-bold text-blue-500">Carteirinha digital</h2>
+          <p class="text-zinc-400 text-sm">Foto, faixa, status e QR Code do aluno.</p>
+        </div>
+        <button id="backFromCard" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-4">
+          <div id="studentCard" class="rounded-3xl p-5 border border-zinc-700 bg-gradient-to-br from-zinc-900 to-zinc-950">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.4em] text-zinc-400">Carteirinha</div>
+                <div class="text-xl font-black text-red-500 mt-2">Liga Garra de Águia PG</div>
+              </div>
+              <div class="w-14 h-14 rounded-2xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
+                <img id="cardPhotoThumb" src="" alt="" class="hidden w-full h-full object-cover" />
+                <span id="cardInitial" class="text-red-500 font-black text-2xl">G</span>
+              </div>
+            </div>
+
+            <div class="mt-6 grid md:grid-cols-[120px_1fr] gap-4 items-center">
+              <div class="w-28 h-28 rounded-3xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
+                <img id="cardPhoto" src="" alt="Foto do aluno" class="hidden w-full h-full object-cover" />
+                <span id="cardPhotoFallback" class="text-zinc-500 text-sm text-center px-2">Sem foto</span>
+              </div>
+              <div class="space-y-2">
+                <div><span class="text-zinc-400">Nome:</span> <b id="cardName">-</b></div>
+                <div><span class="text-zinc-400">Faixa:</span> <b id="cardFaixa">-</b></div>
+                <div><span class="text-zinc-400">Status:</span> <b id="cardStatus">-</b></div>
+                <div><span class="text-zinc-400">Presenças:</span> <b id="cardPresencas">0</b></div>
+              </div>
+            </div>
+
+            <div class="mt-6 grid md:grid-cols-2 gap-4 items-center">
+              <div>
+                <div class="text-xs text-zinc-400 mb-2">QR Code</div>
+                <div id="qrcode" class="bg-white p-3 rounded-2xl inline-block"></div>
+              </div>
+              <div class="text-zinc-400 text-sm leading-relaxed">
+                Use esta carteirinha para identificação do aluno na academia.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Selecione o aluno</h3>
+          <select id="cardSelect" class="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700"></select>
+          <div id="cardDetails" class="mt-4 text-zinc-300"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminSection" class="hidden bg-zinc-900 rounded-3xl p-6 border border-zinc-800 space-y-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 class="text-2xl font-bold text-purple-500">Administrador</h2>
+          <p class="text-zinc-400 text-sm">Aprovar alunos, marcar presença e controlar mensalidade.</p>
+        </div>
+        <button id="backFromAdmin" class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-xl">Voltar</button>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Cadastros pendentes</h3>
+          <div id="pendingList" class="space-y-3"></div>
+        </div>
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Alunos aprovados</h3>
+          <div id="approvedList" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Presença</h3>
+          <div class="grid md:grid-cols-2 gap-3">
+            <select id="presenceAluno" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700"></select>
+            <input id="presenceData" type="date" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" />
+          </div>
+          <button id="markPresenceBtn" class="w-full mt-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl px-4 py-3 font-semibold">Marcar presença</button>
+          <div id="presenceList" class="mt-4 space-y-2"></div>
+        </div>
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+          <h3 class="font-bold text-zinc-200 mb-3">Mensalidade</h3>
+          <div class="grid md:grid-cols-2 gap-3">
+            <select id="financeAluno" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700"></select>
+            <input id="financeValor" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" placeholder="Valor (ex.: 120,00)" />
+            <input id="financeVencimento" type="date" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700" />
+            <select id="financeStatus" class="bg-zinc-800 p-4 rounded-xl outline-none border border-zinc-700">
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+            </select>
+          </div>
+          <button id="saveFinanceBtn" class="w-full mt-3 bg-purple-700 hover:bg-purple-600 rounded-xl px-4 py-3 font-semibold">Salvar mensalidade</button>
+
+          <div class="grid md:grid-cols-3 gap-3 mt-4">
+            <div class="bg-zinc-800 rounded-2xl p-4">
+              <p class="text-zinc-400 text-sm">Previsto</p>
+              <p id="finPrevisto" class="text-2xl font-bold text-green-400">R$ 0</p>
+            </div>
+            <div class="bg-zinc-800 rounded-2xl p-4">
+              <p class="text-zinc-400 text-sm">Pago</p>
+              <p id="finPago" class="text-2xl font-bold text-emerald-400">R$ 0</p>
+            </div>
+            <div class="bg-zinc-800 rounded-2xl p-4">
+              <p class="text-zinc-400 text-sm">Em aberto</p>
+              <p id="finAberto" class="text-2xl font-bold text-yellow-400">R$ 0</p>
+            </div>
+          </div>
+
+          <div id="financeList" class="mt-4 space-y-2"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
