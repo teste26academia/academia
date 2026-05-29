@@ -1,8 +1,0 @@
-VERSÃO DASHBOARD ULTRA PREMIUM V2
-
-Incluído:
-- painel vivo com métricas
-- gráfico visual na home
-- atividade recente
-- dashboard mais comercial
-- experiência mobile refinada
