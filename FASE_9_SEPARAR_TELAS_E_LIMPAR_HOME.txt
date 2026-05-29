@@ -1,1 +1,0 @@
-Separação de telas reforçada e home mais limpa para parecer app nativo.
