@@ -1,1 +1,0 @@
-Horários organizados por dia da semana, destaque do dia atual e indicador de cadastro incompleto.
