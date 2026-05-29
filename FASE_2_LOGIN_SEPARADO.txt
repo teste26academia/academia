@@ -1,0 +1,1 @@
+Fase 2: Login separado em tela própria, após splash real.

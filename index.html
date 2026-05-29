@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b0b0b" />
+  <meta name="theme-color" content="#050505" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Liga Garra de Águia PG" />
-  <title>Liga Garra de Águia PG</title>
+  <meta name="apple-mobile-web-app-title" content="Kung Fu Garra de Águia PG" />
+  <title>Kung Fu Garra de Águia PG v2.0</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
@@ -56,6 +58,28 @@ border-color:rgba(255,0,0,.35);
 }
 </style>
 
+<style>
+
+.official-logo-img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.logo-frame{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.logo-frame img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+</style>
 
 <style>
 .ultra-panel{
@@ -1318,11 +1342,11 @@ main{
   <div class="splash-panel text-center relative overflow-hidden">
     <div class="splash-orb one"></div>
     <div class="splash-orb two"></div>
-    <div class="splash-logo">
-      <div class="splash-letter">G</div>
+    <div class="splash-logo logo-frame">
+      <img class="official-logo-img p-3" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
     </div>
     <div class="mt-6 text-[11px] uppercase tracking-[0.35em] text-red-400 font-semibold">Aplicativo Oficial</div>
-    <h1 class="splash-title mt-3 text-3xl font-black text-white">Garra de Águia PG</h1>
+    <h1 class="splash-title mt-3 text-3xl font-black text-white">Kung Fu Garra de Águia PG</h1>
     <p class="mt-3 text-zinc-400 text-sm">Carregando sua academia...</p>
     <div class="mt-6 splash-bar"><span></span></div>
   </div>
@@ -1333,11 +1357,11 @@ main{
   <header class="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur border-b border-red-700/50">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-11 h-11 rounded-2xl border border-zinc-700 bg-zinc-900 flex items-center justify-center overflow-hidden shadow-lg">
-          <div class="text-red-500 font-black text-xl">G</div>
+        <div class="w-11 h-11 rounded-2xl border border-zinc-700 bg-zinc-900 flex items-center justify-center overflow-hidden shadow-lg logo-frame">
+          <img class="official-logo-img p-1" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
         </div>
         <div class="min-w-0">
-          <h1 class="text-lg md:text-2xl font-black text-red-500 truncate">Liga Garra de Águia PG</h1>
+          <h1 class="text-lg md:text-2xl font-black text-red-500 truncate">Kung Fu Garra de Águia PG v2.0</h1>
           <p class="text-zinc-400 text-xs md:text-sm truncate">Kung Fu Garra de Águia Praia Grande</p>
         </div>
       </div>
@@ -1363,17 +1387,17 @@ main{
     
 
 
-<section id="loginSection" class="app-screen" class="space-y-4 hidden">
+<section id="loginSection" class="app-screen space-y-4 hidden">
   <div class="login-shell rounded-[2.4rem] p-5 md:p-6">
     <div class="login-hero rounded-[2.1rem] p-5 md:p-6 text-center">
-      <div class="login-logo">
-        <div class="login-logo-letter">G</div>
+      <div class="login-logo logo-frame">
+        <img class="official-logo-img p-2" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
       </div>
 
-      <div class="mt-5 text-[11px] uppercase tracking-[0.34em] text-red-400 font-semibold">
+      <div class="mt-5 text-[11px] uppercase tracking-[0.34em] text-yellow-400 font-semibold">
         Bem-vindo
       </div>
-      <h1 class="mt-3 text-4xl font-black text-white login-title">Garra de Águia PG</h1>
+      <h1 class="mt-3 text-4xl font-black text-white login-title">Kung Fu Garra de Águia PG</h1>
       <p class="mt-3 text-zinc-300 text-sm">Faça login para continuar.</p>
     </div>
 
@@ -1396,7 +1420,7 @@ main{
       </div>
 
       <div class="login-card rounded-3xl p-4">
-        <div class="text-purple-400 font-bold text-sm mb-3">Administrador</div>
+        <div class="text-yellow-400 font-bold text-sm mb-3">Administrador</div>
         <input id="adminPass" type="password" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none" placeholder="Senha do admin" />
         <button id="unlockAdminBtn" class="w-full bg-purple-700 hover:bg-purple-600 rounded-2xl px-4 py-3 font-semibold mt-3">Entrar como admin</button>
         <p class="text-xs text-zinc-500 mt-2">Área restrita do administrador</p>
@@ -1414,13 +1438,13 @@ main{
 
     <div class="home-min-card rounded-[2.4rem] p-5 md:p-6 text-center">
       <div class="flex items-center justify-between gap-2">
-        <div class="screen-label text-[11px] text-red-400 font-semibold">Aplicativo oficial</div>
+        <div class="screen-label text-[11px] text-yellow-400 font-semibold">Aplicativo oficial</div>
         <div class="pill px-3 py-1 rounded-full text-xs text-emerald-400"><span class="live-dot mr-2 align-middle"></span>Online</div>
       </div>
 
       <div class="mt-5 flex justify-center">
-        <div class="hero-logo">
-          <div class="hero-logo-letter">G</div>
+        <div class="hero-logo logo-frame">
+          <img class="official-logo-img p-2" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
         </div>
       </div>
 
@@ -1486,7 +1510,7 @@ main{
         </div>
 
         <div class="card-soft rounded-3xl p-4">
-          <div class="text-purple-400 font-bold text-sm mb-3">Administrador</div>
+          <div class="text-yellow-400 font-bold text-sm mb-3">Administrador</div>
           <input id="adminPass" type="password" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none" placeholder="Senha do admin" />
           <button id="unlockAdminBtn" class="home-cta w-full bg-purple-700 hover:bg-purple-600 rounded-2xl px-4 py-3 font-semibold mt-3">Entrar como admin</button>
         </div>
@@ -1721,7 +1745,7 @@ main{
           <div class="flex items-center justify-between">
             <div>
               <div class="text-xs uppercase tracking-[0.4em] text-zinc-400">Carteirinha</div>
-              <div class="text-xl font-black text-red-500 mt-2">Liga Garra de Águia PG</div>
+              <div class="text-xl font-black text-red-500 mt-2">Kung Fu Garra de Águia PG v2.0</div>
             </div>
             <div class="w-14 h-14 rounded-2xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
               <img id="cardPhotoThumb" src="" alt="" class="hidden w-full h-full object-cover" />

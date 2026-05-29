@@ -1,5 +1,5 @@
-const CACHE_NAME = 'liga-garra-qrcode-dashboard-v1';
-const ASSETS = ['./', './index.html', './app.js', './manifest.json'];
+const CACHE_NAME = 'kung-fu-garra-aguia-pg-v2';
+const ASSETS = ['./', './index.html', './app.js', './manifest.json', './assets/logo-oficial.png', './assets/icon-192.png', './assets/icon-512.png', './assets/apple-touch-icon.png', './assets/favicon-32.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));

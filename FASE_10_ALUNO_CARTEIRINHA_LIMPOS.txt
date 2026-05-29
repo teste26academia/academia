@@ -1,0 +1,1 @@
+Tela do aluno e carteirinha limpas no mesmo padrão da home e com separação mais forte.

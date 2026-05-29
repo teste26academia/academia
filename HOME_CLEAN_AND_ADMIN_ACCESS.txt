@@ -1,0 +1,1 @@
+Home limpa e regra de acesso ajustada para permitir admin desbloqueado navegar nas abas.

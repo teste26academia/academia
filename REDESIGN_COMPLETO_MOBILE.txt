@@ -1,0 +1,1 @@
+Redesign mobile-first completo: home única, login separado, CTA de instalação e navegação inferior.
