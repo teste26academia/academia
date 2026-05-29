@@ -1,1 +1,0 @@
-Estrutura preparada para módulos separados estilo aplicativo.
