@@ -1,1 +1,0 @@
-Painel admin limpo e reorganizado para parecer mais aplicativo premium.
