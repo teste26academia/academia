@@ -1,1 +1,0 @@
-Fase 1: Splash screen real aplicada no app mobile-first.
