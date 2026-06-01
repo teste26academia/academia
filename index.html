@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kung Fu Garra de Águia Praia Grande" />
+  <title>Kung Fu Garra de Águia Praia Grande v2.2</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="app.js"></script>
+
+<style>
+body{
+background:
+radial-gradient(circle at top left, rgba(255,0,0,.12), transparent 20%),
+radial-gradient(circle at top right, rgba(212,175,55,.10), transparent 20%),
+#030303;
+}
+.premium-glow{
+box-shadow:0 0 0 1px rgba(255,255,255,.04),0 10px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.03);
+}
+.glass-card{
+background:linear-gradient(180deg, rgba(24,24,27,.96), rgba(10,10,12,.96));
+backdrop-filter: blur(18px);
+}
+.hero-eagle{
+position:relative;
+overflow:hidden;
+}
+.hero-eagle::after{
+content:"";
+position:absolute;
+inset:0;
+background:
+linear-gradient(to right, rgba(0,0,0,.92) 10%, rgba(0,0,0,.55) 50%, rgba(0,0,0,.88) 100%),
+url('https://images.unsplash.com/photo-1611689342806-0863700ce1e4?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+opacity:.35;
+z-index:0;
+}
+.hero-content{
+position:relative;
+z-index:2;
+}
+.premium-button{transition:all .25s ease;}
+.premium-button:hover{transform:translateY(-2px) scale(1.01);}
+.premium-card{transition:all .25s ease;}
+.premium-card:hover{
+transform:translateY(-3px);
+border-color:rgba(255,0,0,.35);
+}
+</style>
+
+<style>
+
+.official-logo-img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.logo-frame{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.logo-frame img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+
+</style>
+
+<style>
+.ultra-panel{
+background:linear-gradient(180deg, rgba(8,8,10,.98), rgba(18,18,22,.96));
+border:1px solid rgba(255,255,255,.05);
+box-shadow:
+0 0 0 1px rgba(255,255,255,.03),
+0 20px 60px rgba(0,0,0,.65),
+0 0 30px rgba(255,0,0,.08);
+}
+
+.neon-red-soft{
+box-shadow:0 0 25px rgba(255,0,0,.18);
+}
+
+.neon-purple-soft{
+box-shadow:0 0 25px rgba(242,193,78,.18);
+}
+
+.neon-green-soft{
+box-shadow:0 0 25px rgba(16,185,129,.18);
+}
+
+.premium-stat{
+position:relative;
+overflow:hidden;
+}
+
+.premium-stat::before{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(135deg, rgba(255,255,255,.03), transparent);
+pointer-events:none;
+}
+
+.activity-item{
+transition:all .25s ease;
+}
+
+.activity-item:hover{
+transform:translateX(4px);
+border-color:rgba(255,0,0,.35);
+}
+
+.glow-title{
+text-shadow:0 0 25px rgba(255,0,0,.28);
+}
+
+.fake-chart{
+height:220px;
+border-radius:1.5rem;
+position:relative;
+overflow:hidden;
+background:
+linear-gradient(to top, rgba(255,0,0,.18), transparent 60%),
+linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+}
+
+.fake-chart svg{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+}
+</style>
+
+
+<style>
+.admin-ultra-card{
+background:linear-gradient(180deg, rgba(18,18,22,.98), rgba(8,8,10,.98));
+border:1px solid rgba(255,255,255,.06);
+box-shadow:
+0 0 0 1px rgba(255,255,255,.03),
+0 18px 60px rgba(0,0,0,.55),
+0 0 30px rgba(255,0,0,.06);
+backdrop-filter: blur(18px);
+}
+
+.live-pulse{
+animation:pulseLive 2s infinite;
+}
+
+@keyframes pulseLive{
+0%{opacity:.65}
+50%{opacity:1}
+100%{opacity:.65}
+}
+
+.metric-card{
+position:relative;
+overflow:hidden;
+transition:all .25s ease;
+}
+
+.metric-card:hover{
+transform:translateY(-3px);
+border-color:rgba(255,0,0,.25);
+}
+
+.metric-card::before{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(135deg, rgba(255,255,255,.03), transparent);
+pointer-events:none;
+}
+</style>
+
+
+<style>
+body{
+  background:
+    radial-gradient(circle at top left, rgba(255,0,0,.14), transparent 22%),
+    radial-gradient(circle at top right, rgba(168,85,247,.12), transparent 20%),
+    radial-gradient(circle at bottom center, rgba(16,185,129,.06), transparent 24%),
+    #030303;
+}
+.final-glow{
+  box-shadow:0 0 0 1px rgba(255,255,255,.04),0 16px 60px rgba(0,0,0,.58),0 0 30px rgba(255,0,0,.06);
+}
+.final-panel{
+  background:linear-gradient(180deg, rgba(10,10,12,.98), rgba(22,22,26,.96));
+  border:1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+}
+.final-card{
+  position:relative;
+  overflow:hidden;
+  transition:all .25s ease;
+}
+.final-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(255,0,0,.3);
+}
+.final-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,.03), transparent);
+  pointer-events:none;
+}
+.final-chip{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+}
+.final-title{
+  text-shadow:0 0 22px rgba(255,0,0,.22);
+}
+.final-line{
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+}
+.final-badge{
+  box-shadow:0 0 22px rgba(255,0,0,.16);
+}
+@keyframes floatSlow{
+  0%,100%{transform:translateY(0px)}
+  50%{transform:translateY(-4px)}
+}
+.float-slow{ animation: floatSlow 6s ease-in-out infinite; }
+</style>
+
+
+<style>
+:root{
+  --bg0:#030303;
+  --bg1:#09090b;
+  --card:#101014;
+  --line:rgba(255,255,255,.07);
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255,56,56,.12), transparent 18%),
+    radial-gradient(circle at 88% 14%, rgba(212,175,55,.10), transparent 16%),
+    radial-gradient(circle at 50% 95%, rgba(16,185,129,.05), transparent 18%),
+    linear-gradient(180deg, var(--bg0), var(--bg1) 55%, #050505);
+}
+
+main{
+  padding-bottom: 12rem;
+}
+
+.top-nav-premium{
+  background: rgba(8,8,10,.84);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+}
+
+.final-panel,
+.admin-ultra-card,
+.ultra-panel{
+  background: linear-gradient(180deg, rgba(14,14,18,.98), rgba(8,8,10,.98));
+  border: 1px solid var(--line);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.03),
+    0 18px 60px rgba(0,0,0,.55),
+    0 0 30px rgba(255,0,0,.05);
+  backdrop-filter: blur(18px);
+}
+
+.final-card,
+.metric-card,
+.saas-badge,
+.final-chip,
+.activity-item{
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.final-card:hover,
+.metric-card:hover,
+.saas-badge:hover,
+.final-chip:hover,
+.activity-item:hover{
+  transform: translateY(-3px);
+  border-color: rgba(255,52,52,.25);
+  box-shadow: 0 12px 36px rgba(0,0,0,.34);
+}
+
+.hero-eagle::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(135deg, rgba(255,0,0,.07), transparent 32%),
+    linear-gradient(315deg, rgba(168,85,247,.05), transparent 30%);
+  pointer-events:none;
+}
+
+.final-title{
+  letter-spacing:-.03em;
+  text-shadow:0 0 24px rgba(255,52,52,.18);
+}
+
+.final-badge{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.live-dot{
+  display:inline-block;
+  width:.55rem;
+  height:.55rem;
+  border-radius:999px;
+  background:#10b981;
+  box-shadow:0 0 18px rgba(16,185,129,.8);
+  animation: pulseLive 2s infinite;
+}
+
+@keyframes pulseLive{
+  0%{opacity:.6; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.12);}
+  100%{opacity:.6; transform:scale(1);}
+}
+
+.mobile-bottom-nav button{
+  font-weight:600;
+  letter-spacing:.01em;
+}
+
+.pill-nav{
+  background: rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+}
+</style>
+
+
+<style>
+:root{
+  --app-bg:#040404;
+  --app-card:#0f0f12;
+  --app-line:rgba(255,255,255,.07);
+  --app-red:#ff3b30;
+  --app-gold:#f2c14e;
+}
+
+body{
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,59,48,.10), transparent 20%),
+    radial-gradient(circle at 82% 10%, rgba(242,193,78,.08), transparent 18%),
+    radial-gradient(circle at 50% 90%, rgba(16,185,129,.05), transparent 22%),
+    linear-gradient(180deg, #020202, #070707 55%, #030303);
+}
+
+main{
+  padding-bottom: 12rem;
+}
+
+.top-nav-premium{
+  background: rgba(8,8,10,.86);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+}
+
+.app-shell{
+  background: linear-gradient(180deg, rgba(14,14,18,.98), rgba(8,8,10,.98));
+  border: 1px solid var(--app-line);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.06);
+  backdrop-filter: blur(18px);
+}
+
+.app-card{
+  background: rgba(10,10,12,.92);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 14px 40px rgba(0,0,0,.38);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.app-card:hover{
+  transform: translateY(-3px);
+  border-color: rgba(255,59,48,.28);
+  box-shadow: 0 16px 50px rgba(0,0,0,.45);
+}
+
+.soft-chip{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.soft-chip:hover{
+  border-color: rgba(255,59,48,.2);
+}
+
+.hero-app{
+  position:relative;
+  overflow:hidden;
+}
+
+.hero-app::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(255,59,48,.10), transparent 26%),
+    radial-gradient(circle at 84% 18%, rgba(242,193,78,.08), transparent 18%);
+}
+
+.logo-badge{
+  width: 138px;
+  height: 138px;
+  border-radius: 38px;
+  border: 1px solid rgba(255,255,255,.12);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(242,193,78,.2), transparent 35%),
+    linear-gradient(180deg, rgba(18,18,22,.96), rgba(6,6,8,.96));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 18px 50px rgba(0,0,0,.45), inset 0 0 28px rgba(255,59,48,.08);
+  position:relative;
+  overflow:hidden;
+}
+
+.logo-badge::before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border-radius:28px 28px 34px 34px;
+  border: 3px solid #ff3b30;
+  transform: perspective(700px) rotateX(8deg);
+  box-shadow: 0 0 22px rgba(255,59,48,.2);
+}
+
+.logo-badge::after{
+  content:"";
+  position:absolute;
+  inset:34px 24px 46px;
+  border-radius:18px 18px 26px 26px;
+  border: 2px solid rgba(242,193,78,.95);
+  transform: rotate(-6deg);
+  box-shadow: 0 0 18px rgba(242,193,78,.22);
+}
+
+.badge-g{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:2.1rem;
+  color:#f2c14e;
+  text-shadow:0 0 14px rgba(242,193,78,.25);
+}
+
+.logo-small{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(255,59,48,.12), rgba(0,0,0,.4));
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1rem;
+  font-weight:900;
+  color:#ff4a43;
+}
+
+.final-title{
+  letter-spacing:-.04em;
+  text-shadow:0 0 24px rgba(255,59,48,.12);
+}
+
+.pill-nav{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.live-dot{
+  display:inline-block;
+  width:.55rem;
+  height:.55rem;
+  border-radius:999px;
+  background:#10b981;
+  box-shadow:0 0 18px rgba(16,185,129,.8);
+  animation:pulseLive 2s infinite;
+}
+
+@keyframes pulseLive{
+  0%{opacity:.6; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.12);}
+  100%{opacity:.6; transform:scale(1);}
+}
+
+.bottom-mobile-nav button{
+  font-weight:600;
+}
+
+.list-dot{
+  width:.45rem;
+  height:.45rem;
+  border-radius:999px;
+  background:#ff3b30;
+  box-shadow:0 0 12px rgba(255,59,48,.55);
+}
+
+.install-step{
+  display:flex;
+  gap:.75rem;
+  align-items:flex-start;
+}
+
+.step-number{
+  min-width:1.9rem;
+  height:1.9rem;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,59,48,.14);
+  border:1px solid rgba(255,59,48,.22);
+  color:#f2c14e;
+  font-weight:800;
+}
+
+.compact-stat{
+  min-height: 78px;
+}
+</style>
+
+
+<style>
+body{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,0,0,.12), transparent 22%),
+    radial-gradient(circle at 85% 8%, rgba(255,215,0,.08), transparent 18%),
+    linear-gradient(180deg,#020202,#070707 45%,#030303);
+}
+
+.app-home-shell{
+  min-height: calc(100vh - 110px);
+}
+
+.mobile-native-card{
+  background:linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border:1px solid rgba(255,255,255,.06);
+  backdrop-filter:blur(18px);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.55),
+    0 0 30px rgba(255,0,0,.05);
+}
+
+.native-pill{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+}
+
+.native-btn{
+  transition:all .22s ease;
+}
+
+.native-btn:hover{
+  transform:translateY(-2px);
+}
+
+.hero-phone{
+  position:relative;
+  overflow:hidden;
+}
+
+.hero-phone::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(255,0,0,.12), transparent 26%),
+    radial-gradient(circle at 82% 20%, rgba(255,215,0,.08), transparent 18%);
+}
+
+.app-bottom-nav{
+  background:rgba(10,10,12,.94);
+  backdrop-filter:blur(22px);
+  border-top:1px solid rgba(255,255,255,.06);
+  box-shadow:0 -10px 40px rgba(0,0,0,.45);
+}
+
+.app-bottom-nav button{
+  transition:all .2s ease;
+}
+
+.app-bottom-nav button:hover{
+  transform:translateY(-1px);
+}
+
+.neo-icon{
+  width:52px;
+  height:52px;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(255,0,0,.14), rgba(0,0,0,.35));
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  color:#ff4747;
+  box-shadow:0 0 18px rgba(255,0,0,.08);
+}
+
+.hero-logo{
+  width:150px;
+  height:150px;
+  border-radius:42px;
+  position:relative;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,215,0,.15), transparent 35%),
+    linear-gradient(180deg, rgba(16,16,20,.98), rgba(6,6,8,.98));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 22px 60px rgba(0,0,0,.45),
+    inset 0 0 30px rgba(255,0,0,.08);
+}
+
+.hero-logo::before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border-radius:32px;
+  border:3px solid #ff3b30;
+}
+
+.hero-logo::after{
+  content:"";
+  position:absolute;
+  inset:42px 28px 52px;
+  border-radius:18px 18px 26px 26px;
+  border:2px solid rgba(255,215,0,.9);
+  transform:rotate(-6deg);
+}
+
+.hero-logo-letter{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:2.6rem;
+  font-weight:900;
+  color:#f4c84b;
+}
+
+.compact-grid{
+  gap:.7rem;
+}
+
+.native-stat{
+  min-height:90px;
+}
+
+.app-section-title{
+  letter-spacing:-.03em;
+  text-shadow:0 0 20px rgba(255,0,0,.12);
+}
+</style>
+
+
+<style>
+:root{
+  --bg:#040405;
+  --card:#0f0f12;
+  --line:rgba(255,255,255,.07);
+  --red:#ff3b30;
+  --gold:#f2c14e;
+}
+
+body{
+  background:
+    radial-gradient(circle at 15% 10%, rgba(255,59,48,.12), transparent 18%),
+    radial-gradient(circle at 80% 8%, rgba(242,193,78,.08), transparent 15%),
+    linear-gradient(180deg, #020202, #070707 55%, #030303);
+}
+
+main{
+  padding-bottom: 7rem;
+}
+
+.top-nav-premium{
+  background: rgba(8,8,10,.86);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+}
+
+.mobile-shell{
+  max-width: 31rem;
+  margin: 0 auto;
+}
+
+.app-frame{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+
+.card-soft{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 12px 34px rgba(0,0,0,.32);
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+
+.card-soft:hover{
+  transform: translateY(-3px);
+  border-color: rgba(255,59,48,.24);
+  box-shadow: 0 14px 42px rgba(0,0,0,.42);
+}
+
+.hero-bg{
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255,59,48,.12), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(242,193,78,.09), transparent 18%),
+    radial-gradient(circle at 50% 90%, rgba(16,185,129,.06), transparent 20%);
+}
+
+.hero-logo{
+  width: 154px;
+  height: 154px;
+  border-radius: 42px;
+  position: relative;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,215,0,.15), transparent 35%),
+    linear-gradient(180deg, rgba(20,20,24,.98), rgba(7,7,9,.98));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow:
+    0 22px 70px rgba(0,0,0,.52),
+    inset 0 0 30px rgba(255,59,48,.08);
+}
+.hero-logo::before{
+  content:"";
+  position:absolute;
+  inset:18px;
+  border-radius: 32px;
+  border: 3px solid #ff3b30;
+}
+.hero-logo::after{
+  content:"";
+  position:absolute;
+  inset:42px 28px 52px;
+  border-radius: 18px 18px 26px 26px;
+  border: 2px solid rgba(242,193,78,.92);
+  transform: rotate(-6deg);
+}
+.hero-logo-letter{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color:#f2c14e;
+  text-shadow: 0 0 16px rgba(242,193,78,.22);
+}
+
+.pill{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.live-dot{
+  display:inline-block;
+  width:.55rem;
+  height:.55rem;
+  border-radius:999px;
+  background:#10b981;
+  box-shadow:0 0 18px rgba(16,185,129,.8);
+  animation:pulseLive 2s infinite;
+}
+@keyframes pulseLive{
+  0%{opacity:.6; transform:scale(1);}
+  50%{opacity:1; transform:scale(1.12);}
+  100%{opacity:.6; transform:scale(1);}
+}
+
+.stat-box{
+  min-height: 88px;
+}
+
+.native-btn{
+  transition: transform .2s ease, opacity .2s ease;
+}
+.native-btn:hover{
+  transform: translateY(-1px);
+}
+
+.section-title{
+  letter-spacing:-.04em;
+  text-shadow: 0 0 20px rgba(255,59,48,.12);
+}
+
+.app-bottom-nav{
+  background: rgba(10,10,12,.94);
+  backdrop-filter: blur(22px);
+  border-top: 1px solid rgba(255,255,255,.06);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.45);
+}
+</style>
+
+
+<style>
+#appSplash{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,59,48,.16), transparent 20%),
+    radial-gradient(circle at 80% 25%, rgba(242,193,78,.12), transparent 16%),
+    linear-gradient(180deg, #030303, #070707 60%, #020202);
+  transition: opacity .45s ease, transform .45s ease;
+}
+#appSplash.hiddenSplash{
+  opacity:0;
+  transform:scale(.98);
+  pointer-events:none;
+}
+.splash-panel{
+  width:min(92vw, 420px);
+  border-radius:2.2rem;
+  padding:2rem 1.5rem;
+  background:linear-gradient(180deg, rgba(18,18,22,.96), rgba(8,8,10,.96));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 24px 80px rgba(0,0,0,.6), inset 0 0 30px rgba(255,59,48,.08);
+  backdrop-filter: blur(18px);
+}
+.splash-logo{
+  width:130px;
+  height:130px;
+  border-radius:38px;
+  margin:0 auto;
+  position:relative;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,215,0,.16), transparent 35%),
+    linear-gradient(180deg, rgba(20,20,24,.98), rgba(7,7,9,.98));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 22px 70px rgba(0,0,0,.52), inset 0 0 30px rgba(255,59,48,.08);
+}
+.splash-logo::before{
+  content:"";
+  position:absolute;
+  inset:16px;
+  border-radius:30px;
+  border:3px solid #ff3b30;
+}
+.splash-logo::after{
+  content:"";
+  position:absolute;
+  inset:38px 24px 48px;
+  border-radius:18px 18px 26px 26px;
+  border:2px solid rgba(242,193,78,.92);
+  transform:rotate(-6deg);
+}
+.splash-letter{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:2.2rem;
+  font-weight:900;
+  color:#f2c14e;
+  text-shadow:0 0 16px rgba(242,193,78,.22);
+}
+.splash-title{
+  letter-spacing:-.04em;
+  text-shadow:0 0 18px rgba(255,59,48,.12);
+}
+.splash-bar{
+  height:8px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.06);
+}
+.splash-bar > span{
+  display:block;
+  height:100%;
+  width:100%;
+  transform-origin:left;
+  background:linear-gradient(90deg, #ff3b30, #f2c14e, #ff3b30);
+  animation:splashLoad 2.4s linear forwards;
+}
+@keyframes splashLoad{
+  from{transform:scaleX(.05)}
+  to{transform:scaleX(1)}
+}
+</style>
+
+
+<style>
+#loginSection{
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.login-shell{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+
+.login-card{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 12px 34px rgba(0,0,0,.32);
+}
+
+.login-hero{
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255,59,48,.12), transparent 24%),
+    radial-gradient(circle at 80% 10%, rgba(242,193,78,.09), transparent 18%),
+    linear-gradient(180deg, rgba(18,18,22,.98), rgba(8,8,10,.98));
+}
+
+.login-logo{
+  width: 114px;
+  height: 114px;
+  border-radius: 34px;
+  margin: 0 auto;
+  position: relative;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,215,0,.16), transparent 35%),
+    linear-gradient(180deg, rgba(20,20,24,.98), rgba(7,7,9,.98));
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5), inset 0 0 30px rgba(255,59,48,.08);
+}
+.login-logo::before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border-radius:28px;
+  border:3px solid #ff3b30;
+}
+.login-logo::after{
+  content:"";
+  position:absolute;
+  inset:34px 22px 44px;
+  border-radius:18px 18px 26px 26px;
+  border:2px solid rgba(242,193,78,.92);
+  transform:rotate(-6deg);
+}
+.login-logo-letter{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:2rem;
+  font-weight:900;
+  color:#f2c14e;
+  text-shadow:0 0 16px rgba(242,193,78,.22);
+}
+.login-title{
+  letter-spacing:-.04em;
+  text-shadow:0 0 18px rgba(255,59,48,.12);
+}
+</style>
+
+
+<style>
+.dashboard-shell{
+  max-width: 32rem;
+  margin: 0 auto;
+}
+.dashboard-frame{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.dashboard-card{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 12px 34px rgba(0,0,0,.32);
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.dashboard-card:hover{
+  transform: translateY(-2px);
+  border-color: rgba(255,59,48,.24);
+  box-shadow: 0 14px 42px rgba(0,0,0,.42);
+}
+.dashboard-title{
+  letter-spacing:-.04em;
+  text-shadow:0 0 18px rgba(255,59,48,.12);
+}
+.dashboard-pill{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.dashboard-chip{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.dashboard-nav{
+  background: rgba(10,10,12,.94);
+  backdrop-filter: blur(22px);
+  border-top: 1px solid rgba(255,255,255,.06);
+  box-shadow: 0 -10px 40px rgba(0,0,0,.45);
+}
+.stat-mini{
+  min-height: 86px;
+}
+</style>
+
+
+<style>
+.app-screen{
+  min-height: calc(100vh - 140px);
+  animation: screenFade .28s ease;
+  padding-bottom: 3rem;
+}
+@keyframes screenFade{
+  from{opacity:.0; transform:translateY(8px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.native-tabbar{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:70;
+  backdrop-filter: blur(24px);
+  background: rgba(8,8,10,.94);
+  border-top:1px solid rgba(255,255,255,.06);
+  box-shadow:0 -10px 40px rgba(0,0,0,.45);
+}
+.native-tab{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:.22rem;
+  min-height:68px;
+  border-radius:1.2rem;
+  transition:all .2s ease;
+}
+.native-tab.active{
+  background:rgba(255,59,48,.18);
+  color:white;
+}
+.native-tab-label{
+  font-size:.68rem;
+  font-weight:600;
+}
+</style>
+
+
+<style>
+.home-min-shell{
+  max-width: 30rem;
+  margin: 0 auto;
+}
+.home-min-card{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.home-chip{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.home-stat{
+  min-height: 86px;
+}
+.home-cta{
+  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+}
+.home-cta:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,59,48,.22);
+}
+</style>
+
+
+<style>
+.section-screen{
+  min-height: calc(100vh - 150px);
+  animation: screenIn .22s ease;
+  padding-bottom: 3rem;
+}
+@keyframes screenIn{
+  from{opacity:0; transform:translateY(6px)}
+  to{opacity:1; transform:translateY(0)}
+}
+.screen-label{
+  letter-spacing:.32em;
+  text-transform:uppercase;
+}
+.app-divider{
+  height:1px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+}
+.native-tabs{
+  background: rgba(8,8,10,.94);
+  backdrop-filter: blur(22px);
+  border-top:1px solid rgba(255,255,255,.06);
+  box-shadow:0 -10px 40px rgba(0,0,0,.45);
+}
+.native-tabs button.active{
+  background: rgba(255,59,48,.20) !important;
+  color: #fff !important;
+  border-color: rgba(255,59,48,.35) !important;
+}
+</style>
+
+
+<style>
+.panel-app{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.panel-soft{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 12px 34px rgba(0,0,0,.32);
+}
+.section-tag{
+  letter-spacing:.32em;
+  text-transform:uppercase;
+}
+.card-inner{
+  background: linear-gradient(180deg, rgba(28,28,32,.98), rgba(10,10,12,.98));
+  border: 1px solid rgba(255,255,255,.08);
+}
+.screen-stack{
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.kpi-tile{
+  min-height: 88px;
+}
+</style>
+
+
+<style>
+.admin-shell-clean{
+  max-width: 36rem;
+  margin: 0 auto;
+}
+.admin-panel{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.admin-soft{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.admin-grid-btn{
+  transition: transform .2s ease, border-color .2s ease;
+}
+.admin-grid-btn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,59,48,.22);
+}
+.admin-kpi{
+  min-height: 92px;
+}
+</style>
+
+
+<style>
+.section-screen{
+  min-height: calc(100vh - 150px);
+  animation: pageIn .32s ease;
+}
+@keyframes pageIn{
+  from{opacity:0; transform:translateY(10px) scale(.992)}
+  to{opacity:1; transform:translateY(0) scale(1)}
+}
+.home-min-card, .panel-app, .admin-panel, .dashboard-frame, .home-chip, .panel-soft, .admin-soft, .dashboard-card, .native-tab, .pill, .card-soft{
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease;
+}
+.home-min-card:hover, .panel-app:hover, .admin-panel:hover, .dashboard-frame:hover, .home-chip:hover, .panel-soft:hover, .admin-soft:hover, .dashboard-card:hover, .native-tab:hover, .card-soft:hover{
+  transform: translateY(-2px);
+}
+#appSplash .splash-panel{
+  animation: splashPop .7s ease;
+}
+#appSplash .splash-logo{
+  animation: logoFloat 3.2s ease-in-out infinite;
+}
+#appSplash .splash-logo::before{
+  animation: glowSpin 7s linear infinite;
+}
+#appSplash .splash-logo::after{
+  animation: ringPulse 2.2s ease-in-out infinite;
+}
+#appSplash .splash-orb{
+  position:absolute;
+  border-radius:999px;
+  filter: blur(2px);
+  opacity:.65;
+  pointer-events:none;
+}
+#appSplash .splash-orb.one{
+  width:90px;height:90px;left:-20px;top:18px;
+  background:rgba(255,59,48,.12);
+  animation: orbFloat 6s ease-in-out infinite;
+}
+#appSplash .splash-orb.two{
+  width:120px;height:120px;right:-24px;bottom:24px;
+  background:rgba(242,193,78,.10);
+  animation: orbFloat 7s ease-in-out infinite reverse;
+}
+.splash-bar{
+  height:8px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.06);
+}
+.splash-bar > span{
+  display:block;
+  height:100%;
+  width:100%;
+  transform-origin:left;
+  background:linear-gradient(90deg, #ff3b30, #f2c14e, #ff3b30);
+  animation:splashLoad 2.2s linear forwards;
+}
+@keyframes splashPop{
+  from{opacity:0; transform:scale(.96) translateY(10px)}
+  to{opacity:1; transform:scale(1) translateY(0)}
+}
+@keyframes logoFloat{
+  0%,100%{transform:translateY(0px)}
+  50%{transform:translateY(-4px)}
+}
+@keyframes glowSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes ringPulse{
+  0%,100%{transform:rotate(-6deg) scale(1); opacity:1}
+  50%{transform:rotate(-6deg) scale(1.03); opacity:.82}
+}
+@keyframes orbFloat{
+  0%,100%{transform:translateY(0px)}
+  50%{transform:translateY(-10px)}
+}
+@keyframes splashLoad{
+  from{transform:scaleX(.05)}
+  to{transform:scaleX(1)}
+}
+</style>
+
+
+<style>
+.schedule-shell{
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.schedule-card{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.schedule-pill{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.schedule-row{
+  transition: transform .2s ease, border-color .2s ease;
+}
+.schedule-row:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,59,48,.22);
+}
+</style>
+
+
+<style>
+.schedule-shell{
+  max-width: 34rem;
+  margin: 0 auto;
+}
+.schedule-card{
+  background: linear-gradient(180deg, rgba(16,16,20,.98), rgba(8,8,10,.98));
+  border: 1px solid rgba(255,255,255,.07);
+  box-shadow: 0 24px 80px rgba(0,0,0,.58), 0 0 30px rgba(255,59,48,.05);
+  backdrop-filter: blur(18px);
+}
+.schedule-pill{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.schedule-row{
+  transition: transform .2s ease, border-color .2s ease;
+}
+.schedule-row:hover{
+  transform: translateY(-1px);
+  border-color: rgba(255,59,48,.22);
+}
+.week-chip{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.week-chip.today{
+  border-color: rgba(255,59,48,.28);
+  background: rgba(255,59,48,.10);
+}
+</style>
+
+</head>
+<body class="bg-black text-white min-h-screen">
+
+<div id="appSplash" aria-hidden="true">
+  <div class="splash-panel text-center relative overflow-hidden">
+    <div class="splash-orb one"></div>
+    <div class="splash-orb two"></div>
+    <div class="splash-logo logo-frame" style="width:160px;height:160px">
+      <img class="official-logo-img p-3" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
+    </div>
+    <div class="mt-6 text-[11px] uppercase tracking-[0.35em] text-red-400 font-semibold">Aplicativo Oficial</div>
+    <h1 class="splash-title mt-3 text-3xl font-black text-white">Kung Fu Garra de Águia Praia Grande</h1>
+    <p class="mt-3 text-zinc-400 text-sm">Carregando sua academia oficial...</p>
+    <div class="mt-6 splash-bar"><span></span></div>
+  </div>
+</div>
+
+  
+  
+  <header class="sticky top-0 z-40 bg-zinc-950/90 backdrop-blur border-b border-red-700/50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-11 h-11 rounded-2xl border border-zinc-700 bg-zinc-900 flex items-center justify-center overflow-hidden shadow-lg logo-frame">
+          <img class="official-logo-img p-1" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-lg md:text-2xl font-black text-red-500 truncate">Kung Fu Garra de Águia Praia Grande v2.2</h1>
+          <p class="text-zinc-400 text-xs md:text-sm truncate">Associação Shaolin Kung Fu • Praia Grande</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="hidden sm:inline-flex px-3 py-1 rounded-full text-xs text-emerald-400 bg-white/5 border border-white/10">
+          <span class="live-dot mr-2 align-middle"></span>Online
+        </span>
+        <button id="btnHome" class="hidden sm:inline-flex bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-xl font-semibold text-sm">Início</button>
+        <button id="btnInstall" class="hidden sm:inline-flex bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-xl font-semibold text-sm">Instalar</button>
+      </div>
+    </div>
+  </header>
+
+
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    
+    
+    
+    
+    
+    
+    
+
+
+<section id="loginSection" class="app-screen space-y-4 hidden">
+  <div class="login-shell rounded-[2.4rem] p-5 md:p-6">
+    <div class="login-hero rounded-[2.1rem] p-5 md:p-6 text-center">
+      <div class="login-logo logo-frame" style="width:150px;height:150px">
+        <img class="official-logo-img p-2" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
+      </div>
+
+      <div class="mt-5 text-[11px] uppercase tracking-[0.34em] text-yellow-400 font-semibold">
+        Bem-vindo
+      </div>
+      <h1 class="mt-3 text-4xl font-black text-white login-title">Kung Fu Garra de Águia Praia Grande</h1>
+      <p class="mt-3 text-zinc-300 text-sm">Acesse suas aulas, carteirinha e presença com a identidade oficial da academia.</p>
+
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <button id="btnSchedule" class="home-cta w-full bg-zinc-700 hover:bg-zinc-600 rounded-2xl px-4 py-3 font-semibold">Treinos</button>
+        <button id="btnAdmin" class="home-cta w-full bg-red-600 hover:bg-red-500 rounded-2xl px-4 py-3 font-semibold">Administrador</button>
+      </div>
+    </div>
+
+    <div class="mt-4 space-y-3">
+      <details class="card-soft rounded-3xl p-4 border border-white/5">
+        <summary class="cursor-pointer list-none flex items-center justify-between gap-3">
+          <div>
+            <div class="text-yellow-400 font-bold text-sm">Login do aluno</div>
+            <div class="text-zinc-400 text-xs mt-1">Entrar com e-mail e senha</div>
+          </div>
+          <div class="text-red-400 text-xl">↳</div>
+        </summary>
+        <div class="mt-4">
+          <input id="emailLogin" type="email" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none" placeholder="seuemail@email.com" />
+          <input id="passLogin" type="password" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none mt-3" placeholder="Senha" />
+          <button id="btnLoginEmail" class="w-full bg-red-700 hover:bg-red-600 rounded-2xl px-4 py-3 font-semibold mt-3">Entrar</button>
+                    <p id="authStatus" class="text-xs text-zinc-500 mt-2">Desconectado</p>
+        </div>
+      </details>
+
+      <details class="card-soft rounded-3xl p-4 border border-white/5">
+        <summary class="cursor-pointer list-none flex items-center justify-between gap-3">
+          <div>
+            <div class="text-emerald-400 font-bold text-sm">Criar conta do aluno</div>
+            <div class="text-zinc-400 text-xs mt-1">Comece seu cadastro online</div>
+          </div>
+          <div class="text-red-400 text-xl">↳</div>
+        </summary>
+        <div class="mt-4">
+          <input id="emailCreate" type="email" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none" placeholder="seuemail@email.com" />
+          <input id="passCreate" type="password" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none mt-3" placeholder="Crie uma senha" />
+          <button id="btnCreateAccount" class="w-full bg-yellow-600 hover:bg-yellow-500 rounded-2xl px-4 py-3 font-semibold mt-3">Criar conta</button>
+        </div>
+      </details>
+
+      <details id="adminDetails" class="card-soft rounded-3xl p-4 border border-white/5">
+        <summary class="cursor-pointer list-none flex items-center justify-between gap-3">
+          <div>
+            <div class="text-yellow-400 font-bold text-sm">Administrador</div>
+            <div class="text-zinc-400 text-xs mt-1">Acesso restrito da academia</div>
+          </div>
+          <div class="text-red-400 text-xl">↳</div>
+        </summary>
+        <div class="mt-4">
+          <input id="adminPass" type="password" class="w-full bg-zinc-800 p-3 rounded-2xl border border-zinc-700 outline-none" placeholder="Senha do admin" />
+          <button id="unlockAdminBtn" class="w-full bg-red-600 hover:bg-red-500 rounded-2xl px-4 py-3 font-semibold mt-3">Entrar como admin</button>
+          <p class="text-xs text-zinc-500 mt-2">Área restrita do administrador</p>
+        </div>
+      </details>
+
+      <div class="login-card rounded-3xl p-4">
+        <div class="text-zinc-300 text-sm">
+          Dica: use o menu inferior quando já estiver dentro do app. Ele leva para carteirinha, presenças e financeiro.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<section id="homeSection" class="section-screen space-y-4 hidden">
+  <div class="home-min-shell space-y-4">
+
+    <div class="home-min-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-start justify-between gap-3 flex-wrap">
+        <div class="min-w-0">
+          <div class="screen-label text-[11px] text-yellow-400 font-semibold">Painel oficial</div>
+          <h1 id="homeGreeting" class="mt-2 text-3xl md:text-5xl font-black leading-[0.95] section-title text-white">
+            Bem-vindo
+          </h1>
+          <p id="homeSubtext" class="mt-3 text-zinc-300 text-sm md:text-base max-w-2xl">
+            Faça login para ver seu painel personalizado.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btnLogout" class="home-cta bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-2xl font-semibold text-sm">Sair</button>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-center">
+        <div class="hero-logo logo-frame" style="width:160px;height:160px">
+          <img class="official-logo-img p-2" src="assets/logo-oficial.png" alt="Logo oficial da Kung Fu Garra de Águia Praia Grande" />
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Próxima aula</div>
+          <div id="homeNextClass" class="text-lg font-black text-red-500 mt-1">-</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Cadastro</div>
+          <div id="homeProfileStatus" class="text-lg font-black text-yellow-400 mt-1">-</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Mensalidade</div>
+          <div id="homeMonthlyStatus" class="text-sm font-black text-emerald-400 mt-2 leading-tight">-</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Presenças</div>
+          <div id="homePresenceCount" class="text-2xl font-black text-yellow-400 mt-1">0</div>
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Alunos</div>
+          <div id="statAlunos" class="text-2xl font-black text-red-500 mt-1">0</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Pendentes</div>
+          <div id="statPendentes" class="text-2xl font-black text-yellow-400 mt-1">0</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Presenças</div>
+          <div id="statPresencas" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="home-chip rounded-2xl p-3 home-stat">
+          <div class="text-zinc-400 text-[11px]">Sistema</div>
+          <div id="statBanco" class="text-xl font-black text-yellow-400 mt-2">Ativo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-min-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="screen-label text-[11px] text-red-400 font-semibold">Acesso rápido</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white section-title">Entradas principais</h2>
+          <p class="text-zinc-400 text-sm mt-1">Use o menu inferior para navegar com um toque.</p>
+        </div>
+        <div class="text-red-400 text-2xl">✦</div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('mobileAlunoBtn').click()">
+          <div class="text-red-400 text-2xl">🥋</div>
+          <div class="mt-2 font-semibold text-white">Aluno</div>
+          <div class="text-zinc-400 text-sm mt-1">Painel pessoal</div>
+        </button>
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('mobileCardBtn').click()">
+          <div class="text-yellow-400 text-2xl">🪪</div>
+          <div class="mt-2 font-semibold text-white">Carteirinha</div>
+          <div class="text-zinc-400 text-sm mt-1">Identificação digital</div>
+        </button>
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('mobileAdminBtn').click()">
+          <div class="text-emerald-400 text-2xl">⚙️</div>
+          <div class="mt-2 font-semibold text-white">Admin</div>
+          <div class="text-zinc-400 text-sm mt-1">Painel da academia</div>
+        </button>
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('btnSchedule').click()">
+          <div class="text-white text-2xl">🕒</div>
+          <div class="mt-2 font-semibold text-white">Treinos</div>
+          <div class="text-zinc-400 text-sm mt-1">Horários</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="home-min-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="screen-label text-[11px] text-yellow-400 font-semibold">Academia</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white section-title">Áreas exclusivas</h2>
+        </div>
+        <div class="text-yellow-400 text-2xl">◆</div>
+      </div>
+
+      <div class="mt-4 grid md:grid-cols-3 gap-3">
+        <div class="home-chip rounded-3xl p-4">
+          <div class="text-red-400 text-3xl">📢</div>
+          <div class="mt-3 font-bold text-white">Avisos</div>
+          <div class="text-zinc-400 text-sm mt-1">Mudanças de horário, feriados e recados da academia.</div>
+        </div>
+        <div class="home-chip rounded-3xl p-4">
+          <div class="text-yellow-400 text-3xl">🏆</div>
+          <div class="mt-3 font-bold text-white">Eventos</div>
+          <div class="text-zinc-400 text-sm mt-1">Graduações, seminários e campeonatos oficiais.</div>
+        </div>
+        <div class="home-chip rounded-3xl p-4">
+          <div class="text-emerald-400 text-3xl">📸</div>
+          <div class="mt-3 font-bold text-white">Galeria</div>
+          <div class="text-zinc-400 text-sm mt-1">Treinos, faixas e momentos especiais da escola.</div>
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-3 gap-2">
+        <div class="rounded-2xl overflow-hidden border border-white/5 bg-gradient-to-br from-zinc-900 to-red-950 p-4 min-h-[110px] flex flex-col justify-end">
+          <div class="text-xs uppercase tracking-[0.35em] text-zinc-400">Treino</div>
+          <div class="text-lg font-black text-white mt-1">Disciplina</div>
+        </div>
+        <div class="rounded-2xl overflow-hidden border border-white/5 bg-gradient-to-br from-zinc-900 to-yellow-950 p-4 min-h-[110px] flex flex-col justify-end">
+          <div class="text-xs uppercase tracking-[0.35em] text-zinc-400">Faixa</div>
+          <div class="text-lg font-black text-white mt-1">Graduação</div>
+        </div>
+        <div class="rounded-2xl overflow-hidden border border-white/5 bg-gradient-to-br from-zinc-900 to-emerald-950 p-4 min-h-[110px] flex flex-col justify-end">
+          <div class="text-xs uppercase tracking-[0.35em] text-zinc-400">Equipe</div>
+          <div class="text-lg font-black text-white mt-1">Conquista</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-min-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-xl md:text-2xl font-black text-white section-title">Instalar app</h3>
+          <p class="text-zinc-400 text-sm mt-1">O app pode ser colocado na tela inicial do celular.</p>
+        </div>
+        <button id="btnInstall" class="home-cta bg-zinc-800 hover:bg-zinc-700 px-3 py-2 rounded-xl font-semibold">Instalar</button>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <div class="home-chip rounded-2xl p-4">
+          <div class="font-bold text-white">1. Abrir no navegador</div>
+          <div class="text-zinc-400 text-sm mt-1">Safari no iPhone ou Chrome no Android.</div>
+        </div>
+        <div class="home-chip rounded-2xl p-4">
+          <div class="font-bold text-white">2. Compartilhar</div>
+          <div class="text-zinc-400 text-sm mt-1">Use o botão do navegador para instalar.</div>
+        </div>
+        <div class="home-chip rounded-2xl p-4">
+          <div class="font-bold text-white">3. Adicionar à tela inicial</div>
+          <div class="text-zinc-400 text-sm mt-1">Abra como aplicativo real.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+<section id="createSection" class="section-screen hidden">
+  <div class="screen-stack space-y-4">
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="section-tag text-[11px] text-red-400 font-semibold">Cadastro</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white mt-1">Criar ou completar perfil</h2>
+          <p class="text-zinc-400 text-sm mt-2">Preencha os dados e adicione uma foto opcional.</p>
+        </div>
+        <button id="backFromCreate" class="panel-soft px-4 py-2 rounded-xl text-zinc-100">Voltar</button>
+      </div>
+
+      <div class="mt-5 grid gap-3">
+        <input id="nomeAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Nome completo" />
+        <input id="telefoneAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Telefone" />
+        <input id="faixaAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Faixa" />
+        <input id="fotoAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="URL da foto opcional (ou deixe em branco)" />
+        <input id="fotoFile" type="file" accept="image/*" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" aria-label="Selecionar foto opcional" />
+        <textarea id="observacaoAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" rows="4" placeholder="Observação opcional"></textarea>
+        <button id="savePublicProfileBtn" class="w-full bg-red-700 hover:bg-red-600 premium-button rounded-2xl px-4 py-3 font-semibold">Salvar cadastro</button>
+      </div>
+    </div>
+
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Prévia do perfil</h3>
+        <span class="text-zinc-400 text-xs">Ao vivo</span>
+      </div>
+      <div class="mt-4 panel-soft rounded-3xl p-4">
+        <div id="profilePreview" class="text-zinc-300">Ainda não salvo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    
+
+
+<section id="alunoSection" class="section-screen hidden">
+  <div class="screen-stack space-y-4">
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="section-tag text-[11px] text-emerald-400 font-semibold">Área do aluno</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white mt-1">Seu painel pessoal</h2>
+          <p class="text-zinc-400 text-sm mt-2">Veja o status do cadastro, a próxima aula e as últimas presenças.</p>
+        </div>
+        <button id="backFromAluno" class="panel-soft px-4 py-2 rounded-xl text-zinc-100">Voltar</button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <div class="panel-soft rounded-2xl p-3 kpi-tile">
+          <div class="text-zinc-400 text-[11px]">Status</div>
+          <div id="studentStatus" class="text-lg font-black text-emerald-400 mt-1">Pendente</div>
+        </div>
+        <div class="panel-soft rounded-2xl p-3 kpi-tile">
+          <div class="text-zinc-400 text-[11px]">Presenças</div>
+          <div id="studentPresencas" class="text-3xl font-black text-red-400 mt-1">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Perfil do aluno</h3>
+        <span id="studentCompletionBadge" class="text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300">Cadastre-se</span>
+      </div>
+      <div class="mt-4 panel-soft rounded-3xl p-4">
+        <div id="studentProfile" class="text-zinc-300">Faça login e complete o cadastro.</div>
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm text-zinc-300">
+          <div class="panel-soft rounded-2xl p-3">
+            <div class="text-zinc-500 text-[11px]">Faixa</div>
+            <div id="studentFaixa" class="font-semibold text-white mt-1">-</div>
+          </div>
+          <div class="panel-soft rounded-2xl p-3">
+            <div class="text-zinc-500 text-[11px]">Completo</div>
+            <div id="studentCompletionState" class="font-semibold text-white mt-1">Cadastre-se</div>
+          </div>
+          <div class="panel-soft rounded-2xl p-3">
+            <div class="text-zinc-500 text-[11px]">Próxima aula</div>
+            <div id="studentNextClass" class="font-semibold text-white mt-1">-</div>
+          </div>
+          <div class="panel-soft rounded-2xl p-3">
+            <div class="text-zinc-500 text-[11px]">Mensalidade</div>
+            <div id="studentMonthlyStatus" class="font-semibold text-white mt-1">-</div>
+          </div>
+        </div>
+        <div id="studentMissingList" class="mt-3 flex flex-wrap gap-2"></div>
+      </div>
+    </div>
+
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Ações</h3>
+        <span class="text-zinc-400 text-xs">Rápidas</span>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button id="openScheduleBtn" class="panel-soft rounded-2xl p-4 text-left">
+          <div class="text-red-400 text-2xl">🕒</div>
+          <div class="mt-2 font-semibold text-white">Horários</div>
+          <div class="text-zinc-400 text-sm mt-1">Ver aulas</div>
+        </button>
+        <button id="editProfileBtn" class="panel-soft rounded-2xl p-4 text-left">
+          <div class="text-yellow-400 text-2xl">✎</div>
+          <div class="mt-2 font-semibold text-white">Editar cadastro</div>
+          <div class="text-zinc-400 text-sm mt-1">Completar dados</div>
+        </button>
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('btnCard').click()">
+          <div class="text-red-400 text-2xl">🪪</div>
+          <div class="mt-2 font-semibold text-white">Carteirinha</div>
+          <div class="text-zinc-400 text-sm mt-1">Abrir identificação</div>
+        </button>
+        <button class="panel-soft rounded-2xl p-4 text-left" onclick="document.getElementById('mobileHomeBtn').click()">
+          <div class="text-white text-2xl">⌂</div>
+          <div class="mt-2 font-semibold text-white">Início</div>
+          <div class="text-zinc-400 text-sm mt-1">Voltar ao painel</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Últimas presenças</h3>
+        <span id="studentPresenceCount" class="text-zinc-400 text-xs">0 registros</span>
+      </div>
+      <div id="studentPresenceHistory" class="mt-4 space-y-2">
+        <div class="text-zinc-500 text-sm">Sem presença registrada ainda.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="scheduleSection" class="section-screen hidden">
+  <div class="schedule-shell space-y-4">
+    <div class="schedule-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="section-tag text-[11px] text-red-400 font-semibold">Horários</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white mt-1">Todas as aulas</h2>
+          <p class="text-zinc-400 text-sm mt-2">Confira por dia da semana e volte para completar seu cadastro se precisar.</p>
+        </div>
+        <button id="backFromSchedule" class="schedule-pill px-4 py-2 rounded-xl text-zinc-100">Voltar</button>
+      </div>
+
+      <div class="mt-5 schedule-pill rounded-[2rem] p-4">
+        <div class="text-zinc-400 text-sm">Horário em destaque</div>
+        <div id="scheduleTodayTitle" class="mt-1 text-2xl font-black text-white">-</div>
+        <div id="scheduleTodayTime" class="text-zinc-400 text-sm mt-1">-</div>
+        <div id="scheduleTodayNote" class="text-red-400 text-sm mt-2">Aula mais próxima do dia.</div>
+      </div>
+
+      <div id="scheduleList" class="mt-5 space-y-4"></div>
+    </div>
+
+    <div class="schedule-card rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-xl font-black text-white">Cadastro incompleto?</h3>
+          <p class="text-zinc-400 text-sm mt-1">Volte e complete os campos que faltaram.</p>
+        </div>
+        <div class="text-yellow-400 text-2xl">✎</div>
+      </div>
+
+      <button id="goCompleteProfileBtn" class="w-full mt-4 bg-red-700 hover:bg-red-600 rounded-2xl px-4 py-3 font-semibold">
+        Completar cadastro
+      </button>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+    
+
+<section id="cardSection" class="section-screen hidden">
+  <div class="screen-stack space-y-4">
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="section-tag text-[11px] text-red-400 font-semibold">Carteirinha</div>
+          <h2 class="text-2xl md:text-3xl font-black text-white mt-1">Digital do aluno</h2>
+          <p class="text-zinc-400 text-sm mt-2">Foto, presença total, próxima aula e QR Code.</p>
+        </div>
+        <button id="backFromCard" class="panel-soft px-4 py-2 rounded-xl text-zinc-100">Voltar</button>
+      </div>
+
+      <div class="mt-5 panel-soft rounded-[2rem] p-4">
+        <div id="studentCard" class="rounded-[2rem] p-5 border border-zinc-700 bg-gradient-to-br from-zinc-900 to-zinc-950">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.4em] text-zinc-400">Carteirinha</div>
+              <div class="text-xl font-black text-red-500 mt-2">Kung Fu Garra de Águia Praia Grande v2.2</div>
+            </div>
+            <div class="w-16 h-16 rounded-2xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
+              <img id="cardPhotoThumb" src="" alt="" class="hidden w-full h-full object-cover" />
+              <span id="cardInitial" class="text-red-500 font-black text-2xl">G</span>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-3">
+            <div class="panel-soft rounded-3xl p-4 text-center">
+              <div class="text-zinc-400 text-sm">Presenças totais</div>
+              <div id="cardPresencas" class="text-5xl font-black text-red-400 mt-1">0</div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div class="panel-soft rounded-2xl p-3">
+                <div class="text-zinc-500 text-[11px]">Próxima aula</div>
+                <div id="cardNextClass" class="font-semibold text-white mt-1">-</div>
+              </div>
+              <div class="panel-soft rounded-2xl p-3">
+                <div class="text-zinc-500 text-[11px]">Validade</div>
+                <div id="cardValidity" class="font-semibold text-white mt-1">-</div>
+              </div>
+              <div class="panel-soft rounded-2xl p-3">
+                <div class="text-zinc-500 text-[11px]">Status</div>
+                <div id="cardStatus" class="font-semibold text-white mt-1">-</div>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-[132px_1fr] gap-4 items-center">
+              <div class="w-32 h-32 rounded-3xl bg-zinc-800 border border-zinc-700 overflow-hidden flex items-center justify-center">
+                <img id="cardPhoto" src="" alt="Foto do aluno" class="hidden w-full h-full object-cover" />
+                <span id="cardPhotoFallback" class="text-zinc-500 text-sm text-center px-2">Sem foto</span>
+              </div>
+              <div class="space-y-2 text-sm">
+                <div><span class="text-zinc-400">Nome:</span> <b id="cardName">-</b></div>
+                <div><span class="text-zinc-400">Faixa:</span> <b id="cardFaixa">-</b></div>
+                <div><span class="text-zinc-400">Identificação:</span> <b id="cardValidityText">Carteirinha digital</b></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid md:grid-cols-2 gap-4 items-center">
+            <div>
+              <div class="text-xs text-zinc-400 mb-2">QR Code</div>
+              <div id="qrcode" class="bg-white p-3 rounded-2xl inline-block"></div>
+            </div>
+            <div class="text-zinc-400 text-sm leading-relaxed">
+              Use esta carteirinha para identificação do aluno na academia e conferência rápida na entrada.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-app rounded-[2.4rem] p-5 md:p-6">
+      <h3 class="text-xl font-black text-white">Selecionar aluno</h3>
+      <div class="mt-4 space-y-3">
+        <select id="cardSelect" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700"></select>
+        <div id="cardDetails" class="text-zinc-300"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+    
+    
+
+<section id="adminSection" class="section-screen hidden">
+  <div class="admin-shell-clean space-y-4">
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between gap-3">
+        <button id="backFromAdmin" class="admin-soft w-11 h-11 rounded-2xl flex items-center justify-center text-zinc-200">
+          ←
+        </button>
+
+        <div class="text-center flex-1">
+          <div class="section-tag text-[11px] text-red-400 font-semibold">Administrador</div>
+          <h2 class="mt-1 text-2xl md:text-3xl font-black text-white">Painel principal</h2>
+        </div>
+
+        <div class="admin-soft w-11 h-11 rounded-2xl flex items-center justify-center text-emerald-400">
+          ●
+        </div>
+      </div>
+
+      <div class="mt-5 admin-soft rounded-3xl p-4">
+        <div class="text-zinc-300 text-lg font-semibold">
+          Olá, <span class="text-red-400">Administrador</span>
+        </div>
+        <div class="text-zinc-400 text-sm mt-1">
+          Bem-vindo ao sistema da academia.
+        </div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-2">
+        <div class="admin-soft rounded-2xl p-3 admin-kpi">
+          <div class="text-zinc-400 text-[11px]">Alunos</div>
+          <div id="dashAlunos" class="text-2xl font-black text-red-500 mt-1">0</div>
+        </div>
+        <div class="admin-soft rounded-2xl p-3 admin-kpi">
+          <div class="text-zinc-400 text-[11px]">Pendentes</div>
+          <div id="dashPendentes" class="text-2xl font-black text-yellow-400 mt-1">0</div>
+        </div>
+        <div class="admin-soft rounded-2xl p-3 admin-kpi">
+          <div class="text-zinc-400 text-[11px]">Presenças</div>
+          <div id="dashPresencas" class="text-2xl font-black text-emerald-400 mt-1">0</div>
+        </div>
+        <div class="admin-soft rounded-2xl p-3 admin-kpi">
+          <div class="text-zinc-400 text-[11px]">Receita</div>
+          <div id="dashArrecadacao" class="text-xl font-black text-yellow-400 mt-2">R$ 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6">
+      <div class="admin-soft rounded-3xl p-4">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div class="text-zinc-400 text-xs">Agenda da academia</div>
+            <div class="text-white font-semibold text-lg">Avisos, eventos e galeria</div>
+          </div>
+          <div class="text-yellow-400 text-2xl">◆</div>
+        </div>
+        <div class="mt-4 grid md:grid-cols-3 gap-3">
+          <div class="panel-soft rounded-2xl p-4">
+            <div class="text-red-400 text-2xl">📢</div>
+            <div class="mt-2 font-semibold text-white">Avisos</div>
+            <div class="text-zinc-400 text-sm mt-1">Horários especiais, feriados e recados para os alunos.</div>
+          </div>
+          <div class="panel-soft rounded-2xl p-4">
+            <div class="text-yellow-400 text-2xl">🏆</div>
+            <div class="mt-2 font-semibold text-white">Eventos</div>
+            <div class="text-zinc-400 text-sm mt-1">Graduações, seminários e campeonatos da escola.</div>
+          </div>
+          <div class="panel-soft rounded-2xl p-4">
+            <div class="text-emerald-400 text-2xl">📸</div>
+            <div class="mt-2 font-semibold text-white">Galeria</div>
+            <div class="text-zinc-400 text-sm mt-1">Treinos, momentos e registros oficiais da academia.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 admin-soft rounded-3xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <div class="text-zinc-400 text-xs">Resumo visual</div>
+            <div class="text-white font-semibold">Panorama geral</div>
+          </div>
+          <div class="text-zinc-500 text-sm">Atualiza automaticamente</div>
+        </div>
+        <canvas id="overviewChart" class="w-full max-h-64"></canvas>
+      </div>
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Ações rápidas</h3>
+        <span class="text-zinc-400 text-xs">Painel</span>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <button id="btnAluno" class="admin-soft admin-grid-btn rounded-2xl p-4 text-left border border-transparent">
+          <div class="text-red-400 text-2xl"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="mt-2 font-semibold text-white">Alunos</div>
+          <div class="text-zinc-400 text-sm">Gerenciar</div>
+        </button>
+
+        <button id="btnCard" class="admin-soft admin-grid-btn rounded-2xl p-4 text-left border border-transparent">
+          <div class="text-red-400 text-2xl"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10"/><path d="M7 13h5"/></svg></div>
+          <div class="mt-2 font-semibold text-white">Carteirinha</div>
+          <div class="text-zinc-400 text-sm">Digital</div>
+        </button>
+
+        <button id="btnPresenca" class="admin-soft admin-grid-btn rounded-2xl p-4 text-left border border-transparent">
+          <div class="text-emerald-400 text-2xl"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s6-4.35 6-11a6 6 0 0 0-12 0c0 6.65 6 11 6 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <div class="mt-2 font-semibold text-white">Presença</div>
+          <div class="text-zinc-400 text-sm">Registrar</div>
+        </button>
+
+        <button id="btnMensalidade" class="admin-soft admin-grid-btn rounded-2xl p-4 text-left border border-transparent">
+          <div class="text-yellow-400 text-2xl"><svg viewBox="0 0 24 24" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg></div>
+          <div class="mt-2 font-semibold text-white">Financeiro</div>
+          <div class="text-zinc-400 text-sm">Mensalidades</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Cadastros</h3>
+        <span class="text-zinc-400 text-xs">Alunos</span>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <div class="admin-soft rounded-3xl p-4">
+          <div class="text-yellow-400 font-bold mb-3">Pendentes</div>
+          <div id="pendingList" class="space-y-2"></div>
+        </div>
+
+        <div class="admin-soft rounded-3xl p-4">
+          <div class="text-emerald-400 font-bold mb-3">Aprovados</div>
+          <div id="approvedList" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Presença</h3>
+        <span class="text-zinc-400 text-xs">Controle</span>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <select id="presenceAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700"></select>
+        <select id="presenceAula" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700"></select>
+        <input id="presenceData" type="date" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Data da presença" />
+        <button id="markPresenceBtn" class="w-full bg-yellow-600 hover:bg-yellow-500 rounded-2xl px-4 py-3 font-semibold">
+          Marcar presença
+        </button>
+
+        <div id="presenceList" class="space-y-2"></div>
+
+        <div class="admin-soft rounded-3xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <div class="text-zinc-400 text-xs">Leitor QR</div>
+              <div class="text-white font-semibold">Marcação rápida</div>
+            </div>
+            <div class="text-emerald-400 text-lg">◉</div>
+          </div>
+          <div id="qr-reader" class="overflow-hidden rounded-2xl bg-black/30"></div>
+          <div id="qrStatus" class="mt-3 text-sm text-zinc-400">Aponte a câmera para o QR do aluno.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xl font-black text-white">Financeiro</h3>
+        <span class="text-zinc-400 text-xs">Mensalidades</span>
+      </div>
+
+      <div class="mt-4 grid grid-cols-3 gap-2">
+        <div class="panel-soft rounded-2xl p-3">
+          <div class="text-zinc-500 text-[11px]">Previsto</div>
+          <div id="finPrevisto" class="text-lg font-black text-white mt-1">R$ 0</div>
+        </div>
+        <div class="panel-soft rounded-2xl p-3">
+          <div class="text-zinc-500 text-[11px]">Pago</div>
+          <div id="finPago" class="text-lg font-black text-emerald-400 mt-1">R$ 0</div>
+        </div>
+        <div class="panel-soft rounded-2xl p-3">
+          <div class="text-zinc-500 text-[11px]">Em aberto</div>
+          <div id="finAberto" class="text-lg font-black text-yellow-400 mt-1">R$ 0</div>
+        </div>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <select id="financeAluno" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700"></select>
+        <input id="financeValor" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Valor" />
+        <input id="financeVencimento" type="date" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700" placeholder="Vencimento" />
+        <select id="financeStatus" class="w-full bg-zinc-800 p-4 rounded-2xl outline-none border border-zinc-700">
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+        </select>
+        <button id="saveFinanceBtn" class="w-full bg-yellow-700 hover:bg-yellow-600 rounded-2xl px-4 py-3 font-semibold">
+          Salvar mensalidade
+        </button>
+
+        <div id="financeList" class="space-y-2"></div>
+
+        <div class="admin-soft rounded-3xl p-4">
+          <div class="text-zinc-400 text-xs mb-2">Fluxo financeiro</div>
+          <canvas id="financeChart" class="w-full max-h-64"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-panel rounded-[2.4rem] p-5 md:p-6 border border-red-900/40">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="section-tag text-[11px] text-red-400 font-semibold">Zona de perigo</div>
+          <h3 class="text-xl font-black text-white mt-1">Excluir alunos</h3>
+          <p class="text-zinc-400 text-sm mt-2">
+            Remove todos os alunos cadastrados do Firestore.
+          </p>
+        </div>
+        <div class="text-red-400 text-3xl">⚠️</div>
+      </div>
+
+      <button id="deleteAllStudentsBtn" class="w-full mt-4 bg-red-700 hover:bg-red-600 rounded-2xl px-4 py-3 font-semibold">
+        Excluir todos os alunos
+      </button>
+    </div>
+
+  </div>
+</section>
+
+
+  </main>
+
+<div class="native-tabbar">
+  <div class="max-w-7xl mx-auto px-2 py-2">
+    <div class="grid grid-cols-5 gap-2 px-2 py-2">
+      <button id="mobileHomeBtn" class="native-tab active text-white font-semibold"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span class="native-tab-label">Início</span></button>
+      <button id="mobileAlunoBtn" class="native-tab text-zinc-100"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="native-tab-label">Aluno</span></button>
+      <button id="mobileCardBtn" class="native-tab text-zinc-100"><svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10"/><path d="M7 13h5"/></svg><span class="native-tab-label">Carteirinha</span></button>
+      <button id="mobileAdminBtn" class="native-tab text-zinc-100"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V22a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 1 1 4 17.1l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H2a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 1 1 5.9 4l.1.1a1.7 1.7 0 0 0 1.9.3H8a1.7 1.7 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 1 1 19 5.9l-.1.1a1.7 1.7 0 0 0-.3 1.9V8c0 .7.4 1.3 1 1.5H22a2 2 0 1 1 0 4h-.1c-.7.2-1.2.8-1.5 1z"/></svg><span class="native-tab-label">Admin</span></button>
+      <button id="mobileInstallBtn" class="native-tab text-zinc-100"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="native-tab-label">Instalar</span></button>
+    </div>
+  </div>
+</div>
+</body>
+
+</html>
