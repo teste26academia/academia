@@ -1,0 +1,205 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net (Deny all writes/reads by default)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common authentication and authorization helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isEmailVerified() && (
+        request.auth.token.email == "deciopadovanijr@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "ADMIN")
+      );
+    }
+    
+    function isInstructor() {
+      return isEmailVerified() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "INSTRUTOR"
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Entity validation schema functions
+    function isValidUserProfile(data) {
+      return data.uid is string && data.uid.size() <= 128 &&
+             data.nome is string && data.nome.size() <= 200 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.role is string && (data.role == "ADMIN" || data.role == "INSTRUTOR" || data.role == "ALUNO") &&
+             (!('alunoId' in data) || data.alunoId is string);
+    }
+
+    function isValidAluno(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.nome is string && data.nome.size() <= 200 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.celular is string && data.celular.size() <= 50 &&
+             data.cpf is string && data.cpf.size() <= 20 &&
+             data.dataNascimento is string && data.dataNascimento.size() <= 20 &&
+             data.graduacao is string && data.graduacao.size() <= 100 &&
+             data.dataUltimaGraduacao is string && data.dataUltimaGraduacao.size() <= 20 &&
+             data.status is string && (data.status == "Ativo" || data.status == "Inativo") &&
+             data.turmaId is string && data.turmaId.size() <= 128 &&
+             data.planoTipo is string && (data.planoTipo == "1x_semana" || data.planoTipo == "2x_semana" || data.planoTipo == "3x_semana" || data.planoTipo == "4x_semana" || data.planoTipo == "outro") &&
+             data.mensalidade is number && data.mensalidade >= 0 &&
+             data.descontoFamiliaTipo is string && (data.descontoFamiliaTipo == "percentual" || data.descontoFamiliaTipo == "fixo" || data.descontoFamiliaTipo == "nenhum") &&
+             data.descontoFamiliaValor is number && data.descontoFamiliaValor >= 0 &&
+             data.statusFinanceiro is string && (data.statusFinanceiro == "Em Dia" || data.statusFinanceiro == "Atrasado" || data.statusFinanceiro == "Pendente") &&
+             (!('observacoes' in data) || data.observacoes is string);
+    }
+
+    function isValidTurma(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.nomeEstilo is string && data.nomeEstilo.size() <= 200 &&
+             data.instrutorId is string && data.instrutorId.size() <= 128 &&
+             data.instrutorNome is string && data.instrutorNome.size() <= 200 &&
+             data.diasSemana is list && data.diasSemana.size() <= 7 &&
+             data.horario is string && data.horario.size() <= 100 &&
+             data.categoria is string && (data.categoria == "Iniciante" || data.categoria == "Intermediário" || data.categoria == "Avançado" || data.categoria == "Misto") &&
+             data.capacidade is number && data.capacidade > 0;
+    }
+
+    function isValidPresenca(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.turmaId is string && data.turmaId.size() <= 128 &&
+             data.alunoId is string && data.alunoId.size() <= 128 &&
+             data.alunoNome is string && data.alunoNome.size() <= 200 &&
+             data.data is string && data.data.size() <= 20 &&
+             data.status is string && (data.status == "PENDING" || data.status == "APPROVED" || data.status == "REJECTED" || data.status == "Presente" || data.status == "Faltou" || data.status == "Justificado") &&
+             (!('observacao' in data) || data.observacao is string) &&
+             (!('solicitadoPorAluno' in data) || data.solicitadoPorAluno is bool);
+    }
+
+    function isValidPagamento(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.alunoId is string && data.alunoId.size() <= 128 &&
+             data.alunoNome is string && data.alunoNome.size() <= 200 &&
+             data.valor is number && data.valor >= 0 &&
+             data.dataVencimento is string && data.dataVencimento.size() <= 20 &&
+             data.status is string && (data.status == "Pago" || data.status == "Pendente" || data.status == "Atrasado") &&
+             (!('dataPagamento' in data) || data.dataPagamento is string) &&
+             (!('metodo' in data) || data.metodo is string && (data.metodo == "PIX" || data.metodo == "Cartão" || data.metodo == "Dinheiro" || data.metodo == "Boleto"));
+    }
+
+    function isValidExame(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.alunoId is string && data.alunoId.size() <= 128 &&
+             data.alunoNome is string && data.alunoNome.size() <= 200 &&
+             data.sashAnterior is string && data.sashAnterior.size() <= 100 &&
+             data.sashNovo is string && data.sashNovo.size() <= 100 &&
+             data.dataExame is string && data.dataExame.size() <= 20 &&
+             data.avaliador is string && data.avaliador.size() <= 200 &&
+             data.notaTecnica is number && data.notaTecnica >= 0 &&
+             data.notaFilosofica is number && data.notaFilosofica >= 0 &&
+             data.status is string && (data.status == "Acesso Permitido" || data.status == "Aprovado" || data.status == "Pendente");
+    }
+
+    function isValidConfig(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.descontoFamiliarPercentualPadrao is number && data.descontoFamiliarPercentualPadrao >= 0 &&
+             data.descontoFamiliarFixoPadrao is number && data.descontoFamiliarFixoPadrao >= 0 &&
+             data.avisoMural is string && data.avisoMural.size() <= 2000 &&
+             data.contatoSuporte is string && data.contatoSuporte.size() <= 200 &&
+             data.enderecoAcademia is string && data.enderecoAcademia.size() <= 500;
+    }
+
+    // --- COLLECTION RULES ---
+
+    // 1. Users profiles
+    match /users/{userId} {
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin() || isInstructor());
+      allow list: if isAdmin() || isInstructor();
+      allow create: if isSignedIn() && isOwner(userId) && isValidUserProfile(incoming()) && (
+        (incoming().role == "ALUNO") || 
+        (request.auth.token.email == "deciopadovanijr@gmail.com" && request.auth.token.email_verified == true)
+      );
+      allow update: if isSignedIn() && (
+        (isAdmin() && isValidUserProfile(incoming())) ||
+        (isOwner(userId) && isValidUserProfile(incoming()) && 
+         incoming().role == existing().role && 
+         (!('alunoId' in incoming()) || incoming().alunoId == existing().alunoId))
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 2. Alunos
+    match /alunos/{alunoId} {
+      allow get: if isAdmin() || isInstructor() || (isEmailVerified() && request.auth.token.email == resource.data.email);
+      allow list: if isAdmin() || isInstructor() || (isEmailVerified() && resource.data.email == request.auth.token.email);
+      allow create: if (isAdmin() || isInstructor()) && isValidAluno(incoming());
+      allow update: if (isAdmin() || isInstructor()) && isValidAluno(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Turmas
+    match /turmas/{turmaId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin() && isValidTurma(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Presencas
+    match /presencas/{presencaId} {
+      allow get: if isAdmin() || isInstructor() || (isEmailVerified() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && resource.data.alunoId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.alunoId);
+      allow list: if isAdmin() || isInstructor() || (isEmailVerified() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && resource.data.alunoId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.alunoId);
+      allow create: if isValidPresenca(incoming()) && (
+        isAdmin() || 
+        isInstructor() || 
+        (isEmailVerified() && incoming().status == "PENDING" && 
+         exists(/databases/$(database)/documents/alunos/$(incoming().alunoId)) && 
+         get(/databases/$(database)/documents/alunos/$(incoming().alunoId)).data.email == request.auth.token.email)
+      );
+      allow update: if (isAdmin() || isInstructor()) && isValidPresenca(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Mensalidades / Pagamentos
+    match /mensalidades/{mensalidadeId} {
+      allow get, list: if isAdmin() || isInstructor() || (isEmailVerified() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && resource.data.alunoId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.alunoId);
+      allow create, update: if (isAdmin() || isInstructor()) && isValidPagamento(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 6. Exames/Histórico de Graduação
+    match /exames/{exameId} {
+      allow get, list: if isAdmin() || isInstructor() || (isEmailVerified() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && resource.data.alunoId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.alunoId);
+      allow create, update: if (isAdmin() || isInstructor()) && isValidExame(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 7. Configurações Globais
+    match /configuracoes/{configuracaoId} {
+      allow read: if isSignedIn();
+      allow create, update: if isAdmin() && isValidConfig(incoming());
+      allow delete: if isAdmin();
+    }
+
+  }
+}
