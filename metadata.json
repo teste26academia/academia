@@ -1,0 +1,6 @@
+{
+  "name": "Garra de Águia Praia Grande",
+  "description": "Sistema completo e interativo de gestão para academia de Kung Fu com painéis para Administração, Instrutores e Alunos, controle de graduações, treinos e frequência.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

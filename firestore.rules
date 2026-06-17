@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper para verificar se o usuário está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper para verificar se o usuário é o administrador principal pelo e-mail
+    function isMainAdminEmail() {
+      return isSignedIn() && request.auth.token.email == "deciopadovanijr@gmail.com";
+    }
+
+    // Retorna o perfil do usuário atual do Firestore (se existir)
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Verifica se o usuário tem cargo de Administrador (case-insensitive)
+    function isAdmin() {
+      return isSignedIn() && (
+        isMainAdminEmail() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (getUserData().role == "ADMIN" || 
+          getUserData().role == "admin" || 
+          getUserData().role == "Admin" ||
+          getUserData().role == "ADMINISTRADOR" ||
+          getUserData().role == "administrador"))
+      );
+    }
+    
+    // Verifica se o usuário tem cargo de Instrutor/Professor (case-insensitive)
+    function isInstructor() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (getUserData().role == "INSTRUTOR" || 
+         getUserData().role == "instrutor" || 
+         getUserData().role == "PROFESSOR" || 
+         getUserData().role == "professor")
+      );
+    }
+
+    // Verifica se o usuário é dono do próprio ID correspondente
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- REGRAS POR COLEÇÃO (ROBUSTAS E COMPATÍVEIS) ---
+
+    // 1. users (Perfis de Usuários)
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isOwner(userId) || isAdmin() || isInstructor());
+    }
+
+    // 2. alunos (Fichas dos Alunos)
+    match /alunos/{alunoId} {
+      // Admins e Instrutores podem ler tudo. Alunos podem ler se o e-mail corresponder ao deles.
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (request.auth.token.email != null && resource.data.email == request.auth.token.email)
+      );
+      // Apenas administradores e professores/instrutores adicionam, atualizam ou deletam alunos
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 3. turmas
+    match /turmas/{turmaId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 4. presencas (Chamadas e Solicitações de Presença)
+    match /presencas/{presencaId} {
+      // Qualquer usuário logado pode ler se for admin/instrutor ou se for o registro do próprio aluno
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      // Permitir criação se for admin/instrutor ou solicitação vinda do próprio aluno logado
+      allow create: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (request.resource.data.status == "PENDING" && 
+         request.resource.data.alunoId != null && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         request.resource.data.alunoId == getUserData().alunoId)
+      );
+      allow update: if isSignedIn() && (isAdmin() || isInstructor());
+      allow delete: if isSignedIn() && isAdmin();
+    }
+
+    // 5. mensalidades (Financeiro)
+    match /mensalidades/{mensalidadeId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 6. exames (Histórico de Graduação)
+    match /exames/{exameId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 7. configuracoes (Configurações Gerais)
+    match /configuracoes/{configuracaoId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+  }
+}
