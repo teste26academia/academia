@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserRole, Aluno, Turma, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia } from "./types";
+import { UserRole, Aluno, Turma, Instrutor, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia } from "./types";
 import {
   INITIAL_ALUNOS,
   INITIAL_TURMAS,
@@ -9,6 +9,7 @@ import {
   INITIAL_CONFIG
 } from "./data/mockData";
 import AdminPanel from "./components/AdminPanel";
+import FichaAlunoModal from "./components/FichaAlunoModal";
 import InstructorPanel from "./components/InstructorPanel";
 import StudentPanel from "./components/StudentPanel";
 import DocumentationView from "./components/DocumentationView";
@@ -67,6 +68,8 @@ export default function App() {
   // Aluno-specific state
   const [selectedCheckinDate, setSelectedCheckinDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [studentStatusMsg, setStudentStatusMsg] = useState<string>("");
+  const [selectedFichaAluno, setSelectedFichaAluno] = useState<Aluno | null>(null);
+  const [editingAlunoForForm, setEditingAlunoForForm] = useState<Aluno | null>(null);
 
   // Exames manual registry states
   const [alunoSelecionadoExame, setAlunoSelecionadoExame] = useState<Aluno | null>(null);
@@ -93,6 +96,7 @@ export default function App() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [familias, setFamilias] = useState<Familia[]>([]);
+  const [instrutores, setInstrutores] = useState<Instrutor[]>([]);
   const [isSyncingUsers, setIsSyncingUsers] = useState<boolean>(false);
 
   // DB Sync Status States
@@ -182,8 +186,8 @@ export default function App() {
       const turmasRef = collection(db, "turmas");
       const unsubTurmas = onSnapshot(turmasRef, async (querySnapshot) => {
         if (querySnapshot.empty) {
-          console.log("Banco de dados do Firestore limpo para turmas, utilizando cronograma local.");
-          setTurmas(INITIAL_TURMAS);
+          console.log("Banco de dados do Firestore limpo para turmas.");
+          setTurmas([]);
         } else {
           const list: Turma[] = [];
           querySnapshot.forEach((doc) => {
@@ -192,8 +196,8 @@ export default function App() {
           setTurmas(list);
         }
       }, (err) => {
-        console.warn("Utilizando cronograma de turmas padrão local.");
-        setTurmas(INITIAL_TURMAS);
+        console.warn("Utilizando cronograma de turmas lido localmente ou vazio.");
+        setTurmas([]);
       });
       unsubscribes.push(unsubTurmas);
     } catch (e) {
@@ -412,6 +416,24 @@ export default function App() {
       console.error("Falha ao sincronizar familias:", e);
     }
 
+    // 6.6. instrutores live subscription
+    try {
+      const instRef = collection(db, "instrutores");
+      const unsubInst = onSnapshot(instRef, (querySnapshot) => {
+        const list: Instrutor[] = [];
+        querySnapshot.forEach((doc) => {
+          list.push(doc.data() as Instrutor);
+        });
+        setInstrutores(list);
+      }, (err) => {
+        console.warn("Utilizando lista de instrutores vazia localmente:", err);
+        setInstrutores([]);
+      });
+      unsubscribes.push(unsubInst);
+    } catch (e) {
+      console.error("Falha ao sincronizar instrutores:", e);
+    }
+
     // Finish loader
     const timer = setTimeout(() => {
       setDbLoading(false);
@@ -607,6 +629,54 @@ export default function App() {
   };
 
   const handleExcluirAluno = handleDeleteAluno;
+
+  // 2.7. CRUD INTEGRADO PARA INSTRUTORES REAIS (FASE 4 - PARTE 1)
+  const handleSaveInstrutor = async (instData: Omit<Instrutor, "id"> & { id?: string }) => {
+    try {
+      const id = instData.id || `inst_${Date.now()}`;
+      const finalInst: Instrutor = {
+        ...instData,
+        id,
+        ativo: instData.ativo !== undefined ? instData.ativo : true
+      };
+      await setDoc(doc(db, "instrutores", id), finalInst);
+    } catch (err: any) {
+      console.error("handleSaveInstrutor failed:", err);
+      alert("Erro ao gravar instrutor: " + err.message);
+    }
+  };
+
+  const handleDeleteInstrutor = async (id: string) => {
+    if (!confirm("Tem certeza que deseja remover este instrutor?")) return;
+    try {
+      // Desvincular de turmas ativas primeiro
+      const classesToUpdate = turmas.filter(t => t.instrutorId === id);
+      for (const t of classesToUpdate) {
+        await updateDoc(doc(db, "turmas", t.id), {
+          instrutorId: "",
+          instrutorNome: ""
+        });
+      }
+      await deleteDoc(doc(db, "instrutores", id));
+      alert("Instrutor e seus vínculos em turmas foram removidos com sucesso!");
+    } catch (err: any) {
+      console.error("handleDeleteInstrutor failed:", err);
+      alert("Erro ao remover instrutor: " + err.message);
+    }
+  };
+
+  const handleUpdateTurmaInstrutor = async (turmaId: string, instrutorId: string, instrutorNome: string) => {
+    try {
+      await updateDoc(doc(db, "turmas", turmaId), {
+        instrutorId,
+        instrutorNome
+      });
+      alert("Vínculo de instrutor da turma atualizado com sucesso!");
+    } catch (err: any) {
+      console.error("handleUpdateTurmaInstrutor failed:", err);
+      alert("Erro ao vincular instrutor à turma: " + err.message);
+    }
+  };
 
   // 2.5. SYNCHRONIZE Users as Alunos (Promoting all authenticated student logins to academic roster)
   const handleSyncUsersAsAlunosDirect = async () => {
@@ -1627,10 +1697,17 @@ export default function App() {
                   <AdminPanel
                     alunos={alunos}
                     turmas={turmas}
+                    instrutores={instrutores}
                     pagamentos={pagamentos}
                     config={config}
+                    initialEditAluno={editingAlunoForForm || undefined}
+                    onCancelEdit={() => {
+                      setEditingAlunoForForm(null);
+                      setShowAddForm(false);
+                    }}
                     onAddAluno={(newStu) => {
                       handleAddAluno(newStu);
+                      setEditingAlunoForForm(null);
                       setShowAddForm(false);
                     }}
                     onDeleteAluno={handleDeleteAluno}
@@ -1640,84 +1717,143 @@ export default function App() {
                 </div>
               )}
 
-              {/* Student list elements */}
-              <div className="space-y-2.5">
+              {/* Student list elements em Grade Bento Premium */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="students-bento-grid">
                 {alunos.filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
-                  <p className="text-center text-xs text-zinc-550 py-8">Nenhum aluno encontrado na lista da academia.</p>
+                  <p className="col-span-full text-center text-xs text-zinc-550 py-8 font-mono">Nenhum aluno encontrado na lista da academia.</p>
                 ) : (
                   alunos
                     .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map(a => (
                       <div 
                         key={a.id}
-                        className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 text-left flex items-center justify-between gap-4"
+                        className="bg-zinc-950 border border-zinc-900 rounded-3xl p-5 text-left flex flex-col justify-between gap-4 hover:border-zinc-800 transition-all shadow-md group relative overflow-hidden"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xs font-black text-amber-500 uppercase">
+                        {/* Indicador visual de faixa na rebarba lateral esquerda do cartão para luxo extra! */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                          (a.graduacao || "").toLowerCase().includes("preta") ? "bg-black" :
+                          (a.graduacao || "").toLowerCase().includes("vermelha") ? "bg-red-600" :
+                          (a.graduacao || "").toLowerCase().includes("amarela") ? "bg-yellow-500" :
+                          (a.graduacao || "").toLowerCase().includes("azul") ? "bg-blue-600" :
+                          (a.graduacao || "").toLowerCase().includes("verde") ? "bg-emerald-600" :
+                          (a.graduacao || "").toLowerCase().includes("marrom") ? "bg-amber-800" : "bg-zinc-400"
+                        }`} />
+
+                        <div className="flex items-start gap-3.5">
+                          {/* Avatar inteligente com cores baseadas na faixa */}
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-xs font-black uppercase text-white shadow-inner bg-gradient-to-br from-zinc-900 to-black border-2 shrink-0 ${
+                            (a.graduacao || "").toLowerCase().includes("preta") ? "border-red-650 text-amber-500" :
+                            (a.graduacao || "").toLowerCase().includes("vermelha") ? "border-red-650 text-red-500" :
+                            (a.graduacao || "").toLowerCase().includes("amarela") ? "border-yellow-500 text-yellow-400" :
+                            (a.graduacao || "").toLowerCase().includes("azul") ? "border-blue-500 text-blue-400" :
+                            (a.graduacao || "").toLowerCase().includes("verde") ? "border-emerald-500 text-emerald-400" :
+                            (a.graduacao || "").toLowerCase().includes("marrom") ? "border-amber-750 text-amber-600" : "border-zinc-700 text-zinc-300"
+                          }`}>
                             {a.nome?.substring(0, 2)}
                           </div>
-                          <div className="leading-tight text-left space-y-1">
-                            <h4 className="text-xs font-bold text-white uppercase">{a.nome}</h4>
-                            <p className="text-[10px] font-mono text-zinc-500">
-                              CPF: {a.cpf || "não registrado"} • Cel: {a.celular || "não registrado"}
-                            </p>
-                            {a.endereco && (
-                              <p className="text-[10px] text-zinc-400 flex items-center gap-1 font-sans">
-                                📍 {a.endereco}
-                              </p>
-                            )}
-                            <div className="pt-0.5">
-                              <span className="inline-flex py-0.5 px-2 rounded-full bg-neutral-900 text-[8px] font-bold text-amber-400">
-                                {a.graduacao ? a.graduacao : "Branca"}
+
+                          <div className="leading-tight text-left space-y-1.5 flex-1 min-w-0">
+                            <h4 className="text-[12.5px] font-extrabold text-white uppercase tracking-wide group-hover:text-amber-500 transition-colors leading-snug truncate">{a.nome}</h4>
+                            <div className="flex flex-wrap gap-1">
+                              <span className="inline-flex py-0.5 px-2 rounded-md bg-zinc-900 text-[8.5px] font-bold text-amber-400 border border-zinc-800 font-mono">
+                                🥋 {a.graduacao ? a.graduacao : "BRANCA"}
+                              </span>
+                              <span className={`inline-flex px-2 py-0.5 rounded-md text-[8.5px] uppercase font-bold leading-none border font-mono ${
+                                a.statusFinanceiro === "Em Dia" ? "bg-emerald-[#1c2e22]/50 text-emerald-400 border-emerald-900/40" :
+                                a.statusFinanceiro === "Atrasado" ? "bg-red-[#331818]/50 text-red-500 border-red-900/40" : "bg-zinc-900 text-zinc-400 border-zinc-805"
+                              }`}>
+                                {a.statusFinanceiro}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Status indicators */}
-                        <div className="text-right space-y-1">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] uppercase font-black font-mono leading-none ${
-                            a.statusFinanceiro === "Em Dia" ? "bg-emerald-950/40 text-emerald-400 border border-emerald-950/60" :
-                            a.statusFinanceiro === "Atrasado" ? "bg-red-950/40 text-red-500 border border-red-950/60" : "bg-zinc-900 text-zinc-400 border border-zinc-855"
-                          }`}>
-                            {a.statusFinanceiro}
-                          </span>
-                          {activeRole !== "ALUNO" && (
-                            <div className="flex gap-1.5 justify-end">
-                              <button
-                                onClick={() => {
-                                  setAlunoSelecionadoExame(a);
-                                  setExameGradPretendida(a.graduacao || a.graduacaoAtual || "Faixa Amarela");
-                                  setExameData(new Date().toISOString().split("T")[0]);
-                                  setExameNotaTec(8);
-                                  setExameNotaTeor(8);
-                                  setExameAvaliador("Professor Décio");
-                                  setExameStatus("Aprovado");
-                                  setExameObs("");
-                                }}
-                                className="text-amber-500 hover:text-amber-400 text-[10px] font-mono uppercase bg-amber-950/20 p-1.5 px-2.5 rounded-lg border border-amber-950 cursor-pointer"
-                              >
-                                Exame
-                              </button>
-                              {activeRole === "ADMIN" && (
+                        {/* Dados adicionais com rótulo minimalista */}
+                        <div className="space-y-1 text-[11px] font-sans text-zinc-400 border-t border-zinc-900/60 pt-3">
+                          <div className="font-mono text-zinc-550 text-[10px] flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span>CPF: <strong className="text-zinc-400">{a.cpf || "-"}</strong></span>
+                            <span>Celular: <strong className="text-zinc-400">{a.celular || "-"}</strong></span>
+                          </div>
+                          {a.endereco && (
+                            <p className="text-zinc-400 flex items-center gap-1.5 leading-snug mt-1 text-[10px]">
+                              <span className="text-zinc-555 shrink-0">📍</span>
+                              <span className="truncate">{a.endereco}</span>
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Ações do Dashboard com total responsividade */}
+                        {activeRole !== "ALUNO" && (
+                          <div className="flex flex-wrap gap-1 mt-1 border-t border-zinc-900/60 pt-3">
+                            <button
+                              onClick={() => setSelectedFichaAluno(a)}
+                              className="flex-1 min-w-[55px] text-zinc-350 hover:text-white hover:bg-zinc-900 duration-150 p-2 text-[10px] font-black uppercase bg-zinc-900 rounded-xl border border-zinc-850 cursor-pointer text-center"
+                            >
+                              Ficha
+                            </button>
+                            <button
+                              onClick={() => {
+                                setAlunoSelecionadoExame(a);
+                                setExameGradPretendida(a.graduacao || "Faixa Amarela");
+                                setExameData(new Date().toISOString().split("T")[0]);
+                                setExameNotaTec(8);
+                                setExameNotaTeor(8);
+                                setExameAvaliador("Professor Décio");
+                                setExameStatus("Aprovado");
+                                setExameObs("");
+                              }}
+                              className="flex-1 min-w-[55px] text-amber-500 hover:text-amber-400 hover:bg-amber-950/40 duration-150 p-2 text-[10px] font-black uppercase bg-amber-950/20 rounded-xl border border-amber-900/30 cursor-pointer text-center"
+                            >
+                              Exame
+                            </button>
+                            {activeRole === "ADMIN" && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setEditingAlunoForForm(a);
+                                    setShowAddForm(true);
+                                    // Rolar suavemente até o formulário
+                                    setTimeout(() => {
+                                      const formElement = document.getElementById("btn-sync-users-as-alunos") || document.getElementById("form-add-aluno");
+                                      if (formElement) {
+                                        formElement.scrollIntoView({ behavior: "smooth" });
+                                      }
+                                    }, 100);
+                                  }}
+                                  className="flex-1 min-w-[55px] text-blue-500 hover:text-blue-400 hover:bg-blue-955/40 duration-150 p-2 text-[10px] font-black uppercase bg-blue-900 rounded-xl border border-blue-900/30 cursor-pointer text-center"
+                                >
+                                  Editar
+                                </button>
                                 <button
                                   onClick={() => {
                                     if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
                                       handleDeleteAluno(a.id);
                                     }
                                   }}
-                                  className="text-red-500 hover:text-red-400 text-[10px] font-mono uppercase bg-red-950/20 p-1.5 rounded-lg border border-red-950 cursor-pointer"
+                                  className="text-red-500 hover:text-red-400 hover:bg-red-955/40 duration-150 p-2 text-[10px] font-black uppercase bg-red-900 rounded-xl border border-red-900/30 cursor-pointer text-center"
                                 >
                                   Excluir
                                 </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))
                 )}
               </div>
+
+              {/* Modal de Dossiê e Ficha Histórica do Aluno */}
+              {selectedFichaAluno && (
+                <FichaAlunoModal
+                  aluno={selectedFichaAluno}
+                  presencas={presencas}
+                  pagamentos={pagamentos}
+                  graduacoes={graduacoes}
+                  exames={exames}
+                  onClose={() => setSelectedFichaAluno(null)}
+                />
+              )}
 
               {/* Modal de Lançamento de Exame de Faixa Real no Firestore */}
               {alunoSelecionadoExame && (
@@ -1915,11 +2051,15 @@ export default function App() {
                   <AdminPanel
                     alunos={alunos}
                     turmas={turmas}
+                    instrutores={instrutores}
                     pagamentos={pagamentos}
                     config={config}
                     onAddAluno={handleAddAluno}
                     onDeleteAluno={handleDeleteAluno}
                     onUpdateStatusFinanceiro={handleUpdateStatusFinanceiro}
+                    onSaveInstrutor={handleSaveInstrutor}
+                    onDeleteInstrutor={handleDeleteInstrutor}
+                    onUpdateTurma={handleUpdateTurmaInstrutor}
                     onUpdateConfig={(newCfg) => {
                       handleUpdateConfig(newCfg);
                       alert("Configurações atualizadas!");

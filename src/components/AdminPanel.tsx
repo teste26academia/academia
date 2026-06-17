@@ -1,33 +1,62 @@
-import React, { useState } from "react";
-import { Aluno, Turma, Pagamento, GraduacaoSash, GlobalConfigs } from "../types";
+import React, { useState, useEffect } from "react";
+import { Aluno, Turma, Instrutor, Pagamento, GraduacaoSash, GlobalConfigs } from "../types";
 import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity, Pencil } from "lucide-react";
 import DiagnosticPanel from "./DiagnosticPanel";
 
 interface AdminPanelProps {
   alunos: Aluno[];
   turmas: Turma[];
+  instrutores?: Instrutor[];
   pagamentos: Pagamento[];
   config: GlobalConfigs;
   onAddAluno: (aluno: Omit<Aluno, "id" | "statusFinanceiro"> & { id?: string }) => void;
   onDeleteAluno: (id: string) => void;
   onUpdateStatusFinanceiro: (id: string, novoStatus: "Em Dia" | "Atrasado" | "Pendente") => void;
+  onSaveInstrutor?: (inst: Omit<Instrutor, "id"> & { id?: string }) => void;
+  onDeleteInstrutor?: (id: string) => void;
+  onUpdateTurma?: (turmaId: string, instrutorId: string, instrutorNome: string) => void;
   onUpdateConfig: (newConfig: GlobalConfigs) => void;
+  initialEditAluno?: Aluno;
+  onCancelEdit?: () => void;
 }
 
 export default function AdminPanel({
   alunos,
   turmas,
+  instrutores = [],
   pagamentos,
   config,
   onAddAluno,
   onDeleteAluno,
   onUpdateStatusFinanceiro,
-  onUpdateConfig
+  onSaveInstrutor,
+  onDeleteInstrutor,
+  onUpdateTurma,
+  onUpdateConfig,
+  initialEditAluno,
+  onCancelEdit
 }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico">("diagnostico");
+  const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico" | "instrutores">("diagnostico");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAlunoId, setEditingAlunoId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialEditAluno) {
+      handleStartEdit(initialEditAluno);
+      setActiveTab("alunos");
+    }
+  }, [initialEditAluno]);
+
+  // Instructor Form states
+  const [instNome, setInstNome] = useState("");
+  const [instFuncao, setInstFuncao] = useState("");
+  const [instTelefone, setInstTelefone] = useState("");
+  const [instEmail, setInstEmail] = useState("");
+  const [instAtivo, setInstAtivo] = useState(true);
+  const [instObservacoes, setInstObservacoes] = useState("");
+  const [editingInstrutorId, setEditingInstrutorId] = useState<string | null>(null);
+  const [showInstForm, setShowInstForm] = useState(false);
 
   // Student Form states
   const [nome, setNome] = useState("");
@@ -52,6 +81,7 @@ export default function AdminPanel({
   const [foto, setFoto] = useState("");
   const [dataMatricula, setDataMatricula] = useState("");
   const [modalidade, setModalidade] = useState("Kung Fu");
+  const [modalidadesSelecionadas, setModalidadesSelecionadas] = useState<string[]>(["Kung Fu"]);
   const [statusFinanceiro, setStatusFinanceiro] = useState<"EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO">("EM DIA");
 
   // Configuration Form states (pre-populated from prop)
@@ -122,10 +152,14 @@ export default function AdminPanel({
     setFoto("");
     setDataMatricula("");
     setModalidade("Kung Fu");
+    setModalidadesSelecionadas(["Kung Fu"]);
     setStatusFinanceiro("EM DIA");
 
     setEditingAlunoId(null);
     setShowAddForm(false);
+    if (onCancelEdit) {
+      onCancelEdit();
+    }
   };
 
   const handleStartEdit = (aluno: Aluno) => {
@@ -151,7 +185,11 @@ export default function AdminPanel({
     setResponsavel(aluno.responsavel || "");
     setFoto(aluno.foto || "");
     setDataMatricula(aluno.dataMatricula || "");
-    setModalidade(aluno.modalidade || "Kung Fu");
+    const studentModalities = aluno.modalidades && aluno.modalidades.length > 0 
+      ? aluno.modalidades 
+      : [aluno.modalidade || "Kung Fu"];
+    setModalidadesSelecionadas(studentModalities);
+    setModalidade(studentModalities.join(", "));
     setStatusFinanceiro((aluno.statusFinanceiro as any) || "EM DIA");
 
     setShowAddForm(true);
@@ -200,7 +238,8 @@ export default function AdminPanel({
       foto,
       dataMatricula: dataMatricula || (editingAluno ? editingAluno.dataMatricula : new Date().toISOString().split("T")[0]) || new Date().toISOString().split("T")[0],
       graduacaoAtual: graduacao,
-      modalidade,
+      modalidades: modalidadesSelecionadas,
+      modalidade: modalidadesSelecionadas.join(", "),
       statusFinanceiro
     } as any);
 
@@ -272,6 +311,17 @@ export default function AdminPanel({
         >
           <Settings className="w-4 h-4" />
           Ajustes Globais & Descontos (Coleção Configurações)
+        </button>
+        <button
+          onClick={() => setActiveTab("instrutores")}
+          className={`pb-2.5 px-4 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 border-b-2 ${
+            activeTab === "instrutores"
+              ? "border-amber-400 text-amber-400 font-extrabold"
+              : "border-transparent text-zinc-450 hover:text-zinc-300"
+          }`}
+        >
+          <UsersRound className="w-4 h-4 text-red-500" />
+          Instrutores Reais (Coleção Instrutores)
         </button>
       </div>
 
@@ -587,19 +637,35 @@ export default function AdminPanel({
                       />
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Modalidade Praticada</label>
-                      <select
-                        id="form-modalidade"
-                        value={modalidade}
-                        onChange={(e) => setModalidade(e.target.value)}
-                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none"
-                      >
-                        <option value="Kung Fu">Kung Fu</option>
-                        <option value="Tai Chi Chuan">Tai Chi Chuan</option>
-                        <option value="Sanda (Boxe Chinês)">Sanda (Boxe Chinês)</option>
-                        <option value="Armas Tradicionais">Armas Tradicionais</option>
-                      </select>
+                    <div className="space-y-1 col-span-1 sm:col-span-2">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Modalidades Praticadas (Multi-seleção)</label>
+                      <div className="flex flex-col sm:flex-row gap-3 bg-zinc-900 p-2.5 rounded border border-zinc-800 text-xs text-zinc-250">
+                        {["Kung Fu", "Tai Chi Chuan", "Boxe Chinês / Sanda"].map((modOption) => {
+                          const isChecked = modalidadesSelecionadas.includes(modOption);
+                          return (
+                            <label key={modOption} className="flex items-center gap-1.5 cursor-pointer select-none py-1 px-1 text-[11px] font-mono uppercase">
+                              <input
+                                type="checkbox"
+                                value={modOption}
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setModalidadesSelecionadas(prev => [...prev, modOption]);
+                                  } else {
+                                    if (modalidadesSelecionadas.length > 1) {
+                                      setModalidadesSelecionadas(prev => prev.filter(m => m !== modOption));
+                                    } else {
+                                      alert("Pelo menos uma modalidade oficial deve estar selecionada para o aluno!");
+                                    }
+                                  }
+                                }}
+                                className="accent-red-750 w-4.5 h-4.5 cursor-pointer rounded border-zinc-800 focus:ring-0"
+                              />
+                              <span>{modOption}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     <div className="space-y-1">
@@ -834,9 +900,29 @@ export default function AdminPanel({
                           <Clock className="w-3 h-3 text-amber-500" />
                           <span>Dias: {t.diasSemana.join(", ")}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-3 h-3" />
-                          <span>Mesa: <strong>{t.instrutorNome}</strong></span>
+                        <div className="mt-2.5 pt-2 border-t border-zinc-900 flex flex-col gap-1">
+                          <label className="text-[9px] font-mono font-bold text-zinc-400 uppercase block">Instrutor Responsável</label>
+                          <select
+                            value={t.instrutorId || ""}
+                            onChange={(e) => {
+                              const selectedId = e.target.value;
+                              const selectedInstName = selectedId ? (instrutores.find(ins => ins.id === selectedId)?.nome || "") : "";
+                              if (onUpdateTurma) {
+                                onUpdateTurma(t.id, selectedId, selectedInstName);
+                              }
+                            }}
+                            className="bg-zinc-900 border border-zinc-800 p-1 rounded text-[11px] text-zinc-200 focus:outline-none focus:border-amber-550 w-full"
+                          >
+                            <option value="">-- Instrutor não definido --</option>
+                            {instrutores.map((ins) => (
+                              <option key={ins.id} value={ins.id}>
+                                {ins.nome} ({ins.funcao})
+                              </option>
+                            ))}
+                          </select>
+                          {!t.instrutorId && (
+                            <span className="text-[10px] font-bold text-red-500 font-mono mt-0.5">⚠️ Instrutor não definido</span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -860,6 +946,234 @@ export default function AdminPanel({
               </div>
             </div>
 
+          </div>
+        </div>
+      ) : activeTab === "instrutores" ? (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center bg-zinc-900/30 p-4 rounded-xl border border-zinc-800">
+            <div className="text-left font-sans">
+              <h3 className="text-sm font-black uppercase text-amber-500 tracking-wider">Gestão Operacional de Instrutores</h3>
+              <p className="text-zinc-400 text-xs mt-0.5">Associação Liga Garra de Águia Praia Grande</p>
+            </div>
+            <button
+              onClick={() => {
+                setEditingInstrutorId(null);
+                setInstNome("");
+                setInstFuncao("");
+                setInstTelefone("");
+                setInstEmail("");
+                setInstAtivo(true);
+                setInstObservacoes("");
+                setShowInstForm(!showInstForm);
+              }}
+              className="px-4 py-2 bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              {showInstForm ? "Fechar Formulário" : "Novo Instrutor"}
+            </button>
+          </div>
+
+          {/* Form Panel */}
+          {showInstForm && (
+            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl space-y-4 animate-fadeIn text-left font-sans">
+              <h4 className="text-xs font-black uppercase text-white tracking-widest font-mono">
+                {editingInstrutorId ? "📝 Editar Cadastro de Instrutor" : "🥋 Cadastrar Novo Instrutor Real"}
+              </h4>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!instNome.trim() || !instFuncao.trim()) {
+                    alert("Por favor, preencha Nome e Função do Instrutor.");
+                    return;
+                  }
+                  if (onSaveInstrutor) {
+                    onSaveInstrutor({
+                      ...(editingInstrutorId ? { id: editingInstrutorId } : {}),
+                      nome: instNome.trim(),
+                      funcao: instFuncao.trim(),
+                      telefone: instTelefone.trim(),
+                      email: instEmail.trim(),
+                      ativo: instAtivo,
+                      observacoes: instObservacoes.trim()
+                    });
+                  }
+                  // Reset form
+                  setInstNome("");
+                  setInstFuncao("");
+                  setInstTelefone("");
+                  setInstEmail("");
+                  setInstAtivo(true);
+                  setInstObservacoes("");
+                  setEditingInstrutorId(null);
+                  setShowInstForm(false);
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Nome Completo</label>
+                    <input
+                      type="text"
+                      value={instNome}
+                      onChange={(e) => setInstNome(e.target.value)}
+                      placeholder="Ex: Maicon Padovani"
+                      className="w-full p-2.5 rounded bg-zinc-950 border border-zinc-805 text-xs text-white focus:outline-none focus:border-red-550"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Função / Cargo</label>
+                    <input
+                      type="text"
+                      value={instFuncao}
+                      onChange={(e) => setInstFuncao(e.target.value)}
+                      placeholder="Ex: Professor de Boxe Chinês"
+                      className="w-full p-2.5 rounded bg-zinc-950 border border-zinc-805 text-xs text-white focus:outline-none focus:border-red-550"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Celular / Tel de Contato</label>
+                    <input
+                      type="text"
+                      value={instTelefone}
+                      onChange={(e) => setInstTelefone(e.target.value)}
+                      placeholder="Ex: (13) 99123-4567"
+                      className="w-full p-2.5 rounded bg-zinc-950 border border-zinc-805 text-xs text-white focus:outline-none focus:border-red-550"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">E-mail</label>
+                    <input
+                      type="email"
+                      value={instEmail}
+                      onChange={(e) => setInstEmail(e.target.value)}
+                      placeholder="Ex: maicon@garradeaguia.com"
+                      className="w-full p-2.5 rounded bg-zinc-950 border border-zinc-805 text-xs text-white focus:outline-none focus:border-red-550"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Observações Internas</label>
+                  <textarea
+                    rows={2}
+                    value={instObservacoes}
+                    onChange={(e) => setInstObservacoes(e.target.value)}
+                    placeholder="Certificados, horários de preferência, observações do currículo..."
+                    className="w-full p-2.5 rounded bg-zinc-950 border border-zinc-850 text-xs text-white focus:outline-none focus:border-red-550"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 py-1">
+                  <input
+                    type="checkbox"
+                    id="inst-ativo"
+                    checked={instAtivo}
+                    onChange={(e) => setInstAtivo(e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-800 text-amber-500 bg-zinc-950 focus:ring-0"
+                  />
+                  <label htmlFor="inst-ativo" className="text-xs text-zinc-350 cursor-pointer font-bold uppercase select-none">
+                    Status Ativo (Liberado para ministrar turmas e avaliações)
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingInstrutorId(null);
+                      setInstNome("");
+                      setInstFuncao("");
+                      setInstTelefone("");
+                      setInstEmail("");
+                      setInstAtivo(true);
+                      setInstObservacoes("");
+                      setShowInstForm(false);
+                    }}
+                    className="px-4 py-2 border border-zinc-800 text-zinc-500 rounded text-xs hover:text-zinc-300"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-zinc-950 rounded text-xs"
+                  >
+                    {editingInstrutorId ? "Salvar Alterações" : "Cadastrar Instrutor"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Roster list */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 font-sans text-left">
+            {instrutores.length === 0 ? (
+              <div className="col-span-full bg-zinc-900 border border-zinc-800 p-8 rounded-2xl text-center">
+                <UsersRound className="w-10 h-10 text-zinc-650 mx-auto mb-2.5" />
+                <p className="text-xs text-zinc-400 font-medium">Nenhum instrutor cadastrado em Praia Grande.</p>
+                <p className="text-[10px] text-zinc-550 mt-1">Utilize o botão acima para cadastrar os instrutores oficiais da academia.</p>
+              </div>
+            ) : (
+              instrutores.map((ins) => {
+                const turmasLecionadas = turmas.filter(t => t.instrutorId === ins.id);
+                return (
+                  <div key={ins.id} className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl space-y-3.5 hover:border-zinc-700 transition-all text-left">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-sans font-black text-zinc-100 uppercase tracking-wide">{ins.nome}</h4>
+                        <span className="inline-block text-[10px] bg-red-950/40 border border-red-900/60 text-red-500 px-2.5 py-0.5 rounded-full font-bold mt-1">
+                          {ins.funcao}
+                        </span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-widest ${ins.ativo ? "bg-emerald-950 text-emerald-400 border border-emerald-900/40" : "bg-zinc-950 text-zinc-400 border border-zinc-800/40"}`}>
+                        {ins.ativo ? "ATIVO" : "INATIVO"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs text-zinc-400 font-mono text-[11px] border-t border-b border-zinc-950 py-2.5">
+                      <p>📱 Telefone: <strong className="text-zinc-200">{ins.telefone || "Não informado"}</strong></p>
+                      <p>✉️ E-mail: <strong className="text-zinc-200">{ins.email || "Não informado"}</strong></p>
+                      <p>🥋 Turmas: <strong className="text-amber-500">{turmasLecionadas.length} turmas vinculadas</strong></p>
+                    </div>
+
+                    {ins.observacoes && (
+                      <p className="text-[11.5px] text-zinc-400 italic font-medium leading-relaxed bg-black/25 p-2 rounded border border-zinc-850">
+                        "{ins.observacoes}"
+                      </p>
+                    )}
+
+                    <div className="flex justify-end gap-1.5 pt-2">
+                      <button
+                        onClick={() => {
+                          setEditingInstrutorId(ins.id);
+                          setInstNome(ins.nome);
+                          setInstFuncao(ins.funcao);
+                          setInstTelefone(ins.telefone || "");
+                          setInstEmail(ins.email || "");
+                          setInstAtivo(ins.ativo);
+                          setInstObservacoes(ins.observacoes || "");
+                          setShowInstForm(true);
+                          window.scrollTo({ top: 300, behavior: "smooth" });
+                        }}
+                        className="px-2.5 py-1.5 bg-zinc-950 hover:bg-zinc-850 rounded border border-zinc-800 text-[11px] text-zinc-300 font-bold flex items-center cursor-pointer"
+                      >
+                        <Pencil className="w-3 h-3 mr-1" />
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => onDeleteInstrutor && onDeleteInstrutor(ins.id)}
+                        className="px-2.5 py-1.5 bg-red-950/20 hover:bg-red-950/60 rounded border border-red-900/30 text-[11px] text-red-500 font-bold flex items-center cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       ) : (

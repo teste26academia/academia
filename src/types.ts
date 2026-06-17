@@ -39,6 +39,7 @@ export interface Aluno {
   status: "Ativo" | "Inativo";
   turmaId: string;
   modalidade: string;
+  modalidades?: string[];
   observacoes: string;
   statusFinanceiro: "EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO" | "Em Dia" | "Atrasado" | "Pendente" | "Isento";
 
@@ -54,12 +55,22 @@ export interface Aluno {
 export interface Turma {
   id: string;
   nomeEstilo: string; // Ex: Louva-a-Deus, Wing Chun, Tai Chi Chuan, Sanshou (Sanda)
-  instrutorId: string;
-  instrutorNome: string;
+  instrutorId: string; // ID from instrutores collection
+  instrutorNome: string; // Name from instrutores collection
   diasSemana: string[]; // Ex: ["Segunda", "Quarta", "Sexta"]
   horario: string; // Ex: "19:00 - 20:30"
   categoria: "Iniciante" | "Intermediário" | "Avançado" | "Misto";
   capacidade: number;
+}
+
+export interface Instrutor {
+  id: string;
+  nome: string;
+  funcao: string;
+  telefone: string;
+  email: string;
+  ativo: boolean;
+  observacoes: string;
 }
 
 export interface Presenca {

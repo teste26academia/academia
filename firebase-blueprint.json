@@ -13,6 +13,21 @@
       },
       "required": ["uid", "nome", "email", "role"]
     },
+    "Instrutor": {
+      "title": "Instrutor",
+      "description": "Cadastro de instrutores da academia",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nome": { "type": "string" },
+        "funcao": { "type": "string" },
+        "telefone": { "type": "string" },
+        "email": { "type": "string" },
+        "ativo": { "type": "boolean" },
+        "observacoes": { "type": "string" }
+      },
+      "required": ["id", "nome", "funcao", "telefone", "email", "ativo", "observacoes"]
+    },
     "Aluno": {
       "title": "Aluno",
       "description": "Dados do aluno matriculado na academia",
@@ -200,6 +215,10 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "Perfis de usuários associados ao login Firebase"
+    },
+    "/instrutores/{instrutorId}": {
+      "schema": "Instrutor",
+      "description": "Banco de dados contendo o cadastro dos instrutores reais"
     },
     "/alunos/{alunoId}": {
       "schema": "Aluno",

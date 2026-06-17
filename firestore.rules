@@ -54,6 +54,12 @@ service cloud.firestore {
       allow write: if isSignedIn() && (isOwner(userId) || isAdmin() || isInstructor());
     }
 
+    // 1.5. instrutores
+    match /instrutores/{instrutorId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
     // 2. alunos (Fichas dos Alunos)
     match /alunos/{alunoId} {
       // Admins e Instrutores podem ler tudo. Alunos podem ler se o e-mail corresponder ao deles.
