@@ -142,17 +142,11 @@ export default function App() {
         if (snapshot.exists()) {
           setConfig(snapshot.data() as GlobalConfigs);
         } else {
-          // Auto-seed global configurations if unpopulated
-          setDoc(configRef, INITIAL_CONFIG).then(() => {
-            setConfig(INITIAL_CONFIG);
-          }).catch(err => {
-            console.warn("Falha ao sincronizar dados do Firestore para 'configuracoes' (auto-seed):", err);
-            setConfig(INITIAL_CONFIG); // Fallback local
-          });
+          // Fallback local robusto sem gravação automática não autorizada nas regras de segurança
+          setConfig(INITIAL_CONFIG);
         }
       }, (err) => {
-        console.error("Falha ao sincronizar dados do Firestore para 'configuracoes':", err);
-        setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
+        console.warn("Sincronização de configurações ativa localmente (modo offline/fallback).");
         setConfig(INITIAL_CONFIG);
       });
       unsubscribes.push(unsubConfig);
@@ -165,18 +159,8 @@ export default function App() {
       const turmasRef = collection(db, "turmas");
       const unsubTurmas = onSnapshot(turmasRef, async (querySnapshot) => {
         if (querySnapshot.empty) {
-          console.log("Seeding initial martial schedule...");
-          // Define immediately to avoid empty lists
+          console.log("Banco de dados do Firestore limpo para turmas, utilizando cronograma local.");
           setTurmas(INITIAL_TURMAS);
-          if (isPowerUser) {
-            for (const item of INITIAL_TURMAS) {
-              try {
-                await setDoc(doc(db, "turmas", item.id), item);
-              } catch (writeErr) {
-                console.warn("Falha ao salvar turma de seed no Firestore:", writeErr);
-              }
-            }
-          }
         } else {
           const list: Turma[] = [];
           querySnapshot.forEach((doc) => {
@@ -185,9 +169,8 @@ export default function App() {
           setTurmas(list);
         }
       }, (err) => {
-        console.error("Falha ao sincronizar dados do Firestore para 'turmas':", err);
-        setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
-        setTurmas(INITIAL_TURMAS); // Fallback
+        console.warn("Utilizando cronograma de turmas padrão local.");
+        setTurmas(INITIAL_TURMAS);
       });
       unsubscribes.push(unsubTurmas);
     } catch (e) {
@@ -203,20 +186,8 @@ export default function App() {
 
       const unsubAlunos = onSnapshot(q, async (querySnapshot) => {
         if (querySnapshot.empty) {
-          console.log("Empty student roster query.");
-          // If we are a power user, seed; otherwise format safe empty list or single student
-          if (isPowerUser) {
-            setAlunos(INITIAL_ALUNOS);
-            for (const item of INITIAL_ALUNOS) {
-              try {
-                await setDoc(doc(db, "alunos", item.id), item);
-              } catch (writeErr) {
-                console.warn("Falha ao salvar aluno de seed no Firestore:", writeErr);
-              }
-            }
-          } else {
-            setAlunos([]);
-          }
+          console.log("Lista de alunos do Firestore retornou vazia, usando dados em memória.");
+          setAlunos(isPowerUser ? INITIAL_ALUNOS : []);
         } else {
           const list: Aluno[] = [];
           querySnapshot.forEach((doc) => {
@@ -225,9 +196,7 @@ export default function App() {
           setAlunos(list);
         }
       }, (err) => {
-        console.error("Falha ao sincronizar dados do Firestore para 'alunos':", err);
-        setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
-        // Non-blocking fallback to keep high aesthetic value
+        console.warn("Utilizando lista de alunos local.");
         setAlunos(isPowerUser ? INITIAL_ALUNOS : []);
       });
       unsubscribes.push(unsubAlunos);
@@ -247,19 +216,8 @@ export default function App() {
       if (q) {
         const unsubPay = onSnapshot(q, async (querySnapshot) => {
           if (querySnapshot.empty) {
-            console.log("Empty financial roster query.");
-            if (isPowerUser) {
-              setPagamentos(INITIAL_PAGAMENTOS);
-              for (const item of INITIAL_PAGAMENTOS) {
-                try {
-                  await setDoc(doc(db, "mensalidades", item.id), item);
-                } catch (writeErr) {
-                  console.warn("Falha ao salvar mensalidade de seed no Firestore:", writeErr);
-                }
-              }
-            } else {
-              setPagamentos([]);
-            }
+            console.log("Lista de mensalidades do Firestore retornou vazia, usando dados locais.");
+            setPagamentos(isPowerUser ? INITIAL_PAGAMENTOS : []);
           } else {
             const list: Pagamento[] = [];
             querySnapshot.forEach((doc) => {
@@ -268,8 +226,7 @@ export default function App() {
             setPagamentos(list);
           }
         }, (err) => {
-          console.error("Falha ao sincronizar dados do Firestore para 'mensalidades':", err);
-          setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
+          console.warn("Utilizando dados financeiros locais.");
           setPagamentos(isPowerUser ? INITIAL_PAGAMENTOS : []);
         });
         unsubscribes.push(unsubPay);
@@ -292,19 +249,8 @@ export default function App() {
       if (q) {
         const unsubPres = onSnapshot(q, async (querySnapshot) => {
           if (querySnapshot.empty) {
-            console.log("Empty presence ledger query.");
-            if (isPowerUser) {
-              setPresencas(INITIAL_PRESENCAS);
-              for (const item of INITIAL_PRESENCAS) {
-                try {
-                  await setDoc(doc(db, "presencas", item.id), item);
-                } catch (writeErr) {
-                  console.warn("Falha ao salvar presenca de seed no Firestore:", writeErr);
-                }
-              }
-            } else {
-              setPresencas([]);
-            }
+            console.log("Lista de presenças do Firestore retornou vazia, usando histórico padrão.");
+            setPresencas(isPowerUser ? INITIAL_PRESENCAS : []);
           } else {
             const list: Presenca[] = [];
             querySnapshot.forEach((doc) => {
@@ -313,8 +259,7 @@ export default function App() {
             setPresencas(list);
           }
         }, (err) => {
-          console.error("Falha ao sincronizar dados do Firestore para 'presencas':", err);
-          setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
+          console.warn("Utilizando histórico de presenças local.");
           setPresencas(isPowerUser ? INITIAL_PRESENCAS : []);
         });
         unsubscribes.push(unsubPres);
@@ -337,19 +282,8 @@ export default function App() {
       if (q) {
         const unsubEx = onSnapshot(q, async (querySnapshot) => {
           if (querySnapshot.empty) {
-            console.log("Empty grading ledger query.");
-            if (isPowerUser) {
-              setGraduacoes(INITIAL_GRADUACOES);
-              for (const item of INITIAL_GRADUACOES) {
-                try {
-                  await setDoc(doc(db, "exames", item.id), item);
-                } catch (writeErr) {
-                  console.warn("Falha ao salvar exame de seed no Firestore:", writeErr);
-                }
-              }
-            } else {
-              setGraduacoes([]);
-            }
+            console.log("Histórico de graduação do Firestore retornou vazio, usando dados locais.");
+            setGraduacoes(isPowerUser ? INITIAL_GRADUACOES : []);
           } else {
             const list: HistoricoGraduacao[] = [];
             querySnapshot.forEach((doc) => {
@@ -358,8 +292,7 @@ export default function App() {
             setGraduacoes(list);
           }
         }, (err) => {
-          console.error("Falha ao sincronizar dados do Firestore para 'exames':", err);
-          setFirestoreSyncError("Falha ao sincronizar dados do Firestore.");
+          console.warn("Utilizando histórico de exames/graduações local.");
           setGraduacoes(isPowerUser ? INITIAL_GRADUACOES : []);
         });
         unsubscribes.push(unsubEx);

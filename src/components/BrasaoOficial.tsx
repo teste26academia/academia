@@ -19,7 +19,7 @@ export function BrasaoOficial({ className = "w-16 h-16" }: { className?: string 
   return (
     <img
       id="img-logo-oficial"
-      src="/logo.png"
+      src="logo.png"
       alt="Brasão Oficial Garra de Águia"
       className={`${className} object-contain`}
       onError={() => setHasError(true)}

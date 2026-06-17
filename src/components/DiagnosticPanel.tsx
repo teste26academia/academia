@@ -52,7 +52,7 @@ export default function DiagnosticPanel() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       
-      const response = await fetch("/logo.png", { 
+      const response = await fetch("logo.png", { 
         method: "HEAD",
         signal: controller.signal 
       });
