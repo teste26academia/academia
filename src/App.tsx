@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserRole, Aluno, Turma, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs } from "./types";
+import { UserRole, Aluno, Turma, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia } from "./types";
 import {
   INITIAL_ALUNOS,
   INITIAL_TURMAS,
@@ -68,6 +68,16 @@ export default function App() {
   const [selectedCheckinDate, setSelectedCheckinDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [studentStatusMsg, setStudentStatusMsg] = useState<string>("");
 
+  // Exames manual registry states
+  const [alunoSelecionadoExame, setAlunoSelecionadoExame] = useState<Aluno | null>(null);
+  const [exameGradPretendida, setExameGradPretendida] = useState<string>("Faixa Amarela");
+  const [exameData, setExameData] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [exameNotaTec, setExameNotaTec] = useState<number>(8);
+  const [exameNotaTeor, setExameNotaTeor] = useState<number>(8);
+  const [exameAvaliador, setExameAvaliador] = useState<string>("Professor Décio");
+  const [exameStatus, setExameStatus] = useState<"Aprovado" | "Reprovado" | "Pendente">("Aprovado");
+  const [exameObs, setExameObs] = useState<string>("");
+
   // Logo asset load tracking states (Permanent Brand Protection Rule)
   const [headerLogoError, setHeaderLogoError] = useState<boolean>(false);
   const [footerLogoError, setFooterLogoError] = useState<boolean>(false);
@@ -79,6 +89,10 @@ export default function App() {
   const [graduacoes, setGraduacoes] = useState<HistoricoGraduacao[]>([]);
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [config, setConfig] = useState<GlobalConfigs>(INITIAL_CONFIG);
+  const [exames, setExames] = useState<Exame[]>([]);
+  const [produtos, setProdutos] = useState<Produto[]>([]);
+  const [vendas, setVendas] = useState<Venda[]>([]);
+  const [familias, setFamilias] = useState<Familia[]>([]);
   const [isSyncingUsers, setIsSyncingUsers] = useState<boolean>(false);
 
   // DB Sync Status States
@@ -316,6 +330,86 @@ export default function App() {
       }
     } catch (e) {
       console.error("Falha ao configurar sincronização de exames/graduações:", e);
+    }
+
+    // 6.2. exames live subscription
+    try {
+      const examesRef = collection(db, "exames");
+      const q = isPowerUser 
+        ? examesRef 
+        : (userProfile.alunoId 
+            ? query(examesRef, where("alunoId", "==", userProfile.alunoId)) 
+            : null);
+
+      if (q) {
+        const unsubExames = onSnapshot(q, (querySnapshot) => {
+          const list: Exame[] = [];
+          querySnapshot.forEach((doc) => {
+            list.push(doc.data() as Exame);
+          });
+          setExames(list);
+        });
+        unsubscribes.push(unsubExames);
+      } else {
+        setExames([]);
+      }
+    } catch (e) {
+      console.error("Falha ao sincronizar exames:", e);
+    }
+
+    // 6.3. produtos live subscription
+    try {
+      const produtosRef = collection(db, "produtos");
+      const unsubProdutos = onSnapshot(produtosRef, (querySnapshot) => {
+        const list: Produto[] = [];
+        querySnapshot.forEach((doc) => {
+          list.push(doc.data() as Produto);
+        });
+        setProdutos(list);
+      });
+      unsubscribes.push(unsubProdutos);
+    } catch (e) {
+      console.error("Falha ao sincronizar produtos:", e);
+    }
+
+    // 6.4. vendas live subscription
+    try {
+      const vendasRef = collection(db, "vendas");
+      const q = isPowerUser 
+        ? vendasRef 
+        : (userProfile.alunoId 
+            ? query(vendasRef, where("alunoId", "==", userProfile.alunoId)) 
+            : null);
+
+      if (q) {
+        const unsubVendas = onSnapshot(q, (querySnapshot) => {
+          const list: Venda[] = [];
+          querySnapshot.forEach((doc) => {
+            list.push(doc.data() as Venda);
+          });
+          setVendas(list);
+        });
+        unsubscribes.push(unsubVendas);
+      } else {
+        setVendas([]);
+      }
+    } catch (e) {
+      console.error("Falha ao sincronizar vendas:", e);
+    }
+
+    // 6.5. familias live subscription
+    try {
+      const familiasRef = collection(db, "familias");
+      const unsubFamilias = onSnapshot(familiasRef, (querySnapshot) => {
+        const list: Familia[] = [];
+        querySnapshot.forEach((doc) => {
+          list.push(doc.data() as Familia);
+        });
+        setFamilias(list);
+      });
+      unsubscribes.push(unsubFamilias);
+    } catch (e) {
+      console.error("Falha ao sincronizar familias:", e);
     }
 
     // Finish loader
@@ -611,6 +705,49 @@ export default function App() {
       alert("Erro ao sincronizar usuários: " + err.message);
     } finally {
       setIsSyncingUsers(false);
+    }
+  };
+
+  // 2.7. Registrar / Editar Exame de Faixa (Persistência real na coleção exames do Firestore)
+  const handleSaveExame = async (exameDataObj: Omit<Exame, "id" | "alunoId" | "alunoNome">, aluno: Aluno) => {
+    try {
+      const newExId = "ex_" + Date.now();
+      const novoExame: Exame = {
+        id: newExId,
+        alunoId: aluno.id,
+        alunoNome: aluno.nome,
+        ...exameDataObj
+      };
+      
+      // Persiste na coleção "exames"
+      await setDoc(doc(db, "exames", newExId), novoExame);
+      
+      // Se aprovado, atualiza também a faixa graduação atual do aluno na coleção "alunos"
+      if (exameDataObj.resultado === "Aprovado" || exameDataObj.resultado === "APROVADO") {
+        await updateDoc(doc(db, "alunos", aluno.id), {
+          graduacao: exameDataObj.graduacaoPretendida,
+          graduacaoAtual: exameDataObj.graduacaoPretendida,
+          dataUltimaGraduacao: exameDataObj.dataExame
+        });
+
+        // E cria registro em graduacoes para compor histórico reativo de sashes
+        const newGradId = "grad_" + Date.now();
+        await setDoc(doc(db, "graduacoes", newGradId), {
+          id: newGradId,
+          alunoId: aluno.id,
+          alunoNome: aluno.nome,
+          graduacaoAnterior: aluno.graduacao || aluno.graduacaoAtual || "Faixa Branca",
+          graduacaoNova: exameDataObj.graduacaoPretendida,
+          dataGraduacao: exameDataObj.dataExame,
+          avaliador: exameDataObj.avaliador,
+          resultado: "Aprovado"
+        });
+      }
+      
+      alert(`Exame de faixa gravado com sucesso no Firestore para ${aluno.nome}!`);
+    } catch (e: any) {
+      console.error("Falha ao registrar exame de faixa no Firestore:", e);
+      alert("Erro ao registrar exame: " + e.message);
     }
   };
 
@@ -1428,6 +1565,11 @@ export default function App() {
                 setActiveBottomTab={setActiveBottomTab}
                 handleStudentCheckin={handleStudentCheckin}
                 studentStatusMsg={studentStatusMsg}
+                graduacoes={graduacoes}
+                exames={exames}
+                produtos={produtos}
+                vendas={vendas}
+                familias={familias}
               />
             </div>
           )}
@@ -1540,18 +1682,35 @@ export default function App() {
                           }`}>
                             {a.statusFinanceiro}
                           </span>
-                          {activeRole === "ADMIN" && (
+                          {activeRole !== "ALUNO" && (
                             <div className="flex gap-1.5 justify-end">
                               <button
                                 onClick={() => {
-                                  if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
-                                    handleDeleteAluno(a.id);
-                                  }
+                                  setAlunoSelecionadoExame(a);
+                                  setExameGradPretendida(a.graduacao || a.graduacaoAtual || "Faixa Amarela");
+                                  setExameData(new Date().toISOString().split("T")[0]);
+                                  setExameNotaTec(8);
+                                  setExameNotaTeor(8);
+                                  setExameAvaliador("Professor Décio");
+                                  setExameStatus("Aprovado");
+                                  setExameObs("");
                                 }}
-                                className="text-red-500 hover:text-red-400 text-[10px] font-mono uppercase bg-red-950/20 p-1.5 rounded-lg border border-red-950"
+                                className="text-amber-500 hover:text-amber-400 text-[10px] font-mono uppercase bg-amber-950/20 p-1.5 px-2.5 rounded-lg border border-amber-950 cursor-pointer"
                               >
-                                Excluir
+                                Exame
                               </button>
+                              {activeRole === "ADMIN" && (
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
+                                      handleDeleteAluno(a.id);
+                                    }
+                                  }}
+                                  className="text-red-500 hover:text-red-400 text-[10px] font-mono uppercase bg-red-950/20 p-1.5 rounded-lg border border-red-950 cursor-pointer"
+                                >
+                                  Excluir
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1559,6 +1718,146 @@ export default function App() {
                     ))
                 )}
               </div>
+
+              {/* Modal de Lançamento de Exame de Faixa Real no Firestore */}
+              {alunoSelecionadoExame && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-zinc-950 border border-zinc-900 rounded-3xl p-6 max-w-sm w-full space-y-4 text-left animate-fadeIn">
+                    <div className="flex justify-between items-center border-b border-zinc-900 pb-3">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">Lançar Exame de Faixa</h4>
+                        <p className="text-[10px] text-zinc-400 font-mono">Aluno: {alunoSelecionadoExame.nome}</p>
+                      </div>
+                      <button
+                        onClick={() => setAlunoSelecionadoExame(null)}
+                        className="text-zinc-500 hover:text-white font-extrabold text-[10px] uppercase font-mono"
+                      >
+                        [Fechar]
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5 text-xs">
+                      <div>
+                        <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Nova Faixa Pretendida</label>
+                        <select
+                          value={exameGradPretendida}
+                          onChange={(e) => setExameGradPretendida(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                        >
+                          <option value="Faixa Branca">Faixa Branca</option>
+                          <option value="Faixa Amarela">Faixa Amarela</option>
+                          <option value="Faixa Laranja">Faixa Laranja</option>
+                          <option value="Faixa Verde">Faixa Verde</option>
+                          <option value="Faixa Azul">Faixa Azul</option>
+                          <option value="Faixa Cinza">Faixa Cinza</option>
+                          <option value="Faixa Marrom">Faixa Marrom</option>
+                          <option value="Faixa Preta">Faixa Preta (1º Duan)</option>
+                          <option value="Faixa Vermelha">Faixa Vermelha</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Nota Téc. (0-10)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            value={exameNotaTec}
+                            onChange={(e) => setExameNotaTec(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Nota Teor. (0-10)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                            value={exameNotaTeor}
+                            onChange={(e) => setExameNotaTeor(parseFloat(e.target.value) || 0)}
+                            className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Data Exame</label>
+                          <input
+                            type="date"
+                            value={exameData}
+                            onChange={(e) => setExameData(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Resultado</label>
+                          <select
+                            value={exameStatus}
+                            onChange={(e) => setExameStatus(e.target.value as any)}
+                            className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                          >
+                            <option value="Aprovado">Aprovado (Promover)</option>
+                            <option value="Reprovado">Reprovado</option>
+                            <option value="Pendente">Pendente / Agendado</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Avaliador</label>
+                        <input
+                          type="text"
+                          value={exameAvaliador}
+                          onChange={(e) => setExameAvaliador(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[9px] uppercase font-mono font-bold text-zinc-500 mb-1">Observações Gerais</label>
+                        <textarea
+                          rows={1.5}
+                          value={exameObs}
+                          onChange={(e) => setExameObs(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px] resize-none"
+                          placeholder="Manejo das posturas..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-1.5">
+                      <button
+                        onClick={() => setAlunoSelecionadoExame(null)}
+                        className="flex-1 p-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-405 rounded-xl font-bold uppercase transition-colors text-[10px] text-center"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const dataObj = {
+                            graduacaoPretendida: exameGradPretendida,
+                            dataExame: exameData,
+                            notaTecnica: exameNotaTec,
+                            notaTeorica: exameNotaTeor,
+                            avaliador: exameAvaliador,
+                            resultado: exameStatus,
+                            observacoes: exameObs
+                          };
+                          await handleSaveExame(dataObj, alunoSelecionadoExame);
+                          setAlunoSelecionadoExame(null);
+                        }}
+                        className="flex-1 p-2 bg-red-700 hover:bg-red-650 text-white rounded-xl font-black uppercase transition-colors text-[10px] text-center"
+                      >
+                        Gravar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

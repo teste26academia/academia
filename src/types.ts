@@ -129,8 +129,52 @@ export interface UserProfile {
   uid: string;
   nome: string;
   email: string;
+  telefone?: string;
+  whatsapp?: string;
   role: UserRole;
+  createdAt?: string;
+  ativo?: boolean;
   alunoId?: string; // se for Aluno, linka com o Aluno.id
   celular?: string;
   endereco?: string;
+}
+
+export interface Exame {
+  id: string;
+  alunoId: string;
+  graduacaoPretendida: string;
+  avaliador: string;
+  dataExame: string;
+  notaTecnica: number;
+  notaTeorica: number;
+  observacoes: string;
+  resultado: "APROVADO" | "REPROVADO" | "PENDENTE" | string;
+  alunoNome?: string;
+}
+
+export interface Produto {
+  id: string;
+  nome: string;
+  categoria: string;
+  valor: number;
+  estoque: number;
+}
+
+export interface Venda {
+  id: string;
+  alunoId: string;
+  produtoId: string;
+  quantidade: number;
+  valor: number;
+  dataVenda: string;
+  alunoNome?: string;
+  produtoNome?: string;
+}
+
+export interface Familia {
+  id: string;
+  nome: string;
+  alunosIds: string[]; // IDs dos alunos que pertencem a esta família
+  descontoTipo?: "percentual" | "fixo" | "nenhum";
+  descontoValor?: number;
 }

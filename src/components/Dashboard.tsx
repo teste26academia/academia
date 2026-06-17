@@ -14,7 +14,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { EagleClawLogo } from "./BrasaoOficial";
-import { Presenca, Aluno, Pagamento, GlobalConfigs, Turma } from "../types";
+import { Presenca, Aluno, Pagamento, GlobalConfigs, Turma, Exame, Produto, Venda, Familia } from "../types";
 
 interface DashboardProps {
   activeRole: string;
@@ -28,6 +28,10 @@ interface DashboardProps {
   handleStudentCheckin?: () => void;
   studentStatusMsg?: string;
   graduacoes?: any[]; // Historico de graduacoes real do Firestore
+  exames?: Exame[];
+  produtos?: Produto[];
+  vendas?: Venda[];
+  familias?: Familia[];
 }
 
 export function Dashboard({
@@ -41,7 +45,11 @@ export function Dashboard({
   setActiveBottomTab,
   handleStudentCheckin,
   studentStatusMsg,
-  graduacoes = []
+  graduacoes = [],
+  exames = [],
+  produtos = [],
+  vendas = [],
+  familias = []
 }: DashboardProps) {
   // Current month prefix format (YYYY-MM)
   const currentMonthPrefix = new Date().toISOString().substring(0, 7); // Ex: "2026-06"
@@ -53,11 +61,8 @@ export function Dashboard({
   // 2. Alunos ativos
   const alunosAtivos = alunos.filter(a => a.status === "Ativo").length;
 
-  // 3. Alunos inadimplentes
-  const alunosInadimplentes = alunos.filter(a => 
-    a.statusFinanceiro === "ATRASADO" || 
-    a.statusFinanceiro === "Atrasado"
-  ).length;
+  // 3. Alunos inativos
+  const alunosInativos = alunos.filter(a => a.status === "Inativo").length;
 
   // 4. Presenças do mês (Filtrando as presenças na modalidade realizadas no mês atual)
   const presencasDoMes = presencas.filter(p => 
@@ -73,12 +78,23 @@ export function Dashboard({
     )
     .reduce((acc, p) => acc + (p.valorFinal || p.valor || 0), 0);
 
-  // 6. Próximos exames de graduação (pendentes ou agendados no futuro)
-  const examesFuturos = graduacoes.filter(g => 
-    g.resultado === "Pendente" || 
-    g.status === "Pendente" ||
-    (g.dataGraduacao && g.dataGraduacao >= new Date().toISOString().split("T")[0])
-  );
+  // 6. Mensalidades Pendentes (Soma total das mensalidades abertas pendentes)
+  const mensalidadesPendentesValor = pagamentos
+    .filter(p => (p.status as string) === "Pendente" || (p.status as string) === "PENDENTE")
+    .reduce((acc, p) => acc + (p.valorFinal || p.valor || 0), 0);
+  const mensalidadesPendentesCount = pagamentos.filter(p => (p.status as string) === "Pendente" || (p.status as string) === "PENDENTE").length;
+
+  // 7. Mensalidades Atrasadas (Soma total das mensalidades em atraso)
+  const mensalidadesAtrasadasValor = pagamentos
+    .filter(p => (p.status as string) === "Atrasado" || (p.status as string) === "ATRASADO")
+    .reduce((acc, p) => acc + (p.valorFinal || p.valor || 0), 0);
+  const mensalidadesAtrasadasCount = pagamentos.filter(p => (p.status as string) === "Atrasado" || (p.status as string) === "ATRASADO").length;
+
+  // 8. Próximos exames (quantidade de exames de faixas marcados como PENDENTE)
+  const proximosExamesValor = exames.filter(e => e.resultado === "PENDENTE" || e.resultado === "Pendente").length;
+
+  // 9. Últimas graduações (quantidade de históricos de graduações aprovados no mês atual ou total acumulado)
+  const ultimasGraduacoesValor = graduacoes.filter(g => g.resultado === "APROVADO" || g.resultado === "Aprovado" || g.resultado === "aprovado").length;
   
   // Student active view calculations
   const studentId = defaultStudent?.id;
@@ -113,7 +129,7 @@ export function Dashboard({
           {/* Grid de Bento-Style Estatísticas */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5" id="admin-bento-dashboard-grid">
             
-            {/* Card 1: Total de Alunos */}
+            {/* KPI 1: Total de Alunos */}
             <div 
               onClick={() => setActiveBottomTab("alunos")}
               className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-red-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
@@ -130,7 +146,7 @@ export function Dashboard({
               </div>
             </div>
 
-            {/* Card 2: Alunos Ativos */}
+            {/* KPI 2: Alunos Ativos */}
             <div 
               onClick={() => setActiveBottomTab("alunos")}
               className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-emerald-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
@@ -139,7 +155,7 @@ export function Dashboard({
                 <span className="p-2 bg-emerald-950/30 rounded-xl text-emerald-400 border border-emerald-900/20">
                   <Award className="w-4 h-4" />
                 </span>
-                <span className="text-[8px] bg-emerald-950 text-emerald-400 px-1.5 rounded-full font-mono font-bold">Ativos</span>
+                <span className="text-[8px] bg-emerald-950/80 text-emerald-400 px-1.5 rounded-full font-mono font-bold">Ativo</span>
               </div>
               <div className="leading-none pt-1">
                 <p className="text-2xl font-black font-mono text-emerald-450">{alunosAtivos}</p>
@@ -147,24 +163,24 @@ export function Dashboard({
               </div>
             </div>
 
-            {/* Card 3: Inadimplentes */}
+            {/* KPI 3: Alunos Inativos */}
             <div 
-              onClick={() => setActiveBottomTab("relatorios")}
-              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-rose-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+              onClick={() => setActiveBottomTab("alunos")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-zinc-800 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
             >
               <div className="flex justify-between items-center">
-                <span className="p-2 bg-rose-950/30 rounded-xl text-rose-500 border border-rose-900/20">
+                <span className="p-2 bg-zinc-900 rounded-xl text-zinc-400 border border-zinc-800/60">
                   <AlertTriangle className="w-4 h-4" />
                 </span>
-                <span className="text-[8px] bg-rose-950 text-rose-400 px-1.5 rounded-full font-mono font-bold">Inadimplente</span>
+                <span className="text-[8px] bg-zinc-900 text-zinc-400 px-1.5 rounded-full font-mono font-bold">Inativo</span>
               </div>
               <div className="leading-none pt-1">
-                <p className="text-2xl font-black font-mono text-rose-500">{alunosInadimplentes}</p>
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Inadimplentes</p>
+                <p className="text-2xl font-black font-mono text-zinc-400">{alunosInativos}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Alunos Inativos</p>
               </div>
             </div>
 
-            {/* Card 4: Presenças do Mês */}
+            {/* KPI 4: Presenças no Mês */}
             <div 
               onClick={() => setActiveBottomTab("presencas")}
               className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-amber-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
@@ -181,7 +197,7 @@ export function Dashboard({
               </div>
             </div>
 
-            {/* Card 5: Receita Mensal */}
+            {/* KPI 5: Receita Mensal */}
             <div 
               onClick={() => setActiveBottomTab("relatorios")}
               className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-teal-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
@@ -198,7 +214,41 @@ export function Dashboard({
               </div>
             </div>
 
-            {/* Card 6: Próximos Exames */}
+            {/* KPI 6: Mensalidades Pendentes */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-amber-500 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-amber-950/30 rounded-xl text-amber-400 border border-amber-900/20">
+                  <CreditCard className="w-4 h-4" />
+                </span>
+                <span className="text-[8px] bg-amber-950 text-amber-450 px-1.5 rounded-full font-mono font-bold">{mensalidadesPendentesCount} refs</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-amber-400">R$ {mensalidadesPendentesValor.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Mensalidades Pendentes</p>
+              </div>
+            </div>
+
+            {/* KPI 7: Mensalidades Atrasadas */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-rose-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-rose-950/30 rounded-xl text-rose-500 border border-rose-900/20">
+                  <AlertTriangle className="w-4 h-4" />
+                </span>
+                <span className="text-[8px] bg-rose-950 text-rose-400 px-1.5 rounded-full font-mono font-bold">{mensalidadesAtrasadasCount} atrasos</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-rose-500 font-bold">R$ {mensalidadesAtrasadasValor.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Mensalidades Atrasadas</p>
+              </div>
+            </div>
+
+            {/* KPI 8: Próximos Exames */}
             <div 
               onClick={() => setActiveBottomTab("relatorios")}
               className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-indigo-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
@@ -207,11 +257,28 @@ export function Dashboard({
                 <span className="p-2 bg-indigo-950/20 rounded-xl text-indigo-400 border border-indigo-900/20">
                   <Award className="w-4 h-4" />
                 </span>
-                <span className="text-[9px] text-indigo-400 font-mono">Graduação</span>
+                <span className="text-[9px] text-indigo-400 font-mono">Agendados</span>
               </div>
               <div className="leading-none pt-1">
-                <p className="text-2xl font-black font-mono text-purple-400">{examesFuturos.length}</p>
+                <p className="text-2xl font-black font-mono text-purple-400">{proximosExamesValor}</p>
                 <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Próximos Exames</p>
+              </div>
+            </div>
+
+            {/* KPI 9: Últimas Graduações */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-violet-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-violet-950/20 rounded-xl text-violet-400 border border-violet-900/20">
+                  <Award className="w-4 h-4" />
+                </span>
+                <span className="text-[9px] text-violet-400 font-mono">Associação</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-amber-500">{ultimasGraduacoesValor}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Últimas Graduações</p>
               </div>
             </div>
 
@@ -220,26 +287,26 @@ export function Dashboard({
           {/* List of upcoming belt examinations */}
           <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl space-y-3">
             <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
-              <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">Cronograma de Próximas Graduações</h4>
-              <span className="text-[9px] font-mono text-zinc-500">{examesFuturos.length} exames programados</span>
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider font-mono">Cronograma de Exames e Promoções Técnicas</h4>
+              <span className="text-[9px] font-mono text-zinc-500">{exames.length} registros totais</span>
             </div>
-            {examesFuturos.length === 0 ? (
-              <p className="text-[11px] text-zinc-550 py-2">Sem exames de faixas pendentes no momento.</p>
+            {exames.length === 0 ? (
+              <p className="text-[11px] text-zinc-550 py-2 font-mono">Sem exames de faixas cadastrados no Firestore.</p>
             ) : (
               <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
-                {examesFuturos.map((g) => {
-                  const s = alunos.find(a => a.id === g.alunoId);
+                {exames.map((ex) => {
+                  const s = alunos.find(a => a.id === ex.alunoId);
                   return (
-                    <div key={g.id} className="flex justify-between items-center p-2 bg-[#101011] border border-zinc-900 rounded-xl text-xs">
+                    <div key={ex.id} className="flex justify-between items-center p-2 bg-[#101011] border border-zinc-900 rounded-xl text-xs font-mono">
                       <div>
-                        <p className="font-bold text-white uppercase">{s?.nome || "Aluno Registrado"}</p>
-                        <p className="text-[9px] font-mono text-zinc-500">Avaliador: {g.avaliador || "Professor Décio"}</p>
+                        <p className="font-bold text-white uppercase">{s?.nome || ex.alunoNome || "Ficha Registrada"}</p>
+                        <p className="text-[9px] text-zinc-500">Nota Téc: {ex.notaTecnica} • Nota Teor: {ex.notaTeorica} • Aval: {ex.avaliador || "Décio"}</p>
                       </div>
                       <div className="text-right">
-                        <span className="inline-block px-2 py-0.5 rounded-full bg-indigo-950/60 border border-indigo-900 text-purple-400 text-[9px] font-bold">
-                          {g.graduacaoNova || "Nova Faixa"}
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-violet-950/60 border border-violet-900 text-purple-400 text-[9px] font-bold">
+                          {ex.graduacaoPretendida}
                         </span>
-                        <p className="text-[9px] font-mono text-zinc-400 mt-0.5 font-bold">{g.dataGraduacao}</p>
+                        <p className="text-[9px] text-zinc-400 mt-0.5 font-bold">{ex.dataExame}</p>
                       </div>
                     </div>
                   );

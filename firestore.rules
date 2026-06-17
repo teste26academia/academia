@@ -116,9 +116,49 @@ service cloud.firestore {
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
     }
 
-    // 7. configuracoes (Configurações Gerais)
+    // 7. exames (Avaliações Técnicas)
+    match /exames/{exameId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 8. configuracoes (Configurações Gerais)
     match /configuracoes/{configuracaoId} {
       allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 9. produtos
+    match /produtos/{produtoId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 10. vendas
+    match /vendas/{vendaId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 11. familias
+    match /familias/{familiaId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData().alunoId != null && 
+         getUserData().alunoId in resource.data.alunosIds)
+      );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
     }
   }

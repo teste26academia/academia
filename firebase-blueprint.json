@@ -126,6 +126,61 @@
       },
       "required": ["id", "alunoId", "graduacaoAnterior", "graduacaoNova", "dataGraduacao", "avaliador", "resultado"]
     },
+    "Exame": {
+      "title": "Exame",
+      "description": "Fichas técnicas e avaliações de notas para exames de faixa",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "alunoId": { "type": "string" },
+        "graduacaoPretendida": { "type": "string" },
+        "avaliador": { "type": "string" },
+        "dataExame": { "type": "string" },
+        "notaTecnica": { "type": "number" },
+        "notaTeorica": { "type": "number" },
+        "observacoes": { "type": "string" },
+        "resultado": { "type": "string" }
+      },
+      "required": ["id", "alunoId", "graduacaoPretendida", "avaliador", "dataExame", "notaTecnica", "notaTeorica", "resultado"]
+    },
+    "Produto": {
+      "title": "Produto",
+      "description": "Cadastro de produtos e fardamentos em estoque da academia",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nome": { "type": "string" },
+        "categoria": { "type": "string" },
+        "valor": { "type": "number" },
+        "estoque": { "type": "number" }
+      },
+      "required": ["id", "nome", "categoria", "valor", "estoque"]
+    },
+    "Venda": {
+      "title": "Venda",
+      "description": "Registro de compras e transações de produtos realizadas por alunos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "alunoId": { "type": "string" },
+        "produtoId": { "type": "string" },
+        "quantidade": { "type": "number" },
+        "valor": { "type": "number" },
+        "dataVenda": { "type": "string" }
+      },
+      "required": ["id", "alunoId", "produtoId", "quantidade", "valor", "dataVenda"]
+    },
+    "Familia": {
+      "title": "Familia",
+      "description": "Grupo de vinculo familiar de alunos para descontos de mensalidade",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nome": { "type": "string" },
+        "alunosIds": { "type": "array" }
+      },
+      "required": ["id", "nome", "alunosIds"]
+    },
     "GlobalConfigs": {
       "title": "GlobalConfigs",
       "description": "Configurações globais da academia",
@@ -166,9 +221,25 @@
       "schema": "Graduacao",
       "description": "Registros de exames de faixa e históricos"
     },
+    "/exames/{exameId}": {
+      "schema": "Exame",
+      "description": "Registros de fichas técnicas para exames acadêmicos de faixas"
+    },
     "/configuracoes/{configuracaoId}": {
       "schema": "GlobalConfigs",
       "description": "Configurações gerais do sistema"
+    },
+    "/produtos/{produtoId}": {
+      "schema": "Produto",
+      "description": "Produtos cadastrados para venda na academia"
+    },
+    "/vendas/{vendaId}": {
+      "schema": "Venda",
+      "description": "Histórico de vendas e faturamento de estoque da loja"
+    },
+    "/familias/{familiaId}": {
+      "schema": "Familia",
+      "description": "Agrupamento de alunos para fins de desconto familiar"
     }
   }
 }
