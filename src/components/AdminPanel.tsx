@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Aluno, Turma, Pagamento, GraduacaoSash, GlobalConfigs } from "../types";
-import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity } from "lucide-react";
+import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity, Pencil } from "lucide-react";
 import DiagnosticPanel from "./DiagnosticPanel";
 
 interface AdminPanelProps {
@@ -8,7 +8,7 @@ interface AdminPanelProps {
   turmas: Turma[];
   pagamentos: Pagamento[];
   config: GlobalConfigs;
-  onAddAluno: (aluno: Omit<Aluno, "id" | "statusFinanceiro">) => void;
+  onAddAluno: (aluno: Omit<Aluno, "id" | "statusFinanceiro"> & { id?: string }) => void;
   onDeleteAluno: (id: string) => void;
   onUpdateStatusFinanceiro: (id: string, novoStatus: "Em Dia" | "Atrasado" | "Pendente") => void;
   onUpdateConfig: (newConfig: GlobalConfigs) => void;
@@ -27,6 +27,7 @@ export default function AdminPanel({
   const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico">("diagnostico");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingAlunoId, setEditingAlunoId] = useState<string | null>(null);
 
   // Student Form states
   const [nome, setNome] = useState("");
@@ -41,6 +42,7 @@ export default function AdminPanel({
   const [descontoFamiliaTipo, setDescontoFamiliaTipo] = useState<"percentual" | "fixo" | "nenhum">("nenhum");
   const [descontoFamiliaValor, setDescontoFamiliaValor] = useState(0);
   const [observacoes, setObservacoes] = useState("");
+  const [endereco, setEndereco] = useState("");
 
   // Configuration Form states (pre-populated from prop)
   const [configPercent, setConfigPercent] = useState(config.descontoFamiliarPercentualPadrao);
@@ -87,31 +89,7 @@ export default function AdminPanel({
     a.cpf.includes(searchTerm)
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!nome || !email || !cpf) {
-      alert("Por favor, preencha o Nome, E-mail e CPF do aluno.");
-      return;
-    }
-    const tId = turmaId || (turmas.length > 0 ? turmas[0].id : "");
-    onAddAluno({
-      nome,
-      email,
-      celular,
-      cpf,
-      dataNascimento,
-      graduacao,
-      dataUltimaGraduacao: new Date().toISOString().split("T")[0],
-      status: "Ativo",
-      turmaId: tId,
-      planoTipo,
-      mensalidade,
-      descontoFamiliaTipo,
-      descontoFamiliaValor,
-      observacoes
-    });
-
-    // Reset form
+  const handleResetForm = () => {
     setNome("");
     setEmail("");
     setCelular("");
@@ -124,7 +102,66 @@ export default function AdminPanel({
     setDescontoFamiliaTipo("nenhum");
     setDescontoFamiliaValor(0);
     setObservacoes("");
+    setEndereco("");
+    setEditingAlunoId(null);
     setShowAddForm(false);
+  };
+
+  const handleStartEdit = (aluno: Aluno) => {
+    setEditingAlunoId(aluno.id);
+    setNome(aluno.nome);
+    setEmail(aluno.email);
+    setCelular(aluno.celular || "");
+    setCpf(aluno.cpf);
+    setDataNascimento(aluno.dataNascimento || "");
+    setGraduacao(aluno.graduacao);
+    setTurmaId(aluno.turmaId);
+    setPlanoTipo(aluno.planoTipo);
+    setMensalidade(aluno.mensalidade);
+    setDescontoFamiliaTipo(aluno.descontoFamiliaTipo || "nenhum");
+    setDescontoFamiliaValor(aluno.descontoFamiliaValor || 0);
+    setObservacoes(aluno.observacoes || "");
+    setEndereco(aluno.endereco || "");
+    setShowAddForm(true);
+    
+    // Rolar suavemente até o formulário
+    setTimeout(() => {
+      const formElement = document.getElementById("form-add-aluno");
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nome || !email || !cpf) {
+      alert("Por favor, preencha o Nome, E-mail e CPF do aluno.");
+      return;
+    }
+    const tId = turmaId || (turmas.length > 0 ? turmas[0].id : "");
+    const editingAluno = editingAlunoId ? alunos.find(a => a.id === editingAlunoId) : null;
+    
+    onAddAluno({
+      id: editingAlunoId || undefined,
+      nome,
+      email,
+      celular,
+      cpf,
+      dataNascimento,
+      graduacao,
+      dataUltimaGraduacao: editingAluno ? (editingAluno.dataUltimaGraduacao || new Date().toISOString().split("T")[0]) : new Date().toISOString().split("T")[0],
+      status: editingAluno ? (editingAluno.status || "Ativo") : "Ativo",
+      turmaId: tId,
+      planoTipo,
+      mensalidade,
+      descontoFamiliaTipo,
+      descontoFamiliaValor,
+      observacoes,
+      endereco
+    });
+
+    handleResetForm();
   };
 
   const handleSaveConfigs = (e: React.FormEvent) => {
@@ -283,9 +320,22 @@ export default function AdminPanel({
               {/* Expanded Add Form Panel */}
               {showAddForm && (
                 <form onSubmit={handleSubmit} className="bg-zinc-950 p-5 rounded-lg border border-amber-500/30 space-y-4 animate-fadeIn" id="form-add-aluno">
-                  <div className="flex items-center gap-2 border-b border-zinc-800 pb-2 mb-3">
-                    <UserPlus className="w-4 h-4 text-amber-550 font-bold" />
-                    <span className="text-xs font-black text-amber-400 uppercase tracking-widest font-mono">Nova Inscrição - Escola Garra de Águia PG</span>
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
+                    <div className="flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-amber-550 font-bold" />
+                      <span className="text-xs font-black text-amber-400 uppercase tracking-widest font-mono">
+                        {editingAlunoId ? `Editar Matrícula - ${nome}` : "Nova Inscrição - Escola Garra de Águia PG"}
+                      </span>
+                    </div>
+                    {editingAlunoId && (
+                      <button
+                        type="button"
+                        onClick={handleResetForm}
+                        className="text-[10px] uppercase font-bold text-red-500 hover:underline font-mono"
+                      >
+                        [Cancelar / Novo]
+                      </button>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -337,6 +387,18 @@ export default function AdminPanel({
                         onChange={(e) => setCpf(e.target.value)}
                         placeholder="111.222.333-44"
                         className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Endereço Residencial</label>
+                      <input
+                        id="form-endereco"
+                        type="text"
+                        value={endereco}
+                        onChange={(e) => setEndereco(e.target.value)}
+                        placeholder="Ex: Av. Presidente Kennedy, 1234 - Praia Grande, SP"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550/60"
                       />
                     </div>
 
@@ -467,17 +529,17 @@ export default function AdminPanel({
                   <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
                     <button
                       type="button"
-                      onClick={() => setShowAddForm(false)}
+                      onClick={editingAlunoId ? handleResetForm : () => setShowAddForm(false)}
                       className="px-4 py-2 border border-zinc-800 hover:bg-zinc-900 rounded text-zinc-500 text-xs font-bold"
                     >
-                      Descartar
+                      {editingAlunoId ? "Cancelar" : "Descartar"}
                     </button>
                     <button
                       type="submit"
                       id="btn-save-new-student"
-                      className="px-5 py-2 bg-gradient-to-r from-red-850 to-amber-600 text-white rounded text-xs font-black shadow-md"
+                      className="px-5 py-2 bg-gradient-to-r from-red-850 to-amber-600 text-white rounded text-xs font-black shadow-md uppercase"
                     >
-                      Confirmar Matrícula Regular
+                      {editingAlunoId ? "Salvar Alterações" : "Confirmar Matrícula Regular"}
                     </button>
                   </div>
                 </form>
@@ -512,9 +574,22 @@ export default function AdminPanel({
                         return (
                           <tr key={a.id} className="hover:bg-zinc-950/40 text-zinc-300">
                             <td className="py-3 px-4 font-bold text-white">
-                              <div className="flex flex-col">
+                              <div className="flex flex-col space-y-0.5">
                                 <span>{a.nome}</span>
-                                <span className="text-[9px] text-zinc-500 font-mono font-medium">{a.cpf}</span>
+                                <div className="text-[9px] text-zinc-500 font-mono font-medium flex flex-wrap gap-x-2">
+                                  <span>CPF: {a.cpf || "---"}</span>
+                                  {a.celular && (
+                                    <>
+                                      <span className="text-zinc-650">•</span>
+                                      <span>Cel: {a.celular}</span>
+                                    </>
+                                  )}
+                                </div>
+                                {a.endereco && (
+                                  <span className="text-[9px] text-zinc-450 block font-normal leading-tight font-sans mt-0.5">
+                                    📍 {a.endereco}
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="py-3 px-4">
@@ -558,18 +633,28 @@ export default function AdminPanel({
                               </select>
                             </td>
                             <td className="py-3 px-4 text-center">
-                              <button
-                                id={`delete-stu-${a.id}`}
-                                onClick={() => {
-                                  if (confirm(`Tem certeza que deseja cancelar e desvincular a matrícula de: ${a.nome}?`)) {
-                                    onDeleteAluno(a.id);
-                                  }
-                                }}
-                                className="p-1 px-2 text-red-500 hover:bg-red-950/50 rounded text-[11px] transition-colors font-extrabold flex items-center mx-auto"
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                Desativar
-                              </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  onClick={() => handleStartEdit(a)}
+                                  className="p-1 px-2 text-amber-500 hover:bg-amber-950/50 rounded text-[11px] transition-colors font-extrabold flex items-center border border-transparent hover:border-amber-900 cursor-pointer"
+                                  title="Editar cadastro do aluno"
+                                >
+                                  <Pencil className="w-3.5 h-3.5 mr-1" />
+                                  Editar
+                                </button>
+                                <button
+                                  id={`delete-stu-${a.id}`}
+                                  onClick={() => {
+                                    if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todos os seus históricos de cobrança? This action is permanent.`)) {
+                                      onDeleteAluno(a.id);
+                                    }
+                                  }}
+                                  className="p-1 px-2 text-red-500 hover:bg-red-950/50 rounded text-[11px] transition-colors font-extrabold flex items-center border border-transparent hover:border-red-900 cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                  Excluir
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );

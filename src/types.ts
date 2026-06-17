@@ -40,6 +40,7 @@ export interface Aluno {
   descontoFamiliaValor: number; // Valor ou % de desconto configurado
   statusFinanceiro: "Em Dia" | "Atrasado" | "Pendente";
   observacoes?: string;
+  endereco?: string;
 }
 
 export interface Turma {

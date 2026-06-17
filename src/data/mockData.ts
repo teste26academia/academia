@@ -11,7 +11,7 @@ export const INITIAL_CONFIG: GlobalConfigs = {
   descontoFamiliarFixoPadrao: 20, // R$ 20.00
   avisoMural: "Bem-vindos à Academia Garra de Águia Praia Grande. Consulte os horários de treino e acompanhe os avisos da administração.",
   contatoSuporte: "(13) 99123-4567",
-  enderecoAcademia: "Av. Presidente Kennedy, 1234 - Praia Grande, SP"
+  enderecoAcademia: "Rua Guimarães Rosa 1191 - Praia Grande, SP"
 };
 
 export const INITIAL_TURMAS: Turma[] = [

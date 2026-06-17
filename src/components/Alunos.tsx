@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import AdminPanel from "./AdminPanel";
 import { Aluno, Turma, Pagamento, GlobalConfigs } from "../types";
 
@@ -80,7 +80,6 @@ export function Alunos({
             onAddAluno={(newStu) => {
               handleAddAluno(newStu);
               setShowAddForm(false);
-              alert("Aluno cadastrado com sucesso!");
             }}
             onDeleteAluno={handleDeleteAluno}
             onUpdateStatusFinanceiro={handleUpdateStatusFinanceiro}
@@ -105,12 +104,21 @@ export function Alunos({
                   <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xs font-black text-amber-500 uppercase">
                     {a.nome?.substring(0, 2)}
                   </div>
-                  <div className="leading-tight text-left space-y-0.5">
+                  <div className="leading-tight text-left space-y-1">
                     <h4 className="text-xs font-bold text-white uppercase">{a.nome}</h4>
-                    <p className="text-[10px] font-mono text-zinc-500">ID: {a.id} • CPF: {a.cpf || "não registrado"}</p>
-                    <span className="inline-flex py-0.5 px-2 rounded-full bg-neutral-900 text-[8px] font-bold text-amber-400">
-                      {a.graduacao ? a.graduacao : "Branca"}
-                    </span>
+                    <p className="text-[10px] font-mono text-zinc-500">
+                      CPF: {a.cpf || "não registrado"} • Cel: {a.celular || "não registrado"}
+                    </p>
+                    {a.endereco && (
+                      <p className="text-[10px] text-zinc-400 flex items-center gap-1 font-sans">
+                        📍 {a.endereco}
+                      </p>
+                    )}
+                    <div className="pt-0.5">
+                      <span className="inline-flex py-0.5 px-2 rounded-full bg-neutral-900 text-[8px] font-bold text-amber-400">
+                        {a.graduacao ? a.graduacao : "Branca"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -123,16 +131,18 @@ export function Alunos({
                     {a.statusFinanceiro}
                   </span>
                   {activeRole === "ADMIN" && (
-                    <div className="flex gap-1.5 justify-end">
+                    <div className="flex gap-1.5 justify-end text-right">
                       <button
                         onClick={() => {
-                          if (confirm(`Deseja remover ${a.nome} da academia?`)) {
+                          if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
                             handleDeleteAluno(a.id);
                           }
                         }}
-                        className="text-red-500 hover:text-red-400 text-[10px] font-mono uppercase bg-red-950/20 p-1.5 rounded-lg border border-red-950"
+                        className="flex items-center gap-1 text-red-500 hover:text-red-400 text-[10px] font-mono uppercase bg-red-950/20 p-1.5 px-2.5 rounded-lg border border-red-950 hover:bg-red-950/40 transition-colors cursor-pointer"
+                        title="Excluir Aluno"
                       >
-                        Excluir
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                        <span>Excluir</span>
                       </button>
                     </div>
                   )}

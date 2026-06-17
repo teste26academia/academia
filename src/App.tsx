@@ -31,7 +31,8 @@ import {
   onSnapshot, 
   query, 
   where,
-  getDoc
+  getDoc,
+  getDocs
 } from "firebase/firestore";
 
 export default function App() {
@@ -78,6 +79,7 @@ export default function App() {
   const [graduacoes, setGraduacoes] = useState<HistoricoGraduacao[]>([]);
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
   const [config, setConfig] = useState<GlobalConfigs>(INITIAL_CONFIG);
+  const [isSyncingUsers, setIsSyncingUsers] = useState<boolean>(false);
 
   // DB Sync Status States
   const [dbLoading, setDbLoading] = useState<boolean>(false);
@@ -140,7 +142,14 @@ export default function App() {
       const configRef = doc(db, "configuracoes", "global_config");
       const unsubConfig = onSnapshot(configRef, (snapshot) => {
         if (snapshot.exists()) {
-          setConfig(snapshot.data() as GlobalConfigs);
+          const data = snapshot.data() as GlobalConfigs;
+          if (data.enderecoAcademia === "Av. Presidente Kennedy, 1234 - Praia Grande, SP") {
+            data.enderecoAcademia = "Rua Guimarães Rosa 1191 - Praia Grande, SP";
+            updateDoc(configRef, { enderecoAcademia: "Rua Guimarães Rosa 1191 - Praia Grande, SP" }).catch(e => {
+              console.warn("Falha ao atualizar o endereço antigo da academia no Firestore:", e);
+            });
+          }
+          setConfig(data);
         } else {
           // Fallback local robusto sem gravação automática não autorizada nas regras de segurança
           setConfig(INITIAL_CONFIG);
@@ -318,8 +327,33 @@ export default function App() {
   const isCurrentlyAdminByEmail = userProfile?.role === "ADMIN" || user?.email === "deciopadovanijr@gmail.com";
 
   // 1. ADD Student (Admin Form mapped to Firestore)
-  const handleAddAluno = async (newAlunoData: Omit<Aluno, "id" | "statusFinanceiro">) => {
+  const handleAddAluno = async (newAlunoData: Omit<Aluno, "id" | "statusFinanceiro"> & { id?: string }) => {
     try {
+      if (newAlunoData.id) {
+        // Modo de edição
+        const existingId = newAlunoData.id;
+        const studentRef = doc(db, "alunos", existingId);
+
+        await updateDoc(studentRef, {
+          nome: newAlunoData.nome,
+          email: newAlunoData.email,
+          celular: newAlunoData.celular,
+          cpf: newAlunoData.cpf,
+          dataNascimento: newAlunoData.dataNascimento,
+          graduacao: newAlunoData.graduacao,
+          turmaId: newAlunoData.turmaId,
+          planoTipo: newAlunoData.planoTipo,
+          mensalidade: newAlunoData.mensalidade,
+          descontoFamiliaTipo: newAlunoData.descontoFamiliaTipo,
+          descontoFamiliaValor: newAlunoData.descontoFamiliaValor,
+          observacoes: newAlunoData.observacoes || "",
+          endereco: newAlunoData.endereco || ""
+        });
+
+        alert("Dados do aluno atualizados com sucesso!");
+        return;
+      }
+
       const newId = `stu_${Date.now()}`;
       const newAluno: Aluno = {
         ...newAlunoData,
@@ -346,6 +380,7 @@ export default function App() {
       };
       
       await setDoc(doc(db, "mensalidades", newPayment.id), newPayment);
+      alert("Aluno cadastrado com sucesso!");
     } catch (err) {
       console.error("handleAddAluno failed:", err);
       try {
@@ -359,12 +394,38 @@ export default function App() {
   // 2. DELETE Student (Admin action mapped to Firestore)
   const handleDeleteAluno = async (id: string) => {
     try {
-      await deleteDoc(doc(db, "alunos", id));
-      // Delete unpaid invoices too
-      const unpaidInvoices = pagamentos.filter(p => p.alunoId === id);
-      for (const inv of unpaidInvoices) {
+      // 1. Deletar todas as mensalidades associadas para manter a integridade
+      const studentMensalidades = pagamentos.filter((p) => p.alunoId === id);
+      for (const inv of studentMensalidades) {
         await deleteDoc(doc(db, "mensalidades", inv.id));
       }
+
+      // 2. Deletar todos os registros de presença deste aluno
+      const studentPresencas = presencas.filter((p) => p.alunoId === id);
+      for (const pres of studentPresencas) {
+        await deleteDoc(doc(db, "presencas", pres.id));
+      }
+
+      // 3. Desvincular o campo alunoId dos documentos correspondentes na coleção "users"
+      try {
+        const usersRef = collection(db, "users");
+        const querySnapshot = await getDocs(usersRef);
+        for (const docSnap of querySnapshot.docs) {
+          const userData = docSnap.data();
+          if (userData.alunoId === id) {
+            await updateDoc(doc(db, "users", docSnap.id), {
+              alunoId: null
+            });
+          }
+        }
+      } catch (errUser) {
+        console.warn("Aviso: Falha ao desvincular o aluno de /users:", errUser);
+      }
+
+      // 4. Deletar o documento do aluno no Firestore
+      await deleteDoc(doc(db, "alunos", id));
+
+      alert("Aluno, cobranças (mensalidades) e registros de presença associados foram excluídos com sucesso!");
     } catch (err) {
       console.error("handleDeleteAluno failed:", err);
       try {
@@ -372,6 +433,82 @@ export default function App() {
       } catch (e: any) {
         alert("Erro ao excluir aluno do Firestore: " + e.message);
       }
+    }
+  };
+
+  const handleExcluirAluno = handleDeleteAluno;
+
+  // 2.5. SYNCHRONIZE Users as Alunos (Promoting all authenticated student logins to academic roster)
+  const handleSyncUsersAsAlunosDirect = async () => {
+    setIsSyncingUsers(true);
+    try {
+      const usersRef = collection(db, "users");
+      const querySnapshot = await getDocs(usersRef);
+      
+      const allUsers: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        allUsers.push({ id: docSnap.id, ...docSnap.data() });
+      });
+
+      let addedCount = 0;
+
+      for (const u of allUsers) {
+        // Check if user is already an Aluno (by matching ID or email)
+        const isAlreadyAluno = alunos.some(
+          (a) => (a.email && a.email.toLowerCase() === u.email?.toLowerCase()) || a.id === `stu_${u.id}`
+        ) || !!u.alunoId;
+        
+        const isAdmin = u.role === "ADMIN" || u.email?.toLowerCase() === "deciopadovanijr@gmail.com";
+
+        if (!isAlreadyAluno && !isAdmin) {
+          const studentId = `stu_${u.id}`;
+          const newAluno = {
+            id: studentId,
+            nome: u.nome || u.email?.split("@")[0] || "Aluno Sincronizado",
+            email: u.email || "",
+            telefone: u.telefone || "(13) 99999-9999",
+            cpf: u.cpf || "---.---.------",
+            dataNascimento: u.dataNascimento || "2000-01-01",
+            whatsapp: u.whatsapp || "",
+            endereco: u.endereco || "Endereço por Cadastrar",
+            graduacao: "Branca",
+            mensalidade: 120,
+            statusFinanceiro: "Em Dia",
+            descontoFamiliaTipo: "nenhum",
+            descontoFamiliaValor: 0,
+            dataMatricula: new Date().toISOString().split("T")[0]
+          };
+
+          // Create Aluno record
+          await setDoc(doc(db, "alunos", studentId), newAluno);
+
+          // Update user link
+          await updateDoc(doc(db, "users", u.id), {
+            alunoId: studentId
+          });
+
+          // Create initial payment record
+          const paymentId = `pay_${Date.now()}_${u.id.substring(0, 4)}`;
+          const newPayment = {
+            id: paymentId,
+            alunoId: studentId,
+            alunoNome: newAluno.nome,
+            valor: 120,
+            dataVencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            status: "Pendente"
+          };
+          await setDoc(doc(db, "mensalidades", paymentId), newPayment);
+
+          addedCount++;
+        }
+      }
+
+      alert(`Sincronização concluída! ${addedCount} novos usuários cadastrados como alunos.`);
+    } catch (err: any) {
+      console.error("Sincronização de usuários falhou:", err);
+      alert("Erro ao sincronizar usuários: " + err.message);
+    } finally {
+      setIsSyncingUsers(false);
     }
   };
 
@@ -1178,13 +1315,25 @@ export default function App() {
                   <p className="text-[10px] text-zinc-400">Total de {alunos.length} fichas cadastradas na academia</p>
                 </div>
                 {activeRole === "ADMIN" && (
-                  <button
-                    onClick={() => setShowAddForm(!showAddForm)}
-                    className="p-2 bg-red-700 hover:bg-red-650 text-white rounded-xl flex items-center gap-1.5 text-xs font-bold transition-colors"
-                  >
-                    <Plus className="w-4 h-4 text-white" />
-                    Novo Aluno
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSyncUsersAsAlunosDirect}
+                      disabled={isSyncingUsers}
+                      className="p-2 py-1.5 bg-amber-500 hover:bg-amber-450 disabled:opacity-50 text-zinc-950 font-black rounded-xl flex items-center gap-1.5 text-[11px] transition-colors uppercase cursor-pointer"
+                      id="btn-sync-users-as-alunos"
+                      title="Sincronizar usuários da autenticação que não possuem ficha acadêmica"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 text-zinc-950 ${isSyncingUsers ? "animate-spin" : ""}`} />
+                      {isSyncingUsers ? "Sincronizando..." : "Sincronizar Usuários"}
+                    </button>
+                    <button
+                      onClick={() => setShowAddForm(!showAddForm)}
+                      className="p-2 py-1.5 bg-red-700 hover:bg-red-650 text-white rounded-xl flex items-center gap-1.5 text-[11px] font-bold transition-colors uppercase cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 text-white" />
+                      Novo Aluno
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -1214,7 +1363,6 @@ export default function App() {
                     onAddAluno={(newStu) => {
                       handleAddAluno(newStu);
                       setShowAddForm(false);
-                      alert("Aluno cadastrado com sucesso!");
                     }}
                     onDeleteAluno={handleDeleteAluno}
                     onUpdateStatusFinanceiro={handleUpdateStatusFinanceiro}
@@ -1239,12 +1387,21 @@ export default function App() {
                           <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-xs font-black text-amber-500 uppercase">
                             {a.nome?.substring(0, 2)}
                           </div>
-                          <div className="leading-tight text-left space-y-0.5">
+                          <div className="leading-tight text-left space-y-1">
                             <h4 className="text-xs font-bold text-white uppercase">{a.nome}</h4>
-                            <p className="text-[10px] font-mono text-zinc-500">ID: {a.id} • CPF: {a.cpf || "não registrado"}</p>
-                            <span className="inline-flex py-0.5 px-2 rounded-full bg-neutral-900 text-[8px] font-bold text-amber-400">
-                              {a.graduacao ? a.graduacao : "Branca"}
-                            </span>
+                            <p className="text-[10px] font-mono text-zinc-500">
+                              CPF: {a.cpf || "não registrado"} • Cel: {a.celular || "não registrado"}
+                            </p>
+                            {a.endereco && (
+                              <p className="text-[10px] text-zinc-400 flex items-center gap-1 font-sans">
+                                📍 {a.endereco}
+                              </p>
+                            )}
+                            <div className="pt-0.5">
+                              <span className="inline-flex py-0.5 px-2 rounded-full bg-neutral-900 text-[8px] font-bold text-amber-400">
+                                {a.graduacao ? a.graduacao : "Branca"}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
@@ -1260,7 +1417,7 @@ export default function App() {
                             <div className="flex gap-1.5 justify-end">
                               <button
                                 onClick={() => {
-                                  if (confirm(`Deseja remover ${a.nome} da academia?`)) {
+                                  if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
                                     handleDeleteAluno(a.id);
                                   }
                                 }}

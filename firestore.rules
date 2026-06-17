@@ -9,7 +9,7 @@ service cloud.firestore {
 
     // Helper para verificar se o usuário é o administrador principal pelo e-mail
     function isMainAdminEmail() {
-      return isSignedIn() && request.auth.token.email == "deciopadovanijr@gmail.com";
+      return isSignedIn() && request.auth.token.email.lower() == "deciopadovanijr@gmail.com";
     }
 
     // Retorna o perfil do usuário atual do Firestore (se existir)

@@ -33,7 +33,8 @@
         "descontoFamiliaTipo": { "type": "string", "enum": ["percentual", "fixo", "nenhum"] },
         "descontoFamiliaValor": { "type": "number" },
         "statusFinanceiro": { "type": "string", "enum": ["Em Dia", "Atrasado", "Pendente"] },
-        "observacoes": { "type": "string" }
+        "observacoes": { "type": "string" },
+        "endereco": { "type": "string" }
       },
       "required": ["id", "nome", "email", "celular", "cpf", "dataNascimento", "graduacao", "dataUltimaGraduacao", "status", "turmaId", "planoTipo", "mensalidade", "descontoFamiliaTipo", "descontoFamiliaValor", "statusFinanceiro"]
     },
