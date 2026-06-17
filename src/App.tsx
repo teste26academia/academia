@@ -189,11 +189,17 @@ export default function App() {
     // 3. Alunos live subscription (using Query Enforcer filters for students to match Firestore Security rules)
     try {
       const alunosRef = collection(db, "alunos");
+      const emailVariations = [
+        userProfile.email,
+        userProfile.email.toLowerCase(),
+        userProfile.email.toUpperCase()
+      ].filter((v, i, self) => v && self.indexOf(v) === i);
+
       const q = isPowerUser 
         ? alunosRef 
-        : query(alunosRef, where("email", "==", userProfile.email));
+        : query(alunosRef, where("email", "in", emailVariations));
 
-      const unsubAlunos = onSnapshot(q, async (querySnapshot) => {
+      const unsubAlunos = onSnapshot( q, async (querySnapshot) => {
         if (querySnapshot.empty) {
           console.log("Lista de alunos do Firestore retornou vazia, usando dados em memória.");
           setAlunos(isPowerUser ? INITIAL_ALUNOS : []);
@@ -281,7 +287,7 @@ export default function App() {
 
     // 6. Exames live subscription
     try {
-      const exRef = collection(db, "exames");
+      const exRef = collection(db, "graduacoes");
       const q = isPowerUser 
         ? exRef 
         : (userProfile.alunoId 
@@ -327,8 +333,9 @@ export default function App() {
   const isCurrentlyAdminByEmail = userProfile?.role === "ADMIN" || user?.email === "deciopadovanijr@gmail.com";
 
   // 1. ADD Student (Admin Form mapped to Firestore)
-  const handleAddAluno = async (newAlunoData: Omit<Aluno, "id" | "statusFinanceiro"> & { id?: string }) => {
+  const handleAddAluno = async (newAlunoData: any) => {
     try {
+      const formEmail = newAlunoData.email ? newAlunoData.email.trim().toLowerCase() : "";
       if (newAlunoData.id) {
         // Modo de edição
         const existingId = newAlunoData.id;
@@ -336,18 +343,28 @@ export default function App() {
 
         await updateDoc(studentRef, {
           nome: newAlunoData.nome,
-          email: newAlunoData.email,
-          celular: newAlunoData.celular,
+          email: formEmail,
+          celular: newAlunoData.celular || "",
           cpf: newAlunoData.cpf,
-          dataNascimento: newAlunoData.dataNascimento,
-          graduacao: newAlunoData.graduacao,
+          rg: newAlunoData.rg || "",
+          dataNascimento: newAlunoData.dataNascimento || "",
+          graduacao: newAlunoData.graduacao || "Faixa Branca",
+          graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Faixa Branca",
           turmaId: newAlunoData.turmaId,
-          planoTipo: newAlunoData.planoTipo,
-          mensalidade: newAlunoData.mensalidade,
-          descontoFamiliaTipo: newAlunoData.descontoFamiliaTipo,
-          descontoFamiliaValor: newAlunoData.descontoFamiliaValor,
+          planoTipo: newAlunoData.planoTipo || "2x_semana",
+          mensalidade: newAlunoData.mensalidade || 160,
+          descontoFamiliaTipo: newAlunoData.descontoFamiliaTipo || "nenhum",
+          descontoFamiliaValor: newAlunoData.descontoFamiliaValor || 0,
           observacoes: newAlunoData.observacoes || "",
-          endereco: newAlunoData.endereco || ""
+          endereco: newAlunoData.endereco || "",
+          telefone: newAlunoData.telefone || newAlunoData.celular || "",
+          whatsapp: newAlunoData.whatsapp || newAlunoData.celular || "",
+          responsavel: newAlunoData.responsavel || "",
+          foto: newAlunoData.foto || "",
+          dataMatricula: newAlunoData.dataMatricula || new Date().toISOString().split("T")[0],
+          modalidade: newAlunoData.modalidade || "Kung Fu",
+          statusFinanceiro: newAlunoData.statusFinanceiro || "EM DIA",
+          status: newAlunoData.status || "Ativo"
         });
 
         alert("Dados do aluno atualizados com sucesso!");
@@ -357,26 +374,43 @@ export default function App() {
       const newId = `stu_${Date.now()}`;
       const newAluno: Aluno = {
         ...newAlunoData,
+        email: formEmail,
         id: newId,
-        statusFinanceiro: "Em Dia"
+        userId: newAlunoData.userId || "",
+        statusFinanceiro: newAlunoData.statusFinanceiro || "EM DIA",
+        graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Faixa Branca",
+        graduacao: newAlunoData.graduacao || "Faixa Branca",
+        telefone: newAlunoData.telefone || newAlunoData.celular || "",
+        whatsapp: newAlunoData.whatsapp || newAlunoData.celular || "",
+        status: newAlunoData.status || "Ativo",
+        modalidade: newAlunoData.modalidade || "Kung Fu",
+        foto: newAlunoData.foto || "",
+        responsavel: newAlunoData.responsavel || "",
+        rg: newAlunoData.rg || "",
+        dataMatricula: newAlunoData.dataMatricula || new Date().toISOString().split("T")[0],
+        dataUltimaGraduacao: newAlunoData.dataUltimaGraduacao || new Date().toISOString().split("T")[0]
       };
 
       await setDoc(doc(db, "alunos", newId), newAluno);
 
       // Automatically generate first invoice honoring net family discount calculation!
       const discountVal = newAluno.descontoFamiliaTipo === "percentual"
-        ? newAluno.mensalidade - (newAluno.mensalidade * (newAluno.descontoFamiliaValor / 100))
+        ? (newAluno.mensalidade || 160) - ((newAluno.mensalidade || 160) * ((newAluno.descontoFamiliaValor || 0) / 100))
         : newAluno.descontoFamiliaTipo === "fixo"
-          ? Math.max(0, newAluno.mensalidade - newAluno.descontoFamiliaValor)
-          : newAluno.mensalidade;
+          ? Math.max(0, (newAluno.mensalidade || 160) - (newAluno.descontoFamiliaValor || 0))
+          : (newAluno.mensalidade || 160);
 
       const newPayment: Pagamento = {
         id: `pay_${Date.now()}`,
         alunoId: newId,
         alunoNome: newAluno.nome,
         valor: discountVal,
+        desconto: (newAluno.mensalidade || 160) - discountVal,
+        valorFinal: discountVal,
+        referencia: new Date().toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }),
         dataVencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        status: "Pendente"
+        vencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        status: newAluno.statusFinanceiro === "EM DIA" ? "Pago" : "Pendente"
       };
       
       await setDoc(doc(db, "mensalidades", newPayment.id), newPayment);
@@ -388,6 +422,48 @@ export default function App() {
       } catch (e: any) {
         alert("Erro ao salvar aluno no Firestore: " + e.message);
       }
+    }
+  };
+
+  // 1.5. UPDATE Student Profile (Self profile update for regular students)
+  const handleUpdateCadastroProfile = async (dados: { nome: string; celular: string; endereco: string }) => {
+    if (!user || !userProfile) return;
+    try {
+      // 1. Atualiza na coleção de usuários do Auth (users)
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        nome: dados.nome,
+        celular: dados.celular || "",
+        endereco: dados.endereco || ""
+      });
+
+      // 2. Se o usuário atual possui alunoId, atualiza também a ficha do aluno (alunos)
+      if (userProfile.alunoId) {
+        const studentRef = doc(db, "alunos", userProfile.alunoId);
+        await updateDoc(studentRef, {
+          nome: dados.nome,
+          celular: dados.celular || "",
+          endereco: dados.endereco || ""
+        });
+      } else {
+        // Se não possui alunoId mas existe aluno com o mesmo email cadastrado pelo admin
+        const alunosRef = collection(db, "alunos");
+        const qStr = user.email ? user.email.trim().toLowerCase() : "";
+        const q = query(alunosRef, where("email", "==", qStr));
+        const qSnap = await getDocs(q);
+        if (!qSnap.empty) {
+          const studentDocId = qSnap.docs[0].id;
+          await updateDoc(doc(db, "alunos", studentDocId), {
+            nome: dados.nome,
+            celular: dados.celular || "",
+            endereco: dados.endereco || ""
+          });
+        }
+      }
+      alert("Cadastro atualizado com sucesso no Firestore!");
+    } catch (e: any) {
+      console.error("Erro ao atualizar cadastro:", e);
+      alert("Falha ao atualizar dados de cadastro: " + e.message);
     }
   };
 
@@ -451,59 +527,85 @@ export default function App() {
       });
 
       let addedCount = 0;
+      const todayString = new Date().toISOString().split("T")[0];
+      const nextMonthString = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      const currentRef = new Date().toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" });
 
       for (const u of allUsers) {
-        // Check if user is already an Aluno (by matching ID or email)
-        const isAlreadyAluno = alunos.some(
-          (a) => (a.email && a.email.toLowerCase() === u.email?.toLowerCase()) || a.id === `stu_${u.id}`
-        ) || !!u.alunoId;
-        
+        // Exclude admin role or principal administrator Decio
         const isAdmin = u.role === "ADMIN" || u.email?.toLowerCase() === "deciopadovanijr@gmail.com";
+        if (isAdmin) continue;
 
-        if (!isAlreadyAluno && !isAdmin) {
+        // Check if user is already an Aluno (by matching ID, email, or userId)
+        const isAlreadyAluno = alunos.some(
+          (a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email?.toLowerCase()) || a.id === `stu_${u.id}`
+        ) || !!u.alunoId;
+
+        if (!isAlreadyAluno) {
           const studentId = `stu_${u.id}`;
-          const newAluno = {
+          const defaultTurmaId = turmas.length > 0 ? turmas[0].id : "turma_1";
+
+          const newAluno: Aluno = {
             id: studentId,
+            userId: u.id,
             nome: u.nome || u.email?.split("@")[0] || "Aluno Sincronizado",
             email: u.email || "",
-            telefone: u.telefone || "(13) 99999-9999",
-            cpf: u.cpf || "---.---.------",
+            cpf: u.cpf || "",
+            rg: u.rg || "",
             dataNascimento: u.dataNascimento || "2000-01-01",
-            whatsapp: u.whatsapp || "",
-            endereco: u.endereco || "Endereço por Cadastrar",
-            graduacao: "Branca",
-            mensalidade: 120,
-            statusFinanceiro: "Em Dia",
+            telefone: u.telefone || u.celular || "",
+            whatsapp: u.whatsapp || u.celular || "",
+            endereco: u.endereco || "",
+            responsavel: u.responsavel || "",
+            foto: u.foto || "",
+            dataMatricula: todayString,
+            graduacaoAtual: "Faixa Branca",
+            dataUltimaGraduacao: todayString,
+            status: "Ativo",
+            turmaId: u.turmaId || defaultTurmaId,
+            modalidade: "Kung Fu",
+            observacoes: "Usuário sincronizado do sistema de autenticação.",
+            statusFinanceiro: "PENDENTE",
+            
+            // Compatibility fields
+            graduacao: "Faixa Branca",
+            celular: u.telefone || u.celular || "",
+            planoTipo: "2x_semana",
+            mensalidade: 160,
             descontoFamiliaTipo: "nenhum",
-            descontoFamiliaValor: 0,
-            dataMatricula: new Date().toISOString().split("T")[0]
+            descontoFamiliaValor: 0
           };
 
-          // Create Aluno record
+          // 1. Create Aluno record
           await setDoc(doc(db, "alunos", studentId), newAluno);
 
-          // Update user link
+          // 2. Link userId to student (Update user document)
           await updateDoc(doc(db, "users", u.id), {
             alunoId: studentId
           });
 
-          // Create initial payment record
+          // 3. Create initial payment record (First monthly fee)
           const paymentId = `pay_${Date.now()}_${u.id.substring(0, 4)}`;
-          const newPayment = {
+          const newPayment: Pagamento = {
             id: paymentId,
             alunoId: studentId,
             alunoNome: newAluno.nome,
-            valor: 120,
-            dataVencimento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            valor: 160,
+            desconto: 0,
+            valorFinal: 160,
+            referencia: currentRef,
+            dataVencimento: nextMonthString,
+            vencimento: nextMonthString,
             status: "Pendente"
           };
+
           await setDoc(doc(db, "mensalidades", paymentId), newPayment);
 
           addedCount++;
         }
       }
 
-      alert(`Sincronização concluída! ${addedCount} novos usuários cadastrados como alunos.`);
+      alert(`Sincronização concluída! ${addedCount} novos usuários sem ficha foram cadastrados como alunos com graduação inicial Faixa Branca.`);
     } catch (err: any) {
       console.error("Sincronização de usuários falhou:", err);
       alert("Erro ao sincronizar usuários: " + err.message);
@@ -563,7 +665,7 @@ export default function App() {
 
       const normalizedStatus = status === "A provado" ? "Aprovado" : status;
 
-      await updateDoc(doc(db, "exames", gradId), {
+      await updateDoc(doc(db, "graduacoes", gradId), {
         notaTecnica: notaTec,
         notaFilosofica: notaPhil,
         status: normalizedStatus
@@ -572,15 +674,16 @@ export default function App() {
       if (normalizedStatus === "Aprovado") {
         await updateDoc(doc(db, "alunos", targetGrad.alunoId), {
           graduacao: targetGrad.sashNovo,
+          graduacaoAtual: targetGrad.sashNovo,
           dataUltimaGraduacao: new Date().toISOString().split("T")[0]
         });
       }
     } catch (err) {
       console.error("handleUpdateGraduacao failed:", err);
       try {
-        handleFirestoreError(err, OperationType.UPDATE, `exames/${gradId}`);
+        handleFirestoreError(err, OperationType.UPDATE, `graduacoes/${gradId}`);
       } catch (e: any) {
-        alert("Erro ao atualizar exame no Firestore: " + e.message);
+        alert("Erro ao atualizar graduação no Firestore: " + e.message);
       }
     }
   };
@@ -611,6 +714,7 @@ export default function App() {
         return;
       }
 
+      const targetTurma = turmas.find(t => t.id === turmaId);
       const newPresenca: Presenca = {
         id: `pres_req_${Date.now()}`,
         turmaId,
@@ -618,7 +722,10 @@ export default function App() {
         alunoNome: activeStudent.nome,
         data,
         status: "PENDING",
-        solicitadoPorAluno: true
+        solicitadoPorAluno: true,
+        modalidade: targetTurma?.nomeEstilo || "Kung Fu",
+        horario: targetTurma?.horario || "15:00 - 16:00",
+        confirmadoPor: ""
       };
 
       await setDoc(doc(db, "presencas", newPresenca.id), newPresenca);
@@ -662,7 +769,7 @@ export default function App() {
           await setDoc(doc(db, "presencas", item.id), item);
         }
         for (const item of INITIAL_GRADUACOES) {
-          await setDoc(doc(db, "exames", item.id), item);
+          await setDoc(doc(db, "graduacoes", item.id), item);
         }
         for (const item of INITIAL_PAGAMENTOS) {
           await setDoc(doc(db, "mensalidades", item.id), item);
@@ -934,11 +1041,27 @@ export default function App() {
   }
 
   // Active student calculation based on authenticated account linkage and lists
-  const defaultStudent = userProfile.role === "ALUNO" && userProfile.alunoId
-    ? (alunos.find(a => a.id === userProfile.alunoId) || {
-        id: userProfile.alunoId,
-        nome: userProfile.nome,
-        email: userProfile.email,
+  let defaultStudent: Aluno | undefined = undefined;
+  if (userProfile && userProfile.role === "ALUNO") {
+    // 1. Tentar encontrar pelo alunoId vinculado no perfil
+    if (userProfile.alunoId) {
+      defaultStudent = alunos.find(a => a.id === userProfile.alunoId);
+    }
+    // 2. Se não encontrou, tentar encontrar pelo email (case-insensitive) do usuário logado
+    if (!defaultStudent && userProfile.email) {
+      const emailLower = userProfile.email.trim().toLowerCase();
+      defaultStudent = alunos.find(a => a.email && a.email.trim().toLowerCase() === emailLower);
+    }
+    // 3. Se ainda não encontrou mas temos algum aluno na lista restrita dele do onSnapshot (que já aplica o filtro)
+    if (!defaultStudent && alunos.length > 0) {
+      defaultStudent = alunos[0];
+    }
+    // 4. Fallback final: Objeto mockado do aluno
+    if (!defaultStudent) {
+      defaultStudent = {
+        id: userProfile.alunoId || `stu_${userProfile.uid}`,
+        nome: userProfile.nome || "Membro",
+        email: userProfile.email || "",
         celular: "(Não cadastrado)",
         cpf: "(Não cadastrado)",
         dataNascimento: "",
@@ -952,8 +1075,12 @@ export default function App() {
         descontoFamiliaValor: 0,
         statusFinanceiro: "Em Dia" as const,
         observacoes: "Aluno sincronizado."
-      } as Aluno)
-    : (alunos.find(a => a.id === "stu_1") || alunos[0]);
+      } as Aluno;
+    }
+  } else {
+    // Se for Admin/Instrutor, mostramos um aluno de mockup para visualizações se existirem alunos
+    defaultStudent = alunos.find(a => a.id === "stu_1") || alunos[0];
+  }
 
   const defaultStudentTurma = defaultStudent ? turmas.find(t => t.id === defaultStudent.turmaId) : undefined;
 
@@ -1476,6 +1603,7 @@ export default function App() {
                 activeRole={activeRole}
                 sendPasswordReset={sendPasswordReset}
                 logout={logout}
+                onUpdateCadastro={handleUpdateCadastroProfile}
               />
 
               {/* Global Config Settings Form ONLY if ADMIN */}

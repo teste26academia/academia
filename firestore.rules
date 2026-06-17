@@ -105,8 +105,8 @@ service cloud.firestore {
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
     }
 
-    // 6. exames (Histórico de Graduação)
-    match /exames/{exameId} {
+    // 6. graduacoes (Histórico de Graduação)
+    match /graduacoes/{graduacaoId} {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 

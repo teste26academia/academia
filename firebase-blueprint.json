@@ -19,24 +19,47 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
+        "userId": { "type": "string" },
         "nome": { "type": "string" },
-        "email": { "type": "string" },
-        "celular": { "type": "string" },
         "cpf": { "type": "string" },
+        "rg": { "type": "string" },
         "dataNascimento": { "type": "string" },
-        "graduacao": { "type": "string" },
+        "telefone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "email": { "type": "string" },
+        "endereco": { "type": "string" },
+        "responsavel": { "type": "string" },
+        "foto": { "type": "string" },
+        "dataMatricula": { "type": "string" },
+        "graduacaoAtual": { "type": "string" },
         "dataUltimaGraduacao": { "type": "string" },
         "status": { "type": "string", "enum": ["Ativo", "Inativo"] },
         "turmaId": { "type": "string" },
-        "planoTipo": { "type": "string", "enum": ["1x_semana", "2x_semana", "3x_semana", "4x_semana", "outro"] },
-        "mensalidade": { "type": "number" },
-        "descontoFamiliaTipo": { "type": "string", "enum": ["percentual", "fixo", "nenhum"] },
-        "descontoFamiliaValor": { "type": "number" },
-        "statusFinanceiro": { "type": "string", "enum": ["Em Dia", "Atrasado", "Pendente"] },
+        "modalidade": { "type": "string" },
         "observacoes": { "type": "string" },
-        "endereco": { "type": "string" }
+        "statusFinanceiro": { "type": "string", "enum": ["EM DIA", "PENDENTE", "ATRASADO", "ISENTO", "Em Dia", "Atrasado", "Pendente", "Isento"] }
       },
-      "required": ["id", "nome", "email", "celular", "cpf", "dataNascimento", "graduacao", "dataUltimaGraduacao", "status", "turmaId", "planoTipo", "mensalidade", "descontoFamiliaTipo", "descontoFamiliaValor", "statusFinanceiro"]
+      "required": [
+        "id",
+        "userId",
+        "nome",
+        "cpf",
+        "rg",
+        "dataNascimento",
+        "telefone",
+        "whatsapp",
+        "email",
+        "endereco",
+        "responsavel",
+        "foto",
+        "dataMatricula",
+        "graduacaoAtual",
+        "dataUltimaGraduacao",
+        "status",
+        "turmaId",
+        "modalidade",
+        "statusFinanceiro"
+      ]
     },
     "Turma": {
       "title": "Turma",
@@ -62,47 +85,46 @@
         "id": { "type": "string" },
         "turmaId": { "type": "string" },
         "alunoId": { "type": "string" },
-        "alunoNome": { "type": "string" },
+        "modalidade": { "type": "string" },
         "data": { "type": "string" },
+        "horario": { "type": "string" },
         "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED", "Presente", "Faltou", "Justificado"] },
-        "observacao": { "type": "string" },
-        "solicitadoPorAluno": { "type": "boolean" }
+        "confirmadoPor": { "type": "string" }
       },
-      "required": ["id", "turmaId", "alunoId", "alunoNome", "data", "status"]
+      "required": ["id", "alunoId", "modalidade", "data", "status"]
     },
-    "Pagamento": {
-      "title": "Pagamento",
-      "description": "Histórico de pagamentos e mensalidades geradas para os alunos",
+    "Mensalidade": {
+      "title": "Mensalidade",
+      "description": "Histórico de mensalidades geradas para os alunos",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "alunoId": { "type": "string" },
-        "alunoNome": { "type": "string" },
+        "referencia": { "type": "string" },
+        "vencimento": { "type": "string" },
         "valor": { "type": "number" },
-        "dataVencimento": { "type": "string" },
-        "dataPagamento": { "type": "string" },
-        "status": { "type": "string", "enum": ["Pago", "Pendente", "Atrasado"] },
-        "metodo": { "type": "string", "enum": ["PIX", "Cartão", "Dinheiro", "Boleto"] }
+        "desconto": { "type": "number" },
+        "valorFinal": { "type": "number" },
+        "status": { "type": "string", "enum": ["EM DIA", "PENDENTE", "ATRASADO", "ISENTO", "Em Dia", "Atrasado", "Pendente", "Isento"] },
+        "dataPagamento": { "type": "string" }
       },
-      "required": ["id", "alunoId", "alunoNome", "valor", "dataVencimento", "status"]
+      "required": ["id", "alunoId", "referencia", "vencimento", "valor", "desconto", "valorFinal", "status"]
     },
-    "HistoricoGraduacao": {
-      "title": "HistoricoGraduacao",
-      "description": "Histórico de exames de faixa e graduações",
+    "Graduacao": {
+      "title": "Graduacao",
+      "description": "Controle de exames e histórico de graduações de faixa",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "alunoId": { "type": "string" },
-        "alunoNome": { "type": "string" },
-        "sashAnterior": { "type": "string" },
-        "sashNovo": { "type": "string" },
-        "dataExame": { "type": "string" },
+        "graduacaoAnterior": { "type": "string" },
+        "graduacaoNova": { "type": "string" },
+        "dataGraduacao": { "type": "string" },
         "avaliador": { "type": "string" },
-        "notaTecnica": { "type": "number" },
-        "notaFilosofica": { "type": "number" },
-        "status": { "type": "string", "enum": ["Acesso Permitido", "Aprovado", "Pendente"] }
+        "observacoes": { "type": "string" },
+        "resultado": { "type": "string" }
       },
-      "required": ["id", "alunoId", "alunoNome", "sashAnterior", "sashNovo", "dataExame", "avaliador", "notaTecnica", "notaFilosofica", "status"]
+      "required": ["id", "alunoId", "graduacaoAnterior", "graduacaoNova", "dataGraduacao", "avaliador", "resultado"]
     },
     "GlobalConfigs": {
       "title": "GlobalConfigs",
@@ -137,12 +159,12 @@
       "description": "Registro de presenças e controle de chamadas"
     },
     "/mensalidades/{mensalidadeId}": {
-      "schema": "Pagamento",
+      "schema": "Mensalidade",
       "description": "Controle financeiro de mensalidades e status de cobrança"
     },
-    "/exames/{exameId}": {
-      "schema": "HistoricoGraduacao",
-      "description": "Registros de exames de faixa e notas técnicas e filosóficas"
+    "/graduacoes/{graduacaoId}": {
+      "schema": "Graduacao",
+      "description": "Registros de exames de faixa e históricos"
     },
     "/configuracoes/{configuracaoId}": {
       "schema": "GlobalConfigs",

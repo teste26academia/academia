@@ -34,6 +34,7 @@ export default function AdminPanel({
   const [email, setEmail] = useState("");
   const [celular, setCelular] = useState("");
   const [cpf, setCpf] = useState("");
+  const [rg, setRg] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [graduacao, setGraduacao] = useState<GraduacaoSash>(GraduacaoSash.BRANCA);
   const [turmaId, setTurmaId] = useState("");
@@ -43,6 +44,15 @@ export default function AdminPanel({
   const [descontoFamiliaValor, setDescontoFamiliaValor] = useState(0);
   const [observacoes, setObservacoes] = useState("");
   const [endereco, setEndereco] = useState("");
+  
+  // Novos campos obrigatórios de Aluno
+  const [telefone, setTelefone] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [responsavel, setResponsavel] = useState("");
+  const [foto, setFoto] = useState("");
+  const [dataMatricula, setDataMatricula] = useState("");
+  const [modalidade, setModalidade] = useState("Kung Fu");
+  const [statusFinanceiro, setStatusFinanceiro] = useState<"EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO">("EM DIA");
 
   // Configuration Form states (pre-populated from prop)
   const [configPercent, setConfigPercent] = useState(config.descontoFamiliarPercentualPadrao);
@@ -94,6 +104,7 @@ export default function AdminPanel({
     setEmail("");
     setCelular("");
     setCpf("");
+    setRg("");
     setDataNascimento("");
     setGraduacao(GraduacaoSash.BRANCA);
     setTurmaId("");
@@ -103,6 +114,16 @@ export default function AdminPanel({
     setDescontoFamiliaValor(0);
     setObservacoes("");
     setEndereco("");
+    
+    // Novos campos reset
+    setTelefone("");
+    setWhatsapp("");
+    setResponsavel("");
+    setFoto("");
+    setDataMatricula("");
+    setModalidade("Kung Fu");
+    setStatusFinanceiro("EM DIA");
+
     setEditingAlunoId(null);
     setShowAddForm(false);
   };
@@ -113,6 +134,7 @@ export default function AdminPanel({
     setEmail(aluno.email);
     setCelular(aluno.celular || "");
     setCpf(aluno.cpf);
+    setRg(aluno.rg || "");
     setDataNascimento(aluno.dataNascimento || "");
     setGraduacao(aluno.graduacao);
     setTurmaId(aluno.turmaId);
@@ -122,6 +144,16 @@ export default function AdminPanel({
     setDescontoFamiliaValor(aluno.descontoFamiliaValor || 0);
     setObservacoes(aluno.observacoes || "");
     setEndereco(aluno.endereco || "");
+    
+    // Novos campos edit
+    setTelefone(aluno.telefone || "");
+    setWhatsapp(aluno.whatsapp || "");
+    setResponsavel(aluno.responsavel || "");
+    setFoto(aluno.foto || "");
+    setDataMatricula(aluno.dataMatricula || "");
+    setModalidade(aluno.modalidade || "Kung Fu");
+    setStatusFinanceiro((aluno.statusFinanceiro as any) || "EM DIA");
+
     setShowAddForm(true);
     
     // Rolar suavemente até o formulário
@@ -148,6 +180,7 @@ export default function AdminPanel({
       email,
       celular,
       cpf,
+      rg,
       dataNascimento,
       graduacao,
       dataUltimaGraduacao: editingAluno ? (editingAluno.dataUltimaGraduacao || new Date().toISOString().split("T")[0]) : new Date().toISOString().split("T")[0],
@@ -158,8 +191,18 @@ export default function AdminPanel({
       descontoFamiliaTipo,
       descontoFamiliaValor,
       observacoes,
-      endereco
-    });
+      endereco,
+      
+      // Novos campos salvamento
+      telefone: telefone || celular || "",
+      whatsapp: whatsapp || celular || "",
+      responsavel,
+      foto,
+      dataMatricula: dataMatricula || (editingAluno ? editingAluno.dataMatricula : new Date().toISOString().split("T")[0]) || new Date().toISOString().split("T")[0],
+      graduacaoAtual: graduacao,
+      modalidade,
+      statusFinanceiro
+    } as any);
 
     handleResetForm();
   };
@@ -371,7 +414,35 @@ export default function AdminPanel({
                         id="form-celular"
                         type="text"
                         value={celular}
-                        onChange={(e) => setCelular(e.target.value)}
+                        onChange={(e) => {
+                          setCelular(e.target.value);
+                          if (!telefone) setTelefone(e.target.value);
+                          if (!whatsapp) setWhatsapp(e.target.value);
+                        }}
+                        placeholder="(13) 99123-4567"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Telefone de Contato</label>
+                      <input
+                        id="form-telefone"
+                        type="text"
+                        value={telefone}
+                        onChange={(e) => setTelefone(e.target.value)}
+                        placeholder="(13) 3471-1234"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">WhatsApp</label>
+                      <input
+                        id="form-whatsapp"
+                        type="text"
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value)}
                         placeholder="(13) 99123-4567"
                         className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
                       />
@@ -386,6 +457,18 @@ export default function AdminPanel({
                         value={cpf}
                         onChange={(e) => setCpf(e.target.value)}
                         placeholder="111.222.333-44"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">RG (Documento)</label>
+                      <input
+                        id="form-rg"
+                        type="text"
+                        value={rg}
+                        onChange={(e) => setRg(e.target.value)}
+                        placeholder="12.345.678-9"
                         className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
                       />
                     </div>
@@ -467,6 +550,71 @@ export default function AdminPanel({
                         onChange={(e) => setMensalidade(Number(e.target.value))}
                         className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none font-mono"
                       />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Responsável Legal (Se menor)</label>
+                      <input
+                        id="form-responsavel"
+                        type="text"
+                        value={responsavel}
+                        onChange={(e) => setResponsavel(e.target.value)}
+                        placeholder="Ex: Nome do Pai ou Mãe"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Endereço da Foto (URL)</label>
+                      <input
+                        id="form-foto"
+                        type="text"
+                        value={foto}
+                        onChange={(e) => setFoto(e.target.value)}
+                        placeholder="Ex: https://images.com/image.png"
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-amber-550"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Data de Matrícula</label>
+                      <input
+                        id="form-datamatricula"
+                        type="date"
+                        value={dataMatricula}
+                        onChange={(e) => setDataMatricula(e.target.value)}
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Modalidade Praticada</label>
+                      <select
+                        id="form-modalidade"
+                        value={modalidade}
+                        onChange={(e) => setModalidade(e.target.value)}
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none"
+                      >
+                        <option value="Kung Fu">Kung Fu</option>
+                        <option value="Tai Chi Chuan">Tai Chi Chuan</option>
+                        <option value="Sanda (Boxe Chinês)">Sanda (Boxe Chinês)</option>
+                        <option value="Armas Tradicionais">Armas Tradicionais</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono font-bold text-zinc-400 block uppercase">Situação Financeira</label>
+                      <select
+                        id="form-statusfinanceiro"
+                        value={statusFinanceiro}
+                        onChange={(e) => setStatusFinanceiro(e.target.value as any)}
+                        className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-amber-400 focus:outline-none font-bold"
+                      >
+                        <option value="EM DIA">EM DIA</option>
+                        <option value="PENDENTE">PENDENTE</option>
+                        <option value="ATRASADO">ATRASADO</option>
+                        <option value="ISENTO">ISENTO</option>
+                      </select>
                     </div>
 
                     {/* Desconto Familiar Module details */}

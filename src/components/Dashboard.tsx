@@ -2,11 +2,16 @@ import React from "react";
 import { 
   Calendar, 
   Clock, 
-  Settings, 
   FileText, 
   CreditCard, 
   Award, 
-  Flame 
+  Flame,
+  Users,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { EagleClawLogo } from "./BrasaoOficial";
 import { Presenca, Aluno, Pagamento, GlobalConfigs, Turma } from "../types";
@@ -19,9 +24,10 @@ interface DashboardProps {
   config: GlobalConfigs;
   defaultStudent?: Aluno;
   defaultStudentTurma?: Turma;
-  setActiveBottomTab: (tab: string) => void;
+  setActiveBottomTab: (tab: "inicio" | "alunos" | "presencas" | "relatorios" | "menu") => void;
   handleStudentCheckin?: () => void;
   studentStatusMsg?: string;
+  graduacoes?: any[]; // Historico de graduacoes real do Firestore
 }
 
 export function Dashboard({
@@ -34,19 +40,55 @@ export function Dashboard({
   defaultStudentTurma,
   setActiveBottomTab,
   handleStudentCheckin,
-  studentStatusMsg
+  studentStatusMsg,
+  graduacoes = []
 }: DashboardProps) {
-  // Calculate dynamic student statistics
+  // Current month prefix format (YYYY-MM)
+  const currentMonthPrefix = new Date().toISOString().substring(0, 7); // Ex: "2026-06"
+  const currentMonthYearRef = new Date().toLocaleDateString("pt-BR", { month: "2-digit", year: "numeric" }); // Ex: "06/2026"
+
+  // 1. Total de alunos
+  const totalAlunos = alunos.length;
+
+  // 2. Alunos ativos
+  const alunosAtivos = alunos.filter(a => a.status === "Ativo").length;
+
+  // 3. Alunos inadimplentes
+  const alunosInadimplentes = alunos.filter(a => 
+    a.statusFinanceiro === "ATRASADO" || 
+    a.statusFinanceiro === "Atrasado"
+  ).length;
+
+  // 4. Presenças do mês (Filtrando as presenças na modalidade realizadas no mês atual)
+  const presencasDoMes = presencas.filter(p => 
+    p.data && p.data.startsWith(currentMonthPrefix) && 
+    (p.status === "APPROVED" || p.status === "Presente")
+  ).length;
+
+  // 5. Receita mensal (soma das mensalidades pagas no mês referente)
+  const receitaMensal = pagamentos
+    .filter(p => 
+      (p.referencia === currentMonthYearRef || (p.vencimento && p.vencimento.startsWith(currentMonthPrefix))) && 
+      ((p.status as string) === "Pago" || (p.status as string) === "EM DIA" || (p.status as string) === "Em Dia")
+    )
+    .reduce((acc, p) => acc + (p.valorFinal || p.valor || 0), 0);
+
+  // 6. Próximos exames de graduação (pendentes ou agendados no futuro)
+  const examesFuturos = graduacoes.filter(g => 
+    g.resultado === "Pendente" || 
+    g.status === "Pendente" ||
+    (g.dataGraduacao && g.dataGraduacao >= new Date().toISOString().split("T")[0])
+  );
+  
+  // Student active view calculations
   const studentId = defaultStudent?.id;
   const studentPresRef = presencas.filter(p => p.alunoId === studentId);
   const studentPresApproved = studentPresRef.filter(p => p.status === "APPROVED" || p.status === "Presente");
   const sortedPresences = [...studentPresRef].sort((a, b) => b.data.localeCompare(a.data));
   const lastPresence = sortedPresences.length > 0 ? sortedPresences[0].data : "Nenhuma registrada";
-  
-  // Dynamic attendance percentage out of their recorded presences (default 100% or 75% if no records)
   const attendanceRate = studentPresRef.length > 0
     ? Math.min(100, Math.round((studentPresApproved.length / studentPresRef.length) * 100))
-    : 78;
+    : 100;
 
   const currentCheckinStatus = studentPresRef.length > 0 && studentPresRef[0].data === new Date().toISOString().split('T')[0]
     ? (studentPresRef[0].status === "PENDING" ? "Solicitado (Pendente)" : "Confirmado")
@@ -54,88 +96,163 @@ export function Dashboard({
 
   return (
     <div className="space-y-4 animate-fadeIn" id="dashboard-tab-content">
-      {/* Dynamic Main Action Panels based on logged-in role */}
+      
+      {/* 1. SE FOR ADMIN OU INSTRUTOR - PAINEL DO ADMINISTRADOR */}
       {activeRole !== "ALUNO" ? (
-        /* ADMIN/INSTRUCTOR specific premium views: GRID OF REAL FIRESTORE STATISTICS CARDS */
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 animate-fadeIn" id="stats-dashboard-counters">
-          {/* Card 1: Total de alunos cadastrados */}
-          <div 
-            id="card-quick-alunos"
-            onClick={() => setActiveBottomTab("alunos")}
-            className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4.5 text-left space-y-3 cursor-pointer hover:border-red-800 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex justify-between items-start">
-              <span className="p-2 bg-amber-950/40 rounded-xl border border-amber-900/40 text-amber-500 font-mono">
-                🥋
-              </span>
+        <div className="space-y-4 font-sans text-left">
+          <div className="text-left pb-1 border-b border-zinc-900 flex justify-between items-center bg-black/40 p-3.5 rounded-2xl">
+            <div>
+              <span className="text-[9px] font-black tracking-widest text-red-500 uppercase font-mono">Controle da Associação</span>
+              <h3 className="text-xs font-black uppercase text-zinc-100 tracking-wider">Metas e Saúde da Academia</h3>
             </div>
-            <div className="space-y-0.5">
-              <p className="text-2xl font-black font-mono text-white leading-none">{alunos.length}</p>
-              <p className="text-[11px] font-black text-zinc-400 uppercase tracking-wide">Alunos Cadastrados</p>
-              <p className="text-[9px] text-zinc-500 font-mono">Gerenciar Alunos</p>
+            <div className="text-right">
+              <span className="text-[10px] font-mono text-zinc-400">Ref: {currentMonthYearRef}</span>
             </div>
           </div>
 
-          {/* Card 2: Total de presenças */}
-          <div 
-            id="card-quick-presencas"
-            onClick={() => setActiveBottomTab("presencas")}
-            className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4.5 text-left space-y-3 cursor-pointer hover:border-red-800 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex justify-between items-start">
-              <span className="p-2 bg-red-950/40 rounded-xl border border-red-900/40 text-red-500">
-                <Calendar className="w-5 h-5" />
-              </span>
+          {/* Grid de Bento-Style Estatísticas */}
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3.5" id="admin-bento-dashboard-grid">
+            
+            {/* Card 1: Total de Alunos */}
+            <div 
+              onClick={() => setActiveBottomTab("alunos")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-red-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-red-950/30 rounded-xl text-red-500 border border-red-900/20">
+                  <Users className="w-4 h-4" />
+                </span>
+                <span className="text-[9px] text-zinc-500 font-mono">Geral</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-white">{totalAlunos}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Total de Alunos</p>
+              </div>
             </div>
-            <div className="space-y-0.5">
-              <p className="text-2xl font-black font-mono text-white leading-none">{presencas.length}</p>
-              <p className="text-[11px] font-black text-zinc-400 uppercase tracking-wide">Total de Presenças</p>
-              <p className="text-[9px] text-zinc-500 font-mono">Registrar Presença</p>
+
+            {/* Card 2: Alunos Ativos */}
+            <div 
+              onClick={() => setActiveBottomTab("alunos")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-emerald-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-emerald-950/30 rounded-xl text-emerald-400 border border-emerald-900/20">
+                  <Award className="w-4 h-4" />
+                </span>
+                <span className="text-[8px] bg-emerald-950 text-emerald-400 px-1.5 rounded-full font-mono font-bold">Ativos</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-emerald-450">{alunosAtivos}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Alunos Ativos</p>
+              </div>
             </div>
+
+            {/* Card 3: Inadimplentes */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-rose-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-rose-950/30 rounded-xl text-rose-500 border border-rose-900/20">
+                  <AlertTriangle className="w-4 h-4" />
+                </span>
+                <span className="text-[8px] bg-rose-950 text-rose-400 px-1.5 rounded-full font-mono font-bold">Inadimplente</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-rose-500">{alunosInadimplentes}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Inadimplentes</p>
+              </div>
+            </div>
+
+            {/* Card 4: Presenças do Mês */}
+            <div 
+              onClick={() => setActiveBottomTab("presencas")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-amber-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-amber-950/20 rounded-xl text-amber-500 border border-amber-900/20">
+                  <Calendar className="w-4 h-4" />
+                </span>
+                <span className="text-[9px] text-amber-400 font-mono">{currentMonthYearRef.split("/")[0]}</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-amber-450">{presencasDoMes}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Presenças no Mês</p>
+              </div>
+            </div>
+
+            {/* Card 5: Receita Mensal */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-teal-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-teal-950/20 rounded-xl text-teal-400 border border-teal-900/20">
+                  <CreditCard className="w-4 h-4" />
+                </span>
+                <span className="text-[9px] text-teal-400 font-mono">Faturamento</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-teal-400">R$ {receitaMensal.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Receita Mensal</p>
+              </div>
+            </div>
+
+            {/* Card 6: Próximos Exames */}
+            <div 
+              onClick={() => setActiveBottomTab("relatorios")}
+              className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4 cursor-pointer hover:border-indigo-850 hover:bg-zinc-900/30 transition-all shadow-xl space-y-3"
+            >
+              <div className="flex justify-between items-center">
+                <span className="p-2 bg-indigo-950/20 rounded-xl text-indigo-400 border border-indigo-900/20">
+                  <Award className="w-4 h-4" />
+                </span>
+                <span className="text-[9px] text-indigo-400 font-mono">Graduação</span>
+              </div>
+              <div className="leading-none pt-1">
+                <p className="text-2xl font-black font-mono text-purple-400">{examesFuturos.length}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">Próximos Exames</p>
+              </div>
+            </div>
+
           </div>
 
-          {/* Card 3: Total de mensalidades */}
-          <div 
-            id="card-quick-mensalidades"
-            onClick={() => setActiveBottomTab("relatorios")}
-            className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4.5 text-left space-y-3 cursor-pointer hover:border-red-800 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex justify-between items-start">
-              <span className="p-2 bg-zinc-900 rounded-xl border border-zinc-800 text-zinc-400">
-                <FileText className="w-5 h-5" />
-              </span>
+          {/* List of upcoming belt examinations */}
+          <div className="bg-zinc-950 border border-zinc-900 p-4 rounded-2xl space-y-3">
+            <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">Cronograma de Próximas Graduações</h4>
+              <span className="text-[9px] font-mono text-zinc-500">{examesFuturos.length} exames programados</span>
             </div>
-            <div className="space-y-0.5">
-              <p className="text-2xl font-black font-mono text-white leading-none">{pagamentos.length}</p>
-              <p className="text-[11px] font-black text-zinc-400 uppercase tracking-wide">Total de Mensalidades</p>
-              <p className="text-[9px] text-zinc-500 font-mono">Lançamentos Financeiros</p>
-            </div>
+            {examesFuturos.length === 0 ? (
+              <p className="text-[11px] text-zinc-550 py-2">Sem exames de faixas pendentes no momento.</p>
+            ) : (
+              <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
+                {examesFuturos.map((g) => {
+                  const s = alunos.find(a => a.id === g.alunoId);
+                  return (
+                    <div key={g.id} className="flex justify-between items-center p-2 bg-[#101011] border border-zinc-900 rounded-xl text-xs">
+                      <div>
+                        <p className="font-bold text-white uppercase">{s?.nome || "Aluno Registrado"}</p>
+                        <p className="text-[9px] font-mono text-zinc-500">Avaliador: {g.avaliador || "Professor Décio"}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-block px-2 py-0.5 rounded-full bg-indigo-950/60 border border-indigo-900 text-purple-400 text-[9px] font-bold">
+                          {g.graduacaoNova || "Nova Faixa"}
+                        </span>
+                        <p className="text-[9px] font-mono text-zinc-400 mt-0.5 font-bold">{g.dataGraduacao}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Card 4: Total arrecadado */}
-          <div 
-            id="card-quick-arrecadado"
-            onClick={() => setActiveBottomTab("relatorios")}
-            className="bg-zinc-950 border border-zinc-900 rounded-2xl p-4.5 text-left space-y-3 cursor-pointer hover:border-emerald-800 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.5)] col-span-2 lg:col-span-1"
-          >
-            <div className="flex justify-between items-start">
-              <span className="p-2 bg-emerald-950/40 rounded-xl border border-emerald-900/40 text-emerald-400">
-                <CreditCard className="w-5 h-5" />
-              </span>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-2xl font-black font-mono text-emerald-400 leading-none">
-                R$ {pagamentos.filter(p => p.status === "Pago").reduce((a, b) => a + (b.valor || 0), 0).toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </p>
-              <p className="text-[11px] font-black text-zinc-400 uppercase tracking-wide">Total Arrecadado</p>
-              <p className="text-[9px] text-zinc-500 font-mono">Receita Recebida</p>
-            </div>
-          </div>
         </div>
       ) : (
-        /* STUDENT specific premium views: CARTEIRINHA + ATTENDANCE RATE + QUICK ACTION */
+        
+        /* 2. SE FOR ALUNO REGULAR - PAINEL DO ALUNO */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="student-dashboard-panels">
-          {/* Custom Pupil Welcome and Quick Check-in Request Actions */}
           <div className="col-span-1 md:col-span-2 bg-[#0d0d0e]/60 border border-zinc-900 rounded-3xl p-5.5 text-left space-y-4">
             <div className="space-y-1">
               <span className="text-[9px] font-black tracking-widest text-amber-500 uppercase font-mono bg-amber-950/20 border border-amber-900/40 px-2.5 py-0.5 rounded-full inline-block">
@@ -145,8 +262,8 @@ export function Dashboard({
                 Olá, <span className="text-red-500 uppercase">{defaultStudent?.nome || "Membro"}</span>!
               </h2>
               <p className="text-xs text-zinc-400 leading-normal">
-                Faixa <strong className="text-amber-400">{defaultStudent?.graduacao ? defaultStudent.graduacao : "Branca"}</strong> na turma <strong className="text-zinc-200">{defaultStudentTurma?.nomeEstilo || "Geral"}</strong>. Seu status financeiro:{" "}
-                <span className={`font-black uppercase text-[10px] ${defaultStudent?.statusFinanceiro === "Em Dia" ? "text-emerald-400" : "text-rose-500"}`}>
+                Faixa <strong className="text-amber-400">{defaultStudent?.graduacaoAtual ? defaultStudent.graduacaoAtual : "Branca"}</strong> na modalidade <strong className="text-zinc-200">{defaultStudent?.modalidade || "Kung Fu"}</strong>. Seu status financeiro:{" "}
+                <span className={`font-black uppercase text-[10px] ${defaultStudent?.statusFinanceiro && defaultStudent.statusFinanceiro.toUpperCase() === "EM DIA" ? "text-emerald-400" : "text-rose-500"}`}>
                   {defaultStudent?.statusFinanceiro || "Regular"}
                 </span>
               </p>
@@ -171,7 +288,7 @@ export function Dashboard({
               <div className="pt-2.5 space-y-2">
                 <button
                   onClick={handleStudentCheckin}
-                  className="w-full bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase py-3 rounded-2xl transition-all shadow-[0_4px_12px_rgba(153,27,27,0.3)] flex items-center justify-center gap-2 border border-red-750/30"
+                  className="w-full bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase py-3 rounded-2xl transition-all shadow-[0_4px_12px_rgba(153,27,27,0.3)] flex items-center justify-center gap-2 border border-red-750/30 cursor-pointer"
                 >
                   ⚡ Solicitar Presença de Hoje
                 </button>
@@ -214,12 +331,12 @@ export function Dashboard({
                   </div>
                   <div>
                     <p className="text-[8px] text-zinc-400 font-mono uppercase leading-none">Graduação</p>
-                    <p className="text-[11px] font-bold text-amber-400">{defaultStudent?.graduacao?.replace(" (Iniciante)", "")}</p>
+                    <p className="text-[11px] font-bold text-amber-400">{defaultStudent?.graduacaoAtual || "Faixa Branca"}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Simulated QR Code */}
+              {/* simulated qr */}
               <div className="col-span-1 bg-zinc-950 p-2 border border-zinc-800 rounded-xl flex items-center justify-center">
                 <svg className="w-14 h-14 text-white" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M2 2h6v6H2V2zm2 2v2h2V4H4zm1 1h1v1H5V5zM16 2h6v6h-6V2zm2 2v2h2V4h-2zm-1 4h1v1h-1V8zm-2-6h1v1h-1V2zM2 16h6v6H2v-6zm2 2v2h2v-2H4zm14-2h4v6h-4v-6zm2 2v2h-1v-2h1zM11 2h2v2h-2V2zm0 4h2v2h-2V6zm2 5h-2v2h2v-2zm-3-1H8v2h2v-2zm1 4v2h-2v-2h2zm4-3h2v2h-2v-2zm3 1h1v2h-2v-1h1v-1z" />
@@ -228,7 +345,7 @@ export function Dashboard({
             </div>
           </div>
 
-          {/* Attendance visual ring meter */}
+          {/* Attendance visual progress */}
           <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-3xl text-left space-y-3.5 flex flex-col justify-between" id="student-attendance-progress">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-red-500" />
@@ -243,7 +360,7 @@ export function Dashboard({
                 <span>{attendanceRate}%</span>
               </div>
               <div className="text-xs space-y-1 text-zinc-400 leading-normal font-sans">
-                <p>Status Financeiro: <span className={`font-bold ${defaultStudent?.statusFinanceiro === "Em Dia" ? "text-emerald-400" : "text-rose-500"}`}>{defaultStudent?.statusFinanceiro === "Em Dia" ? "EM DIA ✓" : "PENDENTE ⚠️"}</span></p>
+                <p>Status Financeiro: <span className={`font-bold ${defaultStudent?.statusFinanceiro && defaultStudent.statusFinanceiro.toUpperCase() === "EM DIA" ? "text-emerald-400" : "text-rose-500"}`}>{defaultStudent?.statusFinanceiro === "EM DIA" ? "EM DIA ✓" : "PENDENTE ⚠️"}</span></p>
                 <p>Presenças Confirmadas: <strong className="text-white">{studentPresApproved.length} aulas</strong></p>
                 <p className="text-[10px] text-amber-500 font-semibold">Exame de Grau requer frequência ativa.</p>
               </div>
@@ -252,39 +369,17 @@ export function Dashboard({
         </div>
       )}
 
-      {/* "Resumo do dia" statistics section under action cards */}
-      {activeRole !== "ALUNO" && (
-        <div className="space-y-2 text-left" id="dashboard-daily-summary">
-          <h4 className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase font-black">Resumo do dia</h4>
-          <div className="grid grid-cols-3 gap-2.5">
-            <div className="bg-[#141414] border border-zinc-900 py-3.5 px-3 rounded-xl text-center space-y-0.5">
-              <p className="text-xs font-bold font-mono text-emerald-400">{alunos.filter(a => a.status === "Ativo").length}</p>
-              <p className="text-[9px] text-zinc-400 font-sans font-black uppercase">Alunos Ativos</p>
-            </div>
-
-            <div className="bg-[#141414] border border-zinc-900 py-3.5 px-3 rounded-xl text-center space-y-0.5">
-              <p className="text-xs font-bold font-mono text-amber-500">{presencas.filter(p => p.status === "Presente" || p.status === "APPROVED").length}</p>
-              <p className="text-[9px] text-zinc-400 font-sans font-black uppercase">Presenças Hoje</p>
-            </div>
-
-            <div className="bg-[#141414] border border-zinc-900 py-3.5 px-3 rounded-xl text-center space-y-0.5">
-              <p className="text-xs font-bold font-mono text-red-500">{pagamentos.filter(p => p.status === "Pendente").length}</p>
-              <p className="text-[9px] text-zinc-400 font-sans font-black uppercase">Vencimentos</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mural de avisos from config */}
+      {/* 4. MURAL DE AVISOS GERAL */}
       <div className="bg-[#141414] border border-zinc-900/60 p-4.5 rounded-2xl text-left space-y-2" id="dashboard-bulletin-board">
         <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider flex items-center gap-1.5 font-sans">
           <Flame className="w-4 h-4 text-red-600 animate-pulse fill-red-800" />
           Mural de Avisos - Praia Grande
         </h4>
-        <p className="text-xs text-zinc-300 font-sans leading-relaxed">
+        <p className="text-xs text-zinc-350 font-sans leading-relaxed">
           {config.avisoMural || "Treino tradicional às segundas e quartas na academia."}
         </p>
       </div>
+
     </div>
   );
 }

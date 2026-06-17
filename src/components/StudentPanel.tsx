@@ -41,10 +41,10 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
       return;
     }
 
-    // Check if there is already a presence record for this specific date
-    const exists = studentPresencas.some(p => p.data === selectedDate);
-    if (exists) {
-      setRequestStatusMsg("Você já possui um registro de presença ou solicitação pendente para esta data!");
+    // Check if there are already 2 presence records for this specific date (allows up to 2 for different classes/modalities)
+    const singleDayPresences = studentPresencas.filter(p => p.data === selectedDate);
+    if (singleDayPresences.length >= 2) {
+      setRequestStatusMsg("Você já atingiu o limite máximo de 2 registros de presença para esta data!");
       return;
     }
 
@@ -60,8 +60,9 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
     { sash: GraduacaoSash.LARANJA, label: "Laranja", colorBg: "bg-orange-500", colorText: "text-white", desc: "Lian Bu Quan (Punho de Passos Combinados)." },
     { sash: GraduacaoSash.VERDE, label: "Verde", colorBg: "bg-emerald-600", colorText: "text-white", desc: "Técnicas intermediárias, agilidade de pernas." },
     { sash: GraduacaoSash.AZUL, label: "Azul", colorBg: "bg-blue-600", colorText: "text-white", desc: "Chin Na (Chaves, Torções e Defesa Pessoal)." },
-    { sash: GraduacaoSash.VERMELHA, label: "Vermelha", colorBg: "bg-red-700", colorText: "text-white", desc: "Bastão tradicional (Gun Shu) e combate." },
-    { sash: GraduacaoSash.PRETA_1_DUAN, label: "Preta 1º Duan", colorBg: "bg-zinc-950 border border-amber-500", colorText: "text-amber-400", desc: "Início do verdadeiro caminho sênior e Wu De." }
+    { sash: GraduacaoSash.ROXA, label: "Roxa", colorBg: "bg-purple-700", colorText: "text-white", desc: "Rotinas clássicas avançadas e refinamento técnico." },
+    { sash: GraduacaoSash.MARROM, label: "Marrom", colorBg: "bg-amber-800", colorText: "text-white", desc: "Refinamento técnico sênior, preparação para maestria." },
+    { sash: GraduacaoSash.PRETA, label: "Preta", colorBg: "bg-zinc-950 border border-amber-500", colorText: "text-amber-400", desc: "Início do verdadeiro caminho sênior e Wu De." }
   ];
 
   // Find index of student's current sash in roadmap

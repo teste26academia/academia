@@ -10,37 +10,45 @@ export enum UserRole {
 }
 
 export enum GraduacaoSash {
-  BRANCA = "Branca (Iniciante)",
-  AMARELA = "Amarela",
-  LARANJA = "Laranja",
-  VERDE = "Verde",
-  AZUL = "Azul",
-  VERMELHA = "Vermelha",
-  ROXA = "Roxa",
-  MARROM = "Marrom",
-  PRETA_1_DUAN = "Preta - 1º Duan (Instrutor)",
-  PRETA_2_DUAN = "Preta - 2º Duan",
-  PRETA_3_DUAN = "Preta - 3º Duan (Professor)"
+  BRANCA = "Faixa Branca",
+  AMARELA = "Faixa Amarela",
+  LARANJA = "Faixa Laranja",
+  VERDE = "Faixa Verde",
+  AZUL = "Faixa Azul",
+  ROXA = "Faixa Roxa",
+  MARROM = "Faixa Marrom",
+  PRETA = "Faixa Preta"
 }
 
 export interface Aluno {
   id: string;
+  userId: string; // ID link from users collection
   nome: string;
-  email: string;
-  celular: string;
   cpf: string;
+  rg: string;
   dataNascimento: string;
-  graduacao: GraduacaoSash;
+  telefone: string;
+  whatsapp: string;
+  email: string;
+  endereco: string;
+  responsavel: string;
+  foto: string;
+  dataMatricula: string;
+  graduacaoAtual: string; // "Faixa Branca", "Faixa Amarela", etc.
   dataUltimaGraduacao: string;
   status: "Ativo" | "Inativo";
   turmaId: string;
-  planoTipo: "1x_semana" | "2x_semana" | "3x_semana" | "4x_semana" | "outro";
-  mensalidade: number; // Valor bruto do plano
-  descontoFamiliaTipo: "percentual" | "fixo" | "nenhum";
-  descontoFamiliaValor: number; // Valor ou % de desconto configurado
-  statusFinanceiro: "Em Dia" | "Atrasado" | "Pendente";
-  observacoes?: string;
-  endereco?: string;
+  modalidade: string;
+  observacoes: string;
+  statusFinanceiro: "EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO" | "Em Dia" | "Atrasado" | "Pendente" | "Isento";
+
+  // Compatibility flags for legacy code
+  graduacao?: string;
+  celular?: string;
+  planoTipo?: "1x_semana" | "2x_semana" | "3x_semana" | "4x_semana" | "outro";
+  mensalidade?: number;
+  descontoFamiliaTipo?: "percentual" | "fixo" | "nenhum";
+  descontoFamiliaValor?: number;
 }
 
 export interface Turma {
@@ -56,13 +64,18 @@ export interface Turma {
 
 export interface Presenca {
   id: string;
-  turmaId: string;
   alunoId: string;
-  alunoNome: string;
+  modalidade?: string;
   data: string; // YYYY-MM-DD
+  horario?: string; // Ex: "15:00 às 16:00"
   status: "PENDING" | "APPROVED" | "REJECTED" | "Presente" | "Faltou" | "Justificado";
+  confirmadoPor?: string;
+
+  // Compatibility fields for legacy views
+  turmaId?: string;
+  alunoNome?: string;
   observacao?: string;
-  solicitadoPorAluno?: boolean; // True se foi enviado pelo app do celular do aluno
+  solicitadoPorAluno?: boolean;
 }
 
 export interface GlobalConfigs {
@@ -77,25 +90,39 @@ export interface GlobalConfigs {
 export interface HistoricoGraduacao {
   id: string;
   alunoId: string;
-  alunoNome: string;
-  sashAnterior: GraduacaoSash;
-  sashNovo: GraduacaoSash;
-  dataExame: string;
+  graduacaoAnterior: string; // "Faixa Branca", etc.
+  graduacaoNova: string; // "Faixa Amarela", etc.
+  dataGraduacao: string; // YYYY-MM-DD
   avaliador: string;
-  notaTecnica: number;
-  notaFilosofica: number;
-  status: "Acesso Permitido" | "Aprovado" | "Pendente";
+  observacoes: string;
+  resultado: string; // "Aprovado", "Reprovado", etc.
+
+  // Compatibility fields for old pages
+  alunoNome?: string;
+  sashAnterior?: string;
+  sashNovo?: string;
+  dataExame?: string;
+  status?: string;
+  notaTecnica?: number;
+  notaFilosofica?: number;
 }
 
+// Keep Pagamento alias/interface mapped directly to Mensalidade structure
 export interface Pagamento {
   id: string;
   alunoId: string;
-  alunoNome: string;
+  referencia: string; // "06/2026"
+  vencimento: string; // YYYY-MM-DD
   valor: number;
-  dataVencimento: string;
+  desconto?: number;
+  valorFinal: number;
+  status: "EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO" | "Pago" | "Pendente" | "Atrasado";
   dataPagamento?: string;
-  status: "Pago" | "Pendente" | "Atrasado";
-  metodo?: "PIX" | "Cartão" | "Dinheiro" | "Boleto";
+
+  // Compatibility fields
+  alunoNome?: string;
+  dataVencimento?: string;
+  metodo?: string;
 }
 
 export interface UserProfile {
@@ -104,4 +131,6 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   alunoId?: string; // se for Aluno, linka com o Aluno.id
+  celular?: string;
+  endereco?: string;
 }

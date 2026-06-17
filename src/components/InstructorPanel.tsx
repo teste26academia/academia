@@ -65,14 +65,17 @@ export default function InstructorPanel({
         alunoId: stu.id,
         alunoNome: stu.nome,
         data: selectedDate,
-        status: record.status,
+        status: record.status as any,
         observacao: record.obs,
-        solicitadoPorAluno: false
+        solicitadoPorAluno: false,
+        modalidade: activeTurma?.nomeEstilo || "Kung Fu",
+        horario: activeTurma?.horario || "15:00 - 16:00",
+        confirmadoPor: "Instrutor"
       });
       count++;
     });
 
-    alert(`Frequência de ${count} alunos lançada com sucesso no sistema (simulado em Firestore)!`);
+    alert(`Frequência de ${count} alunos lançada com sucesso no sistema (salvo no Firestore)!`);
     setAttendanceState({});
   };
 

@@ -42,7 +42,7 @@ export default function DiagnosticPanel() {
     { name: "alunos", count: "?", status: "CHECKING" as any, description: "Cadastro geral de alunos, matrículas e dados pessoais" },
     { name: "presencas", count: "?", status: "CHECKING" as any, description: "Diário de presença das turmas e solicitações dos alunos" },
     { name: "mensalidades", count: "?", status: "CHECKING" as any, description: "Lançamento e controle de parcelas e status financeiro" },
-    { name: "exames", count: "?", status: "CHECKING" as any, description: "Histórico de avaliação técnica, notas e sashes (graduações)" },
+    { name: "graduacoes", count: "?", status: "CHECKING" as any, description: "Histórico de avaliação técnica, notas e sashes (graduações)" },
     { name: "configuracoes", count: "?", status: "CHECKING" as any, description: "Ajustes globais do sistema, murais de avisos e contatos" }
   ]);
 
