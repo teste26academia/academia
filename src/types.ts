@@ -13,9 +13,9 @@ export enum GraduacaoSash {
   BRANCA = "Faixa Branca",
   AMARELA = "Faixa Amarela",
   LARANJA = "Faixa Laranja",
+  VERMELHA = "Faixa Vermelha",
   VERDE = "Faixa Verde",
   AZUL = "Faixa Azul",
-  ROXA = "Faixa Roxa",
   MARROM = "Faixa Marrom",
   PRETA = "Faixa Preta"
 }

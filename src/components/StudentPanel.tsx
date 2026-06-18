@@ -64,9 +64,9 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
     { sash: GraduacaoSash.BRANCA, label: "Branca", colorBg: "bg-zinc-100", colorText: "text-zinc-900", desc: "Primeiras posturas fundamentais (Ma Bu, Gong Bu)." },
     { sash: GraduacaoSash.AMARELA, label: "Amarela", colorBg: "bg-yellow-400/90", colorText: "text-zinc-950", desc: "Chutes básicos, punhos e rotinas iniciais." },
     { sash: GraduacaoSash.LARANJA, label: "Laranja", colorBg: "bg-orange-500", colorText: "text-white", desc: "Lian Bu Quan (Punho de Passos Combinados)." },
+    { sash: GraduacaoSash.VERMELHA, label: "Vermelha", colorBg: "bg-red-650", colorText: "text-white", desc: "Sanda / Boxe Chinês intermediário e técnicas de projeção (Shuai Jiao)." },
     { sash: GraduacaoSash.VERDE, label: "Verde", colorBg: "bg-emerald-600", colorText: "text-white", desc: "Técnicas intermediárias, agilidade de pernas." },
     { sash: GraduacaoSash.AZUL, label: "Azul", colorBg: "bg-blue-600", colorText: "text-white", desc: "Chin Na (Chaves, Torções e Defesa Pessoal)." },
-    { sash: GraduacaoSash.ROXA, label: "Roxa", colorBg: "bg-purple-700", colorText: "text-white", desc: "Rotinas clássicas avançadas e refinamento técnico." },
     { sash: GraduacaoSash.MARROM, label: "Marrom", colorBg: "bg-amber-800", colorText: "text-white", desc: "Refinamento técnico sênior, preparação para maestria." },
     { sash: GraduacaoSash.PRETA, label: "Preta", colorBg: "bg-zinc-950 border border-amber-500", colorText: "text-amber-400", desc: "Início do verdadeiro caminho sênior e Wu De." }
   ];
