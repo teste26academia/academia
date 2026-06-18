@@ -191,7 +191,12 @@ export function Presencas({
               <button
                 id="btn-aluno-checkin-submit"
                 onClick={handleStudentCheckin}
-                className="w-full bg-red-700 hover:bg-red-650 text-white font-black text-xs uppercase py-3.5 rounded-xl transition-all shadow-md active:scale-98"
+                disabled={(defaultStudent?.status || "").toUpperCase().trim() === "INATIVO"}
+                className={`w-full text-white font-black text-xs uppercase py-3.5 rounded-xl transition-all ${
+                  (defaultStudent?.status || "").toUpperCase().trim() === "INATIVO"
+                    ? "bg-zinc-800 border border-zinc-700 text-zinc-500 opacity-60 cursor-not-allowed"
+                    : "bg-red-700 hover:bg-red-650 cursor-pointer shadow-md"
+                }`}
               >
                 SOLICITAR CHECK-IN 🥋
               </button>

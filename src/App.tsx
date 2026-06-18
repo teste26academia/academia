@@ -625,18 +625,32 @@ export default function App() {
       // Procurar se documento existe antes de atualizar
       const studentSnap = await getDoc(studentRef);
       if (studentSnap.exists()) {
-        await updateDoc(studentRef, {
-          nome: dados.nome,
-          celular: dados.celular || "",
-          telefone: dados.celular || "",
-          endereco: dados.endereco || "",
-          cpf: dados.cpf || "",
-          rg: dados.rg || "",
-          dataNascimento: dados.dataNascimento || "2000-01-01",
-          foto: dados.foto || "",
-          responsavel: dados.responsavel || "",
-          status: novoStatus
-        });
+        const isUserAdminOrInstructor = userProfile?.role === "ADMIN" || userProfile?.role === "INSTRUTOR" || user?.email === "deciopadovanijr@gmail.com";
+        if (isUserAdminOrInstructor) {
+          await updateDoc(studentRef, {
+            nome: dados.nome,
+            celular: dados.celular || "",
+            telefone: dados.celular || "",
+            endereco: dados.endereco || "",
+            cpf: dados.cpf || "",
+            rg: dados.rg || "",
+            dataNascimento: dados.dataNascimento || "2000-01-01",
+            foto: dados.foto || "",
+            responsavel: dados.responsavel || "",
+            status: novoStatus
+          });
+        } else {
+          // ALUNO: Só pode atualizar os campos cadastrais permitidos para evitar violação de regras e por segurança
+          await updateDoc(studentRef, {
+            celular: dados.celular || "",
+            telefone: dados.celular || "",
+            endereco: dados.endereco || "",
+            cpf: dados.cpf || "",
+            rg: dados.rg || "",
+            foto: dados.foto || "",
+            responsavel: dados.responsavel || ""
+          });
+        }
       } else {
         // Se o documento na coleção 'alunos' não existia, criamos agora de forma consistente
         const todayString = new Date().toISOString().split("T")[0];
@@ -986,6 +1000,127 @@ export default function App() {
     }
   };
 
+  // --- MÓDULOS OPERACIONAIS (FASE 4) COMPLETOS ---
+  const handleSaveMensalidade = async (m: Pagamento) => {
+    try {
+      const id = m.id || `mensalidade_${Date.now()}`;
+      const finalM = { 
+        ...m, 
+        id,
+        referencia: m.competencia || m.referencia || "01/2026"
+      };
+      await setDoc(doc(db, "mensalidades", id), finalM);
+    } catch (err: any) {
+      console.error("handleSaveMensalidade failed:", err);
+      alert("Erro ao salvar mensalidade: " + err.message);
+    }
+  };
+
+  const handleDeleteMensalidade = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "mensalidades", id));
+    } catch (err: any) {
+      console.error("handleDeleteMensalidade failed:", err);
+      alert("Erro ao excluir mensalidade: " + err.message);
+    }
+  };
+
+  const handleGenerateMensalidadesLote = async (competencia: string, vencimento: string, valorPadrao: number) => {
+    try {
+      const alunosAtivos = alunos.filter(a => {
+        const s = (a.status || "").toUpperCase().trim();
+        return s === "ATIVO" || s === "" || a.status === "Ativo";
+      });
+
+      if (alunosAtivos.length === 0) {
+        alert("Nenhum aluno ativo encontrado para gerar mensalidades.");
+        return;
+      }
+
+      let count = 0;
+      for (const al of alunosAtivos) {
+        const exists = pagamentos.some(p => p.alunoId === al.id && (p.competencia === competencia || p.referencia === competencia));
+        if (exists) continue;
+
+        const id = `mensalidade_bulk_${al.id}_${Date.now()}_${count}`;
+        const val = al.mensalidade !== undefined ? al.mensalidade : valorPadrao;
+        const newM: Pagamento = {
+          id,
+          alunoId: al.id,
+          alunoNome: al.nome,
+          referencia: competencia,
+          competencia: competencia,
+          vencimento: vencimento,
+          valor: val,
+          valorFinal: val,
+          status: "PENDENTE",
+          observacoes: "Gerada em lote."
+        };
+        await setDoc(doc(db, "mensalidades", id), newM);
+        count++;
+      }
+      alert(`${count} mensalidades foram geradas com sucesso para a competência ${competencia}!`);
+    } catch (err: any) {
+      console.error("handleGenerateMensalidadesLote failed:", err);
+      alert("Erro ao gerar mensalidades em lote: " + err.message);
+    }
+  };
+
+  const handleSaveProduto = async (p: Produto) => {
+    try {
+      const id = p.id || `produto_${Date.now()}`;
+      const finalP = { ...p, id, valor: p.valorVenda };
+      await setDoc(doc(db, "produtos", id), finalP);
+    } catch (err: any) {
+      console.error("handleSaveProduto failed:", err);
+      alert("Erro ao salvar produto: " + err.message);
+    }
+  };
+
+  const handleDeleteProduto = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "produtos", id));
+    } catch (err: any) {
+      console.error("handleDeleteProduto failed:", err);
+      alert("Erro ao excluir produto: " + err.message);
+    }
+  };
+
+  const handleSaveVenda = async (v: Venda) => {
+    try {
+      const id = v.id || `venda_${Date.now()}`;
+      await setDoc(doc(db, "vendas", id), v);
+
+      const pr = produtos.find(p => p.id === v.produtoId);
+      if (pr) {
+        const newEstoque = Math.max(0, pr.estoque - v.quantidade);
+        await updateDoc(doc(db, "produtos", v.produtoId), { estoque: newEstoque });
+      }
+    } catch (err: any) {
+      console.error("handleSaveVenda failed:", err);
+      alert("Erro ao registrar venda: " + err.message);
+    }
+  };
+
+  const handleSaveFamilia = async (f: Familia) => {
+    try {
+      const id = f.id || `familia_${Date.now()}`;
+      await setDoc(doc(db, "familias", id), { ...f, id });
+    } catch (err: any) {
+      console.error("handleSaveFamilia failed:", err);
+      alert("Erro ao salvar família: " + err.message);
+    }
+  };
+
+  const handleDeleteFamilia = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "familias", id));
+    } catch (err: any) {
+      console.error("handleDeleteFamilia failed:", err);
+      alert("Erro ao remover família: " + err.message);
+    }
+  };
+
   // 7. STUDENT PRESENCE REQUEST VIA APP (Requirement 3 mapped to Firestore)
   const handleSolicitarPresenca = async (turmaId: string, data: string) => {
     try {
@@ -995,6 +1130,12 @@ export default function App() {
 
       if (!activeStudent) {
         alert("Matrícula de aluno não encontrada no sistema de registro.");
+        return;
+      }
+
+      const isInactive = (activeStudent.status || "").toUpperCase().trim() === "INATIVO";
+      if (isInactive) {
+        alert("Acesso suspenso: Alunos inativos não podem solicitar presença ou realizar novos check-ins.");
         return;
       }
 
@@ -1382,6 +1523,11 @@ export default function App() {
   const handleStudentCheckin = () => {
     if (!defaultStudent) {
       setStudentStatusMsg("Você precisa ter uma matrícula de aluno ativa!");
+      return;
+    }
+    const isInactive = (defaultStudent.status || "").toUpperCase().trim() === "INATIVO";
+    if (isInactive) {
+      setStudentStatusMsg("❌ Acesso suspenso: Alunos inativos não podem solicitar presença ou realizar novos check-ins.");
       return;
     }
     const exists = presencas.some(p => p.alunoId === defaultStudent.id && p.data === selectedCheckinDate);
@@ -1811,6 +1957,19 @@ export default function App() {
                     instrutores={instrutores}
                     pagamentos={pagamentos}
                     config={config}
+                    produtos={produtos}
+                    vendas={vendas}
+                    familias={familias}
+                    presencas={presencas}
+                    onSaveProduto={handleSaveProduto}
+                    onDeleteProduto={handleDeleteProduto}
+                    onSaveVenda={handleSaveVenda}
+                    onSaveFamilia={handleSaveFamilia}
+                    onDeleteFamilia={handleDeleteFamilia}
+                    onSaveMensalidade={handleSaveMensalidade}
+                    onDeleteMensalidade={handleDeleteMensalidade}
+                    onGenerateMensalidadesLote={handleGenerateMensalidadesLote}
+                    activeRole={activeRole}
                     initialEditAluno={editingAlunoForForm || undefined}
                     onCancelEdit={() => {
                       setEditingAlunoForForm(null);
@@ -2152,6 +2311,13 @@ export default function App() {
             <Relatorios
               pagamentos={pagamentos}
               handleCopyPixKey={handleCopyPixKey}
+              alunos={alunos}
+              turmas={turmas}
+              presencas={presencas}
+              produtos={produtos}
+              vendas={vendas}
+              familias={familias}
+              activeRole={activeRole}
             />
           )}
 
@@ -2181,6 +2347,19 @@ export default function App() {
                     instrutores={instrutores}
                     pagamentos={pagamentos}
                     config={config}
+                    produtos={produtos}
+                    vendas={vendas}
+                    familias={familias}
+                    presencas={presencas}
+                    onSaveProduto={handleSaveProduto}
+                    onDeleteProduto={handleDeleteProduto}
+                    onSaveVenda={handleSaveVenda}
+                    onSaveFamilia={handleSaveFamilia}
+                    onDeleteFamilia={handleDeleteFamilia}
+                    onSaveMensalidade={handleSaveMensalidade}
+                    onDeleteMensalidade={handleDeleteMensalidade}
+                    onGenerateMensalidadesLote={handleGenerateMensalidadesLote}
+                    activeRole={activeRole}
                     onAddAluno={handleAddAluno}
                     onDeleteAluno={handleDeleteAluno}
                     onUpdateStatusFinanceiro={handleUpdateStatusFinanceiro}

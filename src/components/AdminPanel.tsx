@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Aluno, Turma, Instrutor, Pagamento, GraduacaoSash, GlobalConfigs } from "../types";
-import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity, Pencil } from "lucide-react";
+import { Aluno, Turma, Instrutor, Pagamento, GraduacaoSash, GlobalConfigs, Produto, Venda, Familia, Presenca } from "../types";
+import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity, Pencil, BarChart3, Package, Download } from "lucide-react";
 import DiagnosticPanel from "./DiagnosticPanel";
 
 interface AdminPanelProps {
@@ -9,6 +9,19 @@ interface AdminPanelProps {
   instrutores?: Instrutor[];
   pagamentos: Pagamento[];
   config: GlobalConfigs;
+  produtos?: Produto[];
+  vendas?: Venda[];
+  familias?: Familia[];
+  presencas?: Presenca[];
+  onSaveProduto?: (p: Produto) => Promise<void>;
+  onDeleteProduto?: (id: string) => Promise<void>;
+  onSaveVenda?: (v: Venda) => Promise<void>;
+  onSaveFamilia?: (f: Familia) => Promise<void>;
+  onDeleteFamilia?: (id: string) => Promise<void>;
+  onSaveMensalidade?: (m: Pagamento) => Promise<void>;
+  onDeleteMensalidade?: (id: string) => Promise<void>;
+  onGenerateMensalidadesLote?: (competencia: string, vencimento: string, valorPadrao: number) => Promise<void>;
+  activeRole?: string;
   onAddAluno: (aluno: Omit<Aluno, "id" | "statusFinanceiro"> & { id?: string }) => void;
   onDeleteAluno: (id: string) => void;
   onUpdateStatusFinanceiro: (id: string, novoStatus: "Em Dia" | "Atrasado" | "Pendente") => void;
@@ -26,6 +39,19 @@ export default function AdminPanel({
   instrutores = [],
   pagamentos,
   config,
+  produtos = [],
+  vendas = [],
+  familias = [],
+  presencas = [],
+  onSaveProduto,
+  onDeleteProduto,
+  onSaveVenda,
+  onSaveFamilia,
+  onDeleteFamilia,
+  onSaveMensalidade,
+  onDeleteMensalidade,
+  onGenerateMensalidadesLote,
+  activeRole = "ALUNO",
   onAddAluno,
   onDeleteAluno,
   onUpdateStatusFinanceiro,
@@ -36,11 +62,52 @@ export default function AdminPanel({
   initialEditAluno,
   onCancelEdit
 }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico" | "instrutores">("diagnostico");
+  const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico" | "instrutores" | "financeiro" | "produtos" | "familias" | "backup">("diagnostico");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatusAdmin, setFilterStatusAdmin] = useState<"ATIVOS" | "INATIVOS" | "PENDENTES" | "TODOS">("ATIVOS");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAlunoId, setEditingAlunoId] = useState<string | null>(null);
+
+  // MÓDULO 1: FINANCEIRO STATES
+  const [showPayForm, setShowPayForm] = useState(false);
+  const [editingPayId, setEditingPayId] = useState<string | null>(null);
+  const [payAlunoId, setPayAlunoId] = useState("");
+  const [payCompetencia, setPayCompetencia] = useState("");
+  const [payVencimento, setPayVencimento] = useState("");
+  const [payValor, setPayValor] = useState(160);
+  const [payStatus, setPayStatus] = useState<"PENDENTE" | "PAGO" | "VENCIDO">("PENDENTE");
+  const [payDataPagamento, setPayDataPagamento] = useState("");
+  const [payFormaPagamento, setPayFormaPagamento] = useState("PIX");
+  const [payObservacoes, setPayObservacoes] = useState("");
+
+  const [bulkCompetencia, setBulkCompetencia] = useState("");
+  const [bulkVencimento, setBulkVencimento] = useState("");
+  const [bulkValor, setBulkValor] = useState(160);
+  const [searchTermFinanceiro, setSearchTermFinanceiro] = useState("");
+
+  // MÓDULO 2 & 3: PRODUTOS & VENDAS STATES
+  const [showProdForm, setShowProdForm] = useState(false);
+  const [editingProdId, setEditingProdId] = useState<string | null>(null);
+  const [prodNome, setProdNome] = useState("");
+  const [prodCategoria, setProdCategoria] = useState("Equipamento");
+  const [prodEstoque, setProdEstoque] = useState(0);
+  const [prodEstoqueMinimo, setProdEstoqueMinimo] = useState(5);
+  const [prodValorVenda, setProdValorVenda] = useState(0);
+  const [prodAtivo, setProdAtivo] = useState(true);
+
+  const [showVendaForm, setShowVendaForm] = useState(false);
+  const [vendaAlunoId, setVendaAlunoId] = useState("");
+  const [vendaProdutoId, setVendaProdutoId] = useState("");
+  const [vendaQuantidade, setVendaQuantidade] = useState(1);
+  const [vendaFormaPagamento, setVendaFormaPagamento] = useState("PIX");
+
+  // MÓDULO 4: FAMÍLIAS STATES
+  const [showFamForm, setShowFamForm] = useState(false);
+  const [editingFamId, setEditingFamId] = useState<string | null>(null);
+  const [famNomeFamilia, setFamNomeFamilia] = useState("");
+  const [famResponsavel, setFamResponsavel] = useState("");
+  const [famTelefone, setFamTelefone] = useState("");
+  const [famAlunosIds, setFamAlunosIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (initialEditAluno) {
@@ -330,6 +397,52 @@ export default function AdminPanel({
           <UsersRound className="w-4 h-4 text-red-500" />
           Instrutores Reais (Coleção Instrutores)
         </button>
+        <button
+          onClick={() => setActiveTab("financeiro")}
+          className={`pb-2.5 px-4 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 border-b-2 ${
+            activeTab === "financeiro"
+              ? "border-amber-400 text-amber-400 font-extrabold"
+              : "border-transparent text-zinc-450 hover:text-zinc-300"
+          }`}
+        >
+          <DollarSign className="w-4 h-4 text-emerald-500" />
+          Financeiro Lote & Manual
+        </button>
+        <button
+          onClick={() => setActiveTab("produtos")}
+          className={`pb-2.5 px-4 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 border-b-2 ${
+            activeTab === "produtos"
+              ? "border-amber-400 text-amber-400 font-extrabold"
+              : "border-transparent text-zinc-450 hover:text-zinc-300"
+          }`}
+        >
+          <Package className="w-4 h-4 text-sky-500" />
+          Produtos & Vendas
+        </button>
+        <button
+          onClick={() => setActiveTab("familias")}
+          className={`pb-2.5 px-4 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 border-b-2 ${
+            activeTab === "familias"
+              ? "border-amber-400 text-amber-400 font-extrabold"
+              : "border-transparent text-zinc-450 hover:text-zinc-300"
+          }`}
+        >
+          <UsersRound className="w-4 h-4 text-purple-500" />
+          Vínculos Familiares
+        </button>
+        {activeRole === "ADMIN" && (
+          <button
+            onClick={() => setActiveTab("backup")}
+            className={`pb-2.5 px-4 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 border-b-2 ${
+              activeTab === "backup"
+                ? "border-amber-400 text-amber-400 font-extrabold"
+                : "border-transparent text-zinc-450 hover:text-zinc-300"
+            }`}
+          >
+            <Download className="w-4 h-4 text-rose-550" />
+            Backup do Sistema
+          </button>
+        )}
       </div>
 
       {activeTab === "diagnostico" ? (
@@ -1220,6 +1333,1146 @@ export default function AdminPanel({
                 );
               })
             )}
+          </div>
+        </div>
+      ) : activeTab === "financeiro" ? (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center bg-zinc-900/35 p-4 rounded-xl border border-zinc-800">
+            <div className="text-left font-sans">
+              <h3 className="text-sm font-black uppercase text-amber-500 tracking-wider">Módulo Financeiro Geral (Coleção: mensalidades)</h3>
+              <p className="text-zinc-400 text-xs mt-0.5">Gestão de mensalidades individuais, cobranças em lote e faturamento</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingPayId(null);
+                  setPayAlunoId("");
+                  setPayCompetencia("");
+                  setPayVencimento("");
+                  setPayValor(160);
+                  setPayStatus("PENDENTE");
+                  setPayDataPagamento("");
+                  setPayFormaPagamento("PIX");
+                  setPayObservacoes("");
+                  setShowPayForm(!showPayForm);
+                }}
+                className="px-4 py-2 bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                {showPayForm ? "Fechar Form" : "Lançamento Manual"}
+              </button>
+            </div>
+          </div>
+
+          {/* Form manual billing */}
+          {showPayForm && (
+            <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl space-y-4 animate-fadeIn text-left font-sans max-w-3xl">
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider font-mono">
+                {editingPayId ? "📝 Editar Cobrança Financeira" : "💵 Lançar Cobrança Manual"}
+              </h4>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!payAlunoId || !payCompetencia || !payVencimento || payValor <= 0) {
+                  alert("Por favor, preencha todos os campos obrigatórios.");
+                  return;
+                }
+                const alObj = alunos.find(a => a.id === payAlunoId);
+                const payment: Pagamento = {
+                  id: editingPayId || `mensalidade_${Date.now()}`,
+                  alunoId: payAlunoId,
+                  alunoNome: alObj ? alObj.nome : "Aluno avulso",
+                  referencia: payCompetencia,
+                  competencia: payCompetencia,
+                  vencimento: payVencimento,
+                  valor: Number(payValor),
+                  valorFinal: Number(payValor),
+                  status: payStatus,
+                  dataPagamento: payStatus === "PAGO" ? (payDataPagamento || new Date().toISOString().split("T")[0]) : undefined,
+                  formaPagamento: payStatus === "PAGO" ? payFormaPagamento : undefined,
+                  observacoes: payObservacoes
+                };
+                if (onSaveMensalidade) {
+                  await onSaveMensalidade(payment);
+                  alert("Lançamento financeiro realizado com sucesso!");
+                  setShowPayForm(false);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Selecionar Aluno *</label>
+                    <select
+                      value={payAlunoId}
+                      onChange={(e) => setPayAlunoId(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="">Selecione...</option>
+                      {alunos.map(al => (
+                        <option key={al.id} value={al.id}>{al.nome} ({al.status || "Ativo"})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Competência * (Ex: 06/2026)</label>
+                    <input
+                      type="text"
+                      placeholder="MM/AAAA"
+                      value={payCompetencia}
+                      onChange={(e) => setPayCompetencia(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Valor R$ *</label>
+                    <input
+                      type="number"
+                      value={payValor}
+                      onChange={(e) => setPayValor(Number(e.target.value))}
+                      className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Data de Vencimento *</label>
+                    <input
+                      type="date"
+                      value={payVencimento}
+                      onChange={(e) => setPayVencimento(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Status de Cobrança</label>
+                    <select
+                      value={payStatus}
+                      onChange={(e) => setPayStatus(e.target.value as any)}
+                      className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="PENDENTE">PENDENTE</option>
+                      <option value="PAGO">PAGO</option>
+                      <option value="VENCIDO">VENCIDO</option>
+                    </select>
+                  </div>
+                  {payStatus === "PAGO" && (
+                    <div>
+                      <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Data de Pagamento</label>
+                      <input
+                        type="date"
+                        value={payDataPagamento}
+                        onChange={(e) => setPayDataPagamento(e.target.value)}
+                        className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {payStatus === "PAGO" && (
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Forma de Pagamento</label>
+                    <select
+                      value={payFormaPagamento}
+                      onChange={(e) => setPayFormaPagamento(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="PIX">PIX</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Cartão de Crédito">Cartão de Crédito</option>
+                      <option value="Cartão de Débito">Cartão de Débito</option>
+                      <option value="Transferência">Transferência Bancária</option>
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Observações Internas</label>
+                  <textarea
+                    rows={2}
+                    value={payObservacoes}
+                    onChange={(e) => setPayObservacoes(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-855 p-2 rounded-lg text-white font-mono text-[11px]"
+                    placeholder="Ex: Pagador responsável tio do aluno, acréscimos, etc..."
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowPayForm(false)}
+                    className="px-4 py-2 border border-zinc-800 text-zinc-400 rounded-lg text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-zinc-950 rounded-lg text-xs"
+                  >
+                    Salvar Cobrança
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Bulk Invoice Box */}
+          {activeRole === "ADMIN" && (
+            <div className="bg-zinc-900 border border-zinc-855 p-5 rounded-2xl space-y-4 text-left font-sans max-w-3xl">
+              <span className="text-[10px] text-amber-500 font-bold font-mono uppercase block tracking-wider">📦 Cobrança Automática em Lote</span>
+              <p className="text-xs text-zinc-400">Gera faturamento de mensalidades em massa para todos os alunos ativos que ainda não possuam mensalidade criada para o período.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Competência (MM/AAAA)</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: 07/2026"
+                    value={bulkCompetencia}
+                    onChange={(e) => setBulkCompetencia(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Data de Vencimento Padrão</label>
+                  <input
+                    type="date"
+                    value={bulkVencimento}
+                    onChange={(e) => setBulkVencimento(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Valor Geral Padrão R$</label>
+                  <input
+                    type="number"
+                    value={bulkValor}
+                    onChange={(e) => setBulkValor(Number(e.target.value))}
+                    className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!bulkCompetencia || !bulkVencimento || bulkValor <= 0) {
+                      alert("Por favor, preencha todos os campos do faturamento em lote.");
+                      return;
+                    }
+                    if (confirm(`Confirma a geração em lote de faturas para a competência ${bulkCompetencia}? Alunos ativos receberão suas respectivas cobranças.`)) {
+                      if (onGenerateMensalidadesLote) {
+                        await onGenerateMensalidadesLote(bulkCompetencia, bulkVencimento, bulkValor);
+                      }
+                    }
+                  }}
+                  className="px-5 py-2.5 bg-red-900 hover:bg-red-800 text-white font-black text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                >
+                  Confirmar Faturamento em Lote
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Metrics Dashboard of current pagamentos list */}
+          {(() => {
+            const totalPagoVal = pagamentos
+              .filter(p => p.status === "PAGO" || p.status === "Pago" || p.status === "EM DIA")
+              .reduce((a, b) => a + (b.valor || 0), 0);
+            
+            const totalPendenteVal = pagamentos
+              .filter(p => p.status === "PENDENTE" || p.status === "Pendente")
+              .reduce((a, b) => a + (b.valor || 0), 0);
+
+            const totalVencidoVal = pagamentos
+              .filter(p => p.status === "VENCIDO" || p.status === "Vencido" || p.status === "ATRASADO" || p.status === "Atrasado")
+              .reduce((a, b) => a + (b.valor || 0), 0);
+
+            const inadimplentesCount = new Set(
+              pagamentos
+                .filter(p => p.status === "VENCIDO" || p.status === "Vencido" || p.status === "ATRASADO" || p.status === "Atrasado")
+                .map(p => p.alunoId)
+            ).size;
+
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-zinc-900 border border-zinc-850 p-4 rounded-xl text-left">
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase">Total Recebido</span>
+                  <div className="text-xl font-black text-emerald-450 font-mono mt-1">R$ {totalPagoVal.toFixed(2)}</div>
+                  <span className="text-[9px] text-zinc-550 italic mt-0.5">Faturamento realizado</span>
+                </div>
+                <div className="bg-zinc-900 border border-zinc-850 p-4 rounded-xl text-left">
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase">Total Pendente</span>
+                  <div className="text-xl font-black text-amber-500 font-mono mt-1">R$ {totalPendenteVal.toFixed(2)}</div>
+                  <span className="text-[9px] text-zinc-550 italic mt-0.5">Faturas aguardando</span>
+                </div>
+                <div className="bg-zinc-900 border border-zinc-850 p-4 rounded-xl text-left">
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase">Total Inadimplente</span>
+                  <div className="text-xl font-black text-red-500 font-mono mt-1">R$ {totalVencidoVal.toFixed(2)}</div>
+                  <span className="text-[9px] text-zinc-550 italic mt-0.5">Faturas vencidas</span>
+                </div>
+                <div className="bg-zinc-900 border border-zinc-850 p-4 rounded-xl text-left">
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase">Inadimplentes Ativos</span>
+                  <div className="text-xl font-black text-zinc-100 font-mono mt-1">{inadimplentesCount} Alunos</div>
+                  <span className="text-[9px] text-zinc-550 italic mt-0.5">Com faturas pendentes atrasadas</span>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* List of billings */}
+          <div className="space-y-4">
+            <div className="flex gap-2 bg-zinc-900/30 p-2.5 rounded-xl border border-zinc-800">
+              <input
+                type="text"
+                placeholder="🔍 Filtrar faturas por nome de aluno..."
+                value={searchTermFinanceiro}
+                onChange={(e) => setSearchTermFinanceiro(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 p-2 rounded-lg text-white font-mono text-[11px]"
+              />
+            </div>
+
+            <div className="overflow-x-auto bg-zinc-900 border border-zinc-805 rounded-xl">
+              <table className="w-full text-left text-xs border-collapse font-sans">
+                <thead>
+                  <tr className="bg-zinc-950 font-mono text-[10px] text-zinc-450 uppercase border-b border-zinc-800">
+                    <th className="p-3">Aluno</th>
+                    <th className="p-3">Referência</th>
+                    <th className="p-3">Vencimento</th>
+                    <th className="p-3">Valor</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Data Pgto</th>
+                    <th className="p-3">Modo</th>
+                    <th className="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-850 text-zinc-300">
+                  {pagamentos
+                    .filter(p => {
+                      const name = p.alunoNome || "";
+                      return name.toLowerCase().includes(searchTermFinanceiro.toLowerCase());
+                    })
+                    .map(p => {
+                      const isPago = p.status === "PAGO" || p.status === "Pago" || p.status === "EM DIA";
+                      const isVencido = p.status === "VENCIDO" || p.status === "Vencido" || p.status === "ATRASADO" || p.status === "Atrasado";
+                      
+                      return (
+                        <tr key={p.id} className="hover:bg-zinc-900/60 font-sans">
+                          <td className="p-3 font-bold text-white">{p.alunoNome || "Id: " + p.alunoId}</td>
+                          <td className="p-3 font-mono">{p.competencia || p.referencia}</td>
+                          <td className="p-3 font-mono">{p.vencimento}</td>
+                          <td className="p-3 font-mono text-zinc-100">R$ {p.valor.toFixed(2)}</td>
+                          <td className="p-3">
+                            <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-widest ${
+                              isPago
+                                ? "bg-emerald-950 text-emerald-450 border border-emerald-900/40"
+                                : isVencido
+                                ? "bg-red-955 text-red-500 border border-red-900/40 animate-pulse"
+                                : "bg-amber-955 text-amber-500 border border-amber-900/40"
+                            }`}>
+                              {(p.status || "PENDENTE").toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="p-3 font-mono">{p.dataPagamento || "-"}</td>
+                          <td className="p-3 text-zinc-400">{p.formaPagamento || p.metodo || "-"}</td>
+                          <td className="p-3 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              {!isPago && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const mode = prompt("Qual a forma de pagamento? (PIX, Dinheiro, Cartão...)", "PIX");
+                                    if (mode === null) return;
+                                    const upd: Pagamento = {
+                                      ...p,
+                                      status: "PAGO",
+                                      dataPagamento: new Date().toISOString().split("T")[0],
+                                      formaPagamento: mode || "PIX"
+                                    };
+                                    if (onSaveMensalidade) {
+                                      await onSaveMensalidade(upd);
+                                      alert("Mensalidade marcada como PAGA!");
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-450 text-[10px] font-bold rounded-lg"
+                                >
+                                  Marcar Paga
+                                </button>
+                              )}
+                              {!isPago && !isVencido && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const upd: Pagamento = { ...p, status: "VENCIDO" };
+                                    if (onSaveMensalidade) {
+                                      await onSaveMensalidade(upd);
+                                      alert("Mensalidade marcada como VENCIDA!");
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-red-950/80 hover:bg-red-900 text-red-400 text-[10px] font-bold rounded-lg"
+                                >
+                                  Vencida
+                                </button>
+                              )}
+                              {activeRole === "ADMIN" && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (confirm("Deseja realmente cancelar/remover esta cobrança?")) {
+                                      if (onDeleteMensalidade) {
+                                        await onDeleteMensalidade(p.id);
+                                        alert("Cobrança excluída!");
+                                      }
+                                    }
+                                  }}
+                                  className="px-2 py-1 bg-zinc-950 hover:bg-zinc-900 text-zinc-550 hover:text-red-500 text-[10px] rounded-lg border border-zinc-850"
+                                >
+                                  Cancelar
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === "produtos" ? (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center bg-zinc-900/35 p-4 rounded-xl border border-zinc-800">
+            <div className="text-left font-sans">
+              <h3 className="text-sm font-black uppercase text-amber-500 tracking-wider">Produtos e Controle de Vendas (Coleções: produtos, vendas)</h3>
+              <p className="text-zinc-400 text-xs mt-0.5">Gerenciamento de estoque da academia, uniformes, exames e lanchonete</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingProdId(null);
+                  setProdNome("");
+                  setProdCategoria("Equipamento");
+                  setProdEstoque(0);
+                  setProdEstoqueMinimo(5);
+                  setProdValorVenda(0);
+                  setProdAtivo(true);
+                  setShowProdForm(!showProdForm);
+                }}
+                className="px-4 py-2 bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                {showProdForm ? "Fechar Form" : "Novo Produto"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setVendaAlunoId("");
+                  setVendaProdutoId("");
+                  setVendaQuantidade(1);
+                  setVendaFormaPagamento("PIX");
+                  setShowVendaForm(!showVendaForm);
+                }}
+                className="px-4 py-2 bg-amber-550 hover:bg-amber-500 text-zinc-950 font-black text-xs tracking-wider uppercase rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4" />
+                {showVendaForm ? "Fechar Registrar" : "Registrar Venda"}
+              </button>
+            </div>
+          </div>
+
+          {/* Form Produto registration */}
+          {showProdForm && (
+            <div className="bg-zinc-900 border border-zinc-805 p-5 rounded-2xl space-y-4 animate-fadeIn text-left font-sans max-w-2xl">
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-widest font-mono">
+                {editingProdId ? "📝 Editar Cadastro de Produto" : "🥋 Cadastrar Produto"}
+              </h4>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!prodNome || prodValorVenda < 0 || prodEstoque < 0) {
+                  alert("Por favor, preencha os campos obrigatórios corretamente.");
+                  return;
+                }
+                const prod: Produto = {
+                  id: editingProdId || `produto_${Date.now()}`,
+                  nome: prodNome,
+                  categoria: prodCategoria,
+                  estoque: Number(prodEstoque),
+                  estoqueMinimo: Number(prodEstoqueMinimo),
+                  valorVenda: Number(prodValorVenda),
+                  ativo: prodAtivo,
+                  valor: Number(prodValorVenda)
+                };
+                if (onSaveProduto) {
+                  await onSaveProduto(prod);
+                  alert("Produto salvo com sucesso!");
+                  setShowProdForm(false);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Nome do Produto *</label>
+                    <input
+                      type="text"
+                      value={prodNome}
+                      onChange={(e) => setProdNome(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                      placeholder="Ex: Kimono Tradicional Trançado"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Categoria</label>
+                    <select
+                      value={prodCategoria}
+                      onChange={(e) => setProdCategoria(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="Equipamento">🥋 Equipamento / Kimono</option>
+                      <option value="Acessório">Protetores / Acessórios</option>
+                      <option value="Uniforme">👕 Camisetas / Uniformes</option>
+                      <option value="Graduação">🏷️ Faixas / Graduações</option>
+                      <option value="Alimentação">🥤 Bebidas / Lanches</option>
+                      <option value="Outro">📦 Outros</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Preço de Venda R$ *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={prodValorVenda}
+                      onChange={(e) => setProdValorVenda(Number(e.target.value))}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Estoque Atual *</label>
+                    <input
+                      type="number"
+                      value={prodEstoque}
+                      onChange={(e) => setProdEstoque(Number(e.target.value))}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Estoque Mínimo Alerta *</label>
+                    <input
+                      type="number"
+                      value={prodEstoqueMinimo}
+                      onChange={(e) => setProdEstoqueMinimo(Number(e.target.value))}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="prodAtivoCheck"
+                    checked={prodAtivo}
+                    onChange={(e) => setProdAtivo(e.target.checked)}
+                    className="rounded bg-zinc-950 border-zinc-850 text-red-650"
+                  />
+                  <label htmlFor="prodAtivoCheck" className="text-zinc-350 text-xs font-bold uppercase tracking-wider select-none cursor-pointer">
+                    Produto Ativo para Vendas online/presencial
+                  </label>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowProdForm(false)}
+                    className="px-4 py-2 border border-zinc-800 text-zinc-400 rounded-lg text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-zinc-950 rounded-lg text-xs"
+                  >
+                    Salvar Produto
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Form Sale registration (Módulo 3) */}
+          {showVendaForm && (
+            <div className="bg-zinc-900 border border-zinc-805 p-5 rounded-2xl space-y-4 animate-fadeIn text-left font-sans max-w-2xl">
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider font-mono">
+                🛒 Registrar Venda de Produto
+              </h4>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!vendaProdutoId || !vendaAlunoId || vendaQuantidade <= 0) {
+                  alert("Por favor, preencha todos os campos da venda.");
+                  return;
+                }
+                const selectedProdObj = produtos.find(p => p.id === vendaProdutoId);
+                const selectedAlunoObj = alunos.find(a => a.id === vendaAlunoId);
+
+                if (!selectedProdObj) {
+                  alert("Produto não encontrado.");
+                  return;
+                }
+
+                if (selectedProdObj.estoque < vendaQuantidade) {
+                  alert(`Estoque insuficiente! Estoque disponível do produto: ${selectedProdObj.estoque} unidades.`);
+                  return;
+                }
+
+                const uPrice = selectedProdObj.valorVenda !== undefined ? selectedProdObj.valorVenda : (selectedProdObj.valor || 0);
+                const tot = uPrice * vendaQuantidade;
+
+                const vendaRecord: Venda = {
+                  id: `venda_${Date.now()}`,
+                  data: new Date().toISOString().split("T")[0],
+                  alunoId: vendaAlunoId,
+                  alunoNome: selectedAlunoObj ? selectedAlunoObj.nome : "Aluno avulso",
+                  produtoId: vendaProdutoId,
+                  produtoNome: selectedProdObj.nome,
+                  quantidade: Number(vendaQuantidade),
+                  valorUnitario: uPrice,
+                  valorTotal: tot,
+                  formaPagamento: vendaFormaPagamento,
+                  valor: tot,
+                  dataVenda: new Date().toISOString().split("T")[0]
+                };
+
+                if (onSaveVenda) {
+                  await onSaveVenda(vendaRecord);
+                  alert(`Venda registrada com sucesso! Faturamento de R$ ${tot.toFixed(2)}. Estoque deduzido.`);
+                  setShowVendaForm(false);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Escolher Produto *</label>
+                    <select
+                      value={vendaProdutoId}
+                      onChange={(e) => setVendaProdutoId(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="">Selecione...</option>
+                      {produtos
+                        .filter(p => p.ativo)
+                        .map(p => (
+                          <option key={p.id} value={p.id}>
+                            {p.nome} - R$ {(p.valorVenda || p.valor || 0).toFixed(2)} (Em Estoque: {p.estoque})
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Selecionar Aluno *</label>
+                    <select
+                      value={vendaAlunoId}
+                      onChange={(e) => setVendaAlunoId(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="">Selecione...</option>
+                      {alunos.map(al => (
+                        <option key={al.id} value={al.id}>{al.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Quantidade *</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={vendaQuantidade}
+                      onChange={(e) => setVendaQuantidade(Math.max(1, Number(e.target.value)))}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Forma de Pagamento</label>
+                    <select
+                      value={vendaFormaPagamento}
+                      onChange={(e) => setVendaFormaPagamento(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                    >
+                      <option value="PIX">PIX</option>
+                      <option value="Dinheiro">Dinheiro</option>
+                      <option value="Cartão">Cartão</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowVendaForm(false)}
+                    className="px-4 py-2 border border-zinc-800 text-zinc-400 rounded-lg text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-zinc-950 rounded-lg text-xs"
+                  >
+                    Registrar Baixa de Estoque e Venda
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Products Roster List */}
+          <div className="space-y-4">
+            <span className="text-[10px] text-amber-500 font-bold font-mono uppercase block tracking-wider text-left font-sans">📦 Catálogo de Estoque Atual</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-left font-sans">
+              {produtos.length === 0 ? (
+                <div className="col-span-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+                  <Package className="w-8 h-8 text-zinc-650 mx-auto mb-2" />
+                  <p className="text-xs text-zinc-400">Nenhum produto cadastrado no sistema.</p>
+                </div>
+              ) : (
+                produtos.map(p => {
+                  const isLowStock = p.estoque <= p.estoqueMinimo;
+                  return (
+                    <div key={p.id} className="bg-zinc-900 border border-zinc-805 p-4 rounded-xl flex flex-col justify-between hover:border-zinc-700 transition">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-[9px] bg-sky-950 text-sky-400 border border-sky-900/30 font-bold uppercase tracking-wider px-2 py-0.5 rounded-full font-mono">
+                              {p.categoria}
+                            </span>
+                            <h4 className="text-sm font-black text-white mt-1.5 uppercase font-sans">{p.nome}</h4>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black tracking-widest ${p.ativo ? "bg-emerald-950 text-emerald-400 border border-emerald-950/40" : "bg-zinc-950 text-zinc-550 border border-zinc-850"}`}>
+                            {p.ativo ? "ATIVO" : "INATIVO"}
+                          </span>
+                        </div>
+                        
+                        <div className="border-t border-zinc-950 pt-2 pb-1 text-xs text-zinc-400 font-mono space-y-1">
+                          <p>Estoque: <strong className={`font-mono ${isLowStock ? "text-red-500 font-black animate-pulse" : "text-white"}`}>{p.estoque} unidades</strong></p>
+                          <p>Mínimo de Alerta: <span className="text-zinc-500">{p.estoqueMinimo} unidades</span></p>
+                          <p className="text-amber-500 font-bold text-sm">R$ {(p.valorVenda || p.valor || 0).toFixed(2)}</p>
+                        </div>
+
+                        {isLowStock && (
+                          <div className="flex items-center gap-1 bg-red-950/50 border border-red-900/40 p-2 rounded text-[10px] text-red-450 font-bold uppercase">
+                            <AlertCircle className="w-3.5 h-3.5 text-red-550 animate-pulse" />
+                            Alerta: Estoque Mínimo Atingido! Reabastecer.
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end gap-1.5 pt-4 mt-auto border-t border-zinc-950">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProdId(p.id);
+                            setProdNome(p.nome);
+                            setProdCategoria(p.categoria);
+                            setProdEstoque(p.estoque);
+                            setProdEstoqueMinimo(p.estoqueMinimo);
+                            setProdValorVenda(p.valorVenda || p.valor || 0);
+                            setProdAtivo(p.ativo);
+                            setShowProdForm(true);
+                          }}
+                          className="px-2.5 py-1 bg-zinc-950 text-zinc-350 hover:text-white border border-zinc-850 hover:border-zinc-750 font-bold text-[10px] rounded-lg cursor-pointer"
+                        >
+                          Editar
+                        </button>
+                        {activeRole === "ADMIN" && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Deseja realmente remover o produto ${p.nome}?`)) {
+                                if (onDeleteProduto) {
+                                  await onDeleteProduto(p.id);
+                                  alert("Produto removido.");
+                                }
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-zinc-950 text-zinc-550 hover:text-red-550 border border-zinc-855 hover:border-red-900/40 font-bold text-[10px] rounded-lg cursor-pointer"
+                          >
+                            Excluir
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Sales History (Módulo 3) */}
+          <div className="space-y-4 pt-4 border-t border-zinc-850">
+            <span className="text-[10px] text-amber-500 font-bold font-mono uppercase block tracking-wider text-left font-sans">🛍️ Histórico Comercial de Vendas</span>
+            <div className="overflow-x-auto bg-zinc-900 border border-zinc-805 rounded-xl text-left font-sans">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-zinc-950 font-mono text-[10px] text-zinc-450 uppercase border-b border-zinc-800">
+                    <th className="p-3">Data</th>
+                    <th className="p-3">Aluno</th>
+                    <th className="p-3">Produto</th>
+                    <th className="p-3 text-right">Qtd</th>
+                    <th className="p-3 text-right">Unidade R$</th>
+                    <th className="p-3 text-right">Total R$</th>
+                    <th className="p-3">Pagamento</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-850 text-zinc-300">
+                  {vendas.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-zinc-550 font-mono text-xs">Nenhuma transação comercial efetuada de compras até o momento.</td>
+                    </tr>
+                  ) : (
+                    vendas.map(v => (
+                      <tr key={v.id} className="hover:bg-zinc-900/60 font-sans">
+                        <td className="p-3 font-mono">{v.data || v.dataVenda}</td>
+                        <td className="p-3 font-bold text-white">{v.alunoNome}</td>
+                        <td className="p-3 text-zinc-100">{v.produtoNome}</td>
+                        <td className="p-3 text-right font-mono">{v.quantidade}</td>
+                        <td className="p-3 text-right font-mono">R$ {v.valorUnitario?.toFixed(2) || ((v.valor || 0) / v.quantidade).toFixed(2)}</td>
+                        <td className="p-3 text-right font-mono text-amber-500 font-bold">R$ {(v.valorTotal || v.valor || 0).toFixed(2)}</td>
+                        <td className="p-3"><span className="px-1.5 py-0.5 bg-zinc-950 rounded text-[10px] text-zinc-400 font-mono border border-zinc-800">{v.formaPagamento || "PIX"}</span></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === "familias" ? (
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-center bg-zinc-900/35 p-4 rounded-xl border border-zinc-800">
+            <div className="text-left font-sans">
+              <h3 className="text-sm font-black uppercase text-amber-500 tracking-wider">Vínculos de Núcleo Familiar (Coleção: familias)</h3>
+              <p className="text-zinc-400 text-xs mt-0.5">Gestão de famílias e descontos integrados para irmãos ou responsáveis</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingFamId(null);
+                setFamNomeFamilia("");
+                setFamResponsavel("");
+                setFamTelefone("");
+                setFamAlunosIds([]);
+                setShowFamForm(!showFamForm);
+              }}
+              className="px-4 py-2 bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase rounded-xl transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              {showFamForm ? "Fechar Form" : "Nova Família"}
+            </button>
+          </div>
+
+          {/* Form Create Family */}
+          {showFamForm && (
+            <div className="bg-zinc-900 border border-zinc-805 p-5 rounded-2xl space-y-4 animate-fadeIn text-left font-sans max-w-2xl">
+              <h4 className="text-xs font-black uppercase text-amber-500 tracking-widest font-mono">
+                {editingFamId ? "📝 Editar Núcleo Familiar" : "👨‍👩‍👧‍👦 Registrar Novo Núcleo Familiar"}
+              </h4>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!famNomeFamilia || !famResponsavel) {
+                  alert("Por favor, preencha Nome da Família e Responsável Financeiro.");
+                  return;
+                }
+                const fam: Familia = {
+                  id: editingFamId || `familia_${Date.now()}`,
+                  nomeFamilia: famNomeFamilia,
+                  responsavel: famResponsavel,
+                  telefone: famTelefone,
+                  alunosIds: famAlunosIds,
+                  nome: famNomeFamilia // compatibility
+                };
+                if (onSaveFamilia) {
+                  await onSaveFamilia(fam);
+                  alert("Família salva com sucesso!");
+                  setShowFamForm(false);
+                }
+              }} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Nome do Núcleo *</label>
+                    <input
+                      type="text"
+                      value={famNomeFamilia}
+                      onChange={(e) => setFamNomeFamilia(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                      placeholder="Ex: Família Padovani"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Responsável Financeiro *</label>
+                    <input
+                      type="text"
+                      value={famResponsavel}
+                      onChange={(e) => setFamResponsavel(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                      placeholder="Ex: Décio Padovani"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500 mb-1">Telefone WhatsApp</label>
+                    <input
+                      type="text"
+                      value={famTelefone}
+                      onChange={(e) => setFamTelefone(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-850 p-2 rounded-lg text-white font-mono text-[11px]"
+                      placeholder="(13) 99999-9999"
+                    />
+                  </div>
+                </div>
+
+                {/* Multiselect checkboxes for linking active students */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] uppercase font-mono font-bold text-zinc-500">Vincular Integrantes (Alunos Cadastrados)</label>
+                  <div className="max-h-40 overflow-y-auto bg-zinc-950 border border-zinc-850 p-3 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                    {alunos.map(al => {
+                      const isChecked = famAlunosIds.includes(al.id);
+                      return (
+                        <div key={al.id} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`check-al-fam-${al.id}`}
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFamAlunosIds([...famAlunosIds, al.id]);
+                              } else {
+                                setFamAlunosIds(famAlunosIds.filter(id => id !== al.id));
+                              }
+                            }}
+                            className="rounded bg-zinc-900 border-zinc-800 text-red-650"
+                          />
+                          <label htmlFor={`check-al-fam-${al.id}`} className="text-zinc-200 cursor-pointer text-[11px] truncate select-none">
+                            🥋 {al.nome} ({al.status || "Ativo"})
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowFamForm(false)}
+                    className="px-4 py-2 border border-zinc-800 text-zinc-400 rounded-lg text-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-500 hover:bg-amber-600 font-bold text-zinc-950 rounded-lg text-xs"
+                  >
+                    Salvar Núcleo Familiar
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* Families Roster Row */}
+          <div className="space-y-4 font-sans">
+            <span className="text-[10px] text-amber-500 font-bold font-mono uppercase block tracking-wider text-left">👨‍👩‍👧‍👦 Núcleos Familiares Sincronizados</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              {familias.length === 0 ? (
+                <div className="col-span-full bg-zinc-900 border border-zinc-800 p-8 rounded-xl text-center">
+                  <UsersRound className="w-8 h-8 text-zinc-650 mx-auto mb-2" />
+                  <p className="text-xs text-zinc-400">Nenhuma família registrada no sistema.</p>
+                </div>
+              ) : (
+                familias.map(f => {
+                  const linkedStudents = alunos.filter(al => f.alunosIds?.includes(al.id));
+                  return (
+                    <div key={f.id} className="bg-zinc-900 border border-zinc-805 p-5 rounded-xl space-y-3 flex flex-col justify-between hover:border-zinc-700 transition">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h4 className="text-sm font-black text-white uppercase">{f.nomeFamilia || f.nome}</h4>
+                            <p className="text-[11px] text-zinc-400 mt-1 font-mono">Responsável: <strong className="text-zinc-200">{f.responsavel}</strong></p>
+                          </div>
+                          {f.telefone && (
+                            <span className="text-[10px] font-mono text-zinc-400">📞 {f.telefone}</span>
+                          )}
+                        </div>
+
+                        <div className="border-t border-zinc-950 pt-2 pb-1 text-xs text-zinc-400 space-y-1">
+                          <p className="font-bold text-[10px] text-zinc-550 uppercase tracking-widest font-mono">Alunos Vinculados ({linkedStudents.length}):</p>
+                          {linkedStudents.length === 0 ? (
+                            <p className="text-[11px] text-zinc-550 italic">Nenhum aluno associado.</p>
+                          ) : (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {linkedStudents.map(child => (
+                                <span key={child.id} className="inline-block text-[10px] bg-zinc-950 border border-zinc-850 text-amber-500 px-2 py-0.5 rounded font-mono font-medium">
+                                  🥋 {child.nome} ({child.graduacao || child.graduacaoAtual || "Branca"})
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-1.5 pt-3 mt-3 border-t border-zinc-950">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingFamId(f.id);
+                            setFamNomeFamilia(f.nomeFamilia || f.nome || "");
+                            setFamResponsavel(f.responsavel || "");
+                            setFamTelefone(f.telefone || "");
+                            setFamAlunosIds(f.alunosIds || []);
+                            setShowFamForm(true);
+                          }}
+                          className="px-2.5 py-1 bg-zinc-950 text-zinc-350 hover:text-white border border-zinc-850 hover:border-zinc-750 font-bold text-[10px] rounded-lg cursor-pointer"
+                        >
+                          Editar
+                        </button>
+                        {activeRole === "ADMIN" && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Excluir o vínculo da Família ${f.nomeFamilia || f.nome}? Os alunos permanecerão ativos individualmente.`)) {
+                                if (onDeleteFamilia) {
+                                  await onDeleteFamilia(f.id);
+                                  alert("Vínculo familiar excluído!");
+                                }
+                              }
+                            }}
+                            className="px-2.5 py-1 bg-zinc-950 text-zinc-550 hover:text-red-500 border border-zinc-850 hover:border-red-900/40 font-bold text-[10px] rounded-lg cursor-pointer"
+                          >
+                            Excluir
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      ) : activeTab === "backup" ? (
+        <div className="space-y-6 text-left font-sans">
+          {/* Header */}
+          <div className="bg-zinc-900/35 p-4 rounded-xl border border-zinc-800">
+            <h3 className="text-sm font-black uppercase text-amber-500 tracking-wider">🔄 Central de Backups Gerenciais (JSON / CSV)</h3>
+            <p className="text-zinc-400 text-xs mt-0.5">Cópia de segurança administrativa e migração de tabelas locais para prestação de contas externa</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-805 p-6 rounded-2xl max-w-2xl space-y-5 text-left font-sans">
+            <p className="text-xs text-zinc-300">
+              Gere exportações integrais no formato <strong>JSON Estruturado</strong> contendo todas as coleções em produção do banco de dados Firestore da academia Garra de Águia.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-zinc-950 rounded-lg border border-zinc-850 flex flex-col justify-between space-y-3">
+                <div>
+                  <h4 className="text-xs font-black uppercase text-white tracking-widest font-mono">JSON Completo</h4>
+                  <p className="text-[10px] text-zinc-400 mt-1 font-mono">Exporta todos os dados do sistema em um único arquivo unificado contendo Arrays para Alunos, Faturas, Frequências, Exames, Produtos, Vendas e Famílias.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const backupData = {
+                      dataBackup: new Date().toISOString(),
+                      unidade: "Praia Grande",
+                      alunos,
+                      pagamentos,
+                      presencas,
+                      produtos,
+                      vendas,
+                      familias
+                    };
+                    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `backup_completo_garra_de_aguia_${new Date().toISOString().split("T")[0]}.json`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    alert("Backup em formato JSON exportado com sucesso!");
+                  }}
+                  className="w-full text-center py-2.5 bg-amber-500 hover:bg-amber-600 text-zinc-950 text-xs font-black uppercase tracking-wider rounded-xl cursor-pointer"
+                >
+                  Confirmar Backup JSON
+                </button>
+              </div>
+
+              <div className="p-4 bg-zinc-950 rounded-lg border border-zinc-850 flex flex-col justify-between space-y-3">
+                <div>
+                  <h4 className="text-xs font-black uppercase text-white tracking-widest font-mono font-bold text-[11px]">CSV de Alunos & Cobranças</h4>
+                  <p className="text-[10px] text-zinc-400 mt-1">Exporta arquivos tabulares (CSV) ideais para abertura no Excel contendo a relação cadastral completa dos alunos matriculados e o faturamento financeiro.</p>
+                </div>
+                <div className="space-y-1.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (alunos.length === 0) return alert("Nenhum registro.");
+                      const headers = ["ID", "Nome", "E-mail", "Celular", "CPF", "Graduacao", "Status"];
+                      const rows = alunos.map(a => [
+                        a.id,
+                        a.nome,
+                        a.email,
+                        a.celular || a.telefone || "",
+                        a.cpf || "",
+                        a.graduacao || a.graduacaoAtual || "",
+                        a.status || "Ativo"
+                      ]);
+                      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+                        + [headers.join(";"), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";"))].join("\n");
+                      const encodedUri = encodeURI(csvContent);
+                      const link = document.createElement("a");
+                      link.href = encodedUri;
+                      link.download = `backup_alunos_${new Date().toISOString().split("T")[0]}.csv`;
+                      link.click();
+                    }}
+                    className="w-full text-center py-2 bg-zinc-900 hover:bg-zinc-850 text-white text-xs font-bold uppercase rounded-lg border border-zinc-800 cursor-pointer"
+                  >
+                    Exportar Alunos (CSV)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (pagamentos.length === 0) return alert("Nenhum faturamento.");
+                      const headers = ["ID", "Aluno ID", "Aluno Nome", "Competencia", "Vencimento", "Valor", "Status", "Pagamento Data", "Forma"];
+                      const rows = pagamentos.map(p => [
+                        p.id,
+                        p.alunoId,
+                        p.alunoNome || "",
+                        p.competencia || p.referencia || "",
+                        p.vencimento,
+                        p.valor,
+                        p.status,
+                        p.dataPagamento || "",
+                        p.formaPagamento || ""
+                      ]);
+                      const csvContent = "data:text/csv;charset=utf-8,\uFEFF" 
+                        + [headers.join(";"), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(";"))].join("\n");
+                      const encodedUri = encodeURI(csvContent);
+                      const link = document.createElement("a");
+                      link.href = encodedUri;
+                      link.download = `backup_financeiro_${new Date().toISOString().split("T")[0]}.csv`;
+                      link.click();
+                    }}
+                    className="w-full text-center py-2 bg-zinc-900 hover:bg-zinc-850 text-white text-xs font-bold uppercase rounded-lg border border-zinc-800 cursor-pointer"
+                  >
+                    Exportar Financeiro (CSV)
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : (

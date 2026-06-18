@@ -123,12 +123,15 @@ export interface Pagamento {
   id: string;
   alunoId: string;
   referencia: string; // "06/2026"
+  competencia?: string; // "06/2026" - Nova especificação
   vencimento: string; // YYYY-MM-DD
   valor: number;
   desconto?: number;
   valorFinal: number;
-  status: "EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO" | "Pago" | "Pendente" | "Atrasado";
+  status: "EM DIA" | "PENDENTE" | "ATRASADO" | "ISENTO" | "Pago" | "Pendente" | "Atrasado" | "PENDENTE" | "PAGO" | "VENCIDO" | "Vencido";
   dataPagamento?: string;
+  formaPagamento?: string; // Nova especificação
+  observacoes?: string; // Nova especificação
 
   // Compatibility fields
   alunoNome?: string;
@@ -167,25 +170,39 @@ export interface Produto {
   id: string;
   nome: string;
   categoria: string;
-  valor: number;
   estoque: number;
+  estoqueMinimo: number;
+  valorVenda: number;
+  ativo: boolean;
+
+  // Compatibility fields
+  valor?: number;
 }
 
 export interface Venda {
   id: string;
+  data: string; // YYYY-MM-DD
   alunoId: string;
+  alunoNome: string;
   produtoId: string;
+  produtoNome: string;
   quantidade: number;
-  valor: number;
-  dataVenda: string;
-  alunoNome?: string;
-  produtoNome?: string;
+  valorUnitario: number;
+  valorTotal: number;
+  formaPagamento: string;
+
+  // Compatibility fields
+  valor?: number;
+  dataVenda?: string;
 }
 
 export interface Familia {
   id: string;
-  nome: string;
-  alunosIds: string[]; // IDs dos alunos que pertencem a esta família
-  descontoTipo?: "percentual" | "fixo" | "nenhum";
-  descontoValor?: number;
+  nomeFamilia: string;
+  responsavel: string;
+  telefone: string;
+  alunosIds: string[];
+
+  // Compatibility fields
+  nome?: string;
 }

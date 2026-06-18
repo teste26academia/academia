@@ -355,7 +355,12 @@ export function Dashboard({
               <div className="pt-2.5 space-y-2">
                 <button
                   onClick={handleStudentCheckin}
-                  className="w-full bg-red-850 hover:bg-red-800 text-white font-black text-xs tracking-wider uppercase py-3 rounded-2xl transition-all shadow-[0_4px_12px_rgba(153,27,27,0.3)] flex items-center justify-center gap-2 border border-red-750/30 cursor-pointer"
+                  disabled={(defaultStudent?.status || "").toUpperCase().trim() === "INATIVO"}
+                  className={`w-full text-white font-black text-xs tracking-wider uppercase py-3 rounded-2xl transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+                    (defaultStudent?.status || "").toUpperCase().trim() === "INATIVO"
+                      ? "bg-zinc-800 border-zinc-700 text-zinc-500 opacity-60 cursor-not-allowed shadow-none"
+                      : "bg-red-850 hover:bg-red-800 border-red-750/30 shadow-[0_4px_12px_rgba(153,27,27,0.3)]"
+                  }`}
                 >
                   ⚡ Solicitar Presença de Hoje
                 </button>

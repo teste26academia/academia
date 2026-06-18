@@ -46,12 +46,32 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Helper para verificar se o usuário é o dono do registro de aluno correspondente
+    function isStudentOwner(alunoId) {
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData().alunoId != null && getUserData().alunoId == alunoId) ||
+        (resource != null && resource.data.userId == request.auth.uid) ||
+        (resource != null && request.auth.token.email != null && resource.data.email == request.auth.token.email)
+      );
+    }
+
     // --- REGRAS POR COLEÇÃO (ROBUSTAS E COMPATÍVEIS) ---
 
     // 1. users (Perfis de Usuários)
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && (isOwner(userId) || isAdmin() || isInstructor());
+      allow create: if isSignedIn() && isOwner(userId) && (
+        isMainAdminEmail() || 
+        (!request.resource.data.keys().hasAny(['permissions', 'cargo']) && 
+         (request.resource.data.role == "ALUNO" || request.resource.data.role == "aluno" || !request.resource.data.keys().hasAny(['role'])))
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        (isInstructor() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'cargo'])) ||
+        (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions', 'cargo']))
+      );
+      allow delete: if isSignedIn() && isAdmin();
     }
 
     // 1.5. instrutores
@@ -68,8 +88,20 @@ service cloud.firestore {
         isInstructor() || 
         (request.auth.token.email != null && resource.data.email == request.auth.token.email)
       );
-      // Apenas administradores e professores/instrutores adicionam, atualizam ou deletam alunos
-      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+      // Apenas administradores e professores/instrutores adicionam ou deletam alunos, ou o próprio aluno ao se auto-matricular
+      allow create: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (request.resource.data.userId == request.auth.uid)
+      );
+      allow update: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() ||
+        (isStudentOwner(alunoId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'cpf', 'rg', 'telefone', 'celular', 'endereco', 'foto', 'responsavel'
+        ]))
+      );
+      allow delete: if isSignedIn() && isAdmin();
     }
 
     // 3. turmas

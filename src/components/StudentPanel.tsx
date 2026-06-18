@@ -41,6 +41,12 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
       return;
     }
 
+    const isInactive = (aluno.status || "").toUpperCase().trim() === "INATIVO";
+    if (isInactive) {
+      setRequestStatusMsg("❌ Acesso suspenso: Alunos inativos não podem solicitar presença ou realizar novos check-ins.");
+      return;
+    }
+
     // Check if there are already 2 presence records for this specific date (allows up to 2 for different classes/modalities)
     const singleDayPresences = studentPresencas.filter(p => p.data === selectedDate);
     if (singleDayPresences.length >= 2) {
@@ -234,7 +240,10 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
               <button
                 id="btn-aluno-checkin"
                 onClick={handleSendCheckin}
-                className="w-full py-2.5 bg-gradient-to-r from-red-800 to-amber-600 hover:from-red-900 hover:to-amber-700 text-white rounded font-bold text-xs transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5"
+                disabled={(aluno.status || "").toUpperCase().trim() === "INATIVO"}
+                className={`w-full py-2.5 bg-gradient-to-r from-red-800 to-amber-600 hover:from-red-900 hover:to-amber-700 text-white rounded font-bold text-xs transition-all shadow-md active:scale-98 flex items-center justify-center gap-1.5 ${
+                  (aluno.status || "").toUpperCase().trim() === "INATIVO" ? "opacity-50 cursor-not-allowed filter grayscale" : ""
+                }`}
               >
                 <Smartphone className="w-4 h-4" />
                 SOLICITAR ENTRADA (CHECK-IN)
