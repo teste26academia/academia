@@ -38,6 +38,7 @@ export default function AdminPanel({
 }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<"alunos" | "configuracoes" | "diagnostico" | "instrutores">("diagnostico");
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatusAdmin, setFilterStatusAdmin] = useState<"ATIVOS" | "INATIVOS" | "PENDENTES" | "TODOS">("ATIVOS");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingAlunoId, setEditingAlunoId] = useState<string | null>(null);
 
@@ -127,7 +128,13 @@ export default function AdminPanel({
     a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     a.cpf.includes(searchTerm)
-  );
+  ).filter(a => {
+    const norm = (a.status || "").toUpperCase().trim();
+    if (filterStatusAdmin === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
+    if (filterStatusAdmin === "INATIVOS") return norm === "INATIVO";
+    if (filterStatusAdmin === "PENDENTES") return norm === "PENDENTE";
+    return true; // TODOS
+  });
 
   const handleResetForm = () => {
     setNome("");
@@ -408,6 +415,45 @@ export default function AdminPanel({
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-100 placeholder-zinc-650 focus:outline-none focus:border-amber-500 font-sans"
                 />
+              </div>
+
+              {/* Filtros rápidos de alunos no AdminPanel */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1.5 pb-1">
+                {(["ATIVOS", "INATIVOS", "PENDENTES", "TODOS"] as const).map((fs) => {
+                  const isSel = filterStatusAdmin === fs;
+                  // Contagem correspondente ao admin
+                  const count = alunos.filter((a) => {
+                    const norm = (a.status || "").toUpperCase().trim();
+                    if (fs === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
+                    if (fs === "INATIVOS") return norm === "INATIVO";
+                    if (fs === "PENDENTES") return norm === "PENDENTE";
+                    return true;
+                  }).filter(a =>
+                    a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    a.cpf.includes(searchTerm)
+                  ).length;
+
+                  return (
+                    <button
+                      key={fs}
+                      type="button"
+                      onClick={() => setFilterStatusAdmin(fs)}
+                      className={`px-3 py-1.5 rounded-lg border text-[10px] font-mono font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                        isSel
+                          ? "bg-amber-950/40 text-amber-500 border-amber-800 shadow-sm"
+                          : "bg-zinc-950 text-zinc-500 border-zinc-900 hover:text-zinc-400"
+                      }`}
+                    >
+                      <span>{fs}</span>
+                      <span className={`px-1.5 py-0.2 rounded text-[8.5px] font-sans ${
+                        isSel ? "bg-amber-900/60 text-amber-300" : "bg-zinc-900 text-zinc-650"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Expanded Add Form Panel */}
@@ -859,7 +905,7 @@ export default function AdminPanel({
                                 <button
                                   id={`delete-stu-${a.id}`}
                                   onClick={() => {
-                                    if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todos os seus históricos de cobrança? This action is permanent.`)) {
+                                    if (confirm(`Tem certeza de que deseja INATIVAR o aluno ${a.nome}? O acesso será suspenso, mas seu histórico completo (mensalidades, presenças, exames e graduações) permanecerá preservado.`)) {
                                       onDeleteAluno(a.id);
                                     }
                                   }}

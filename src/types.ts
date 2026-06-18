@@ -36,7 +36,7 @@ export interface Aluno {
   dataMatricula: string;
   graduacaoAtual: string; // "Faixa Branca", "Faixa Amarela", etc.
   dataUltimaGraduacao: string;
-  status: "Ativo" | "Inativo";
+  status: "Ativo" | "Inativo" | "Pendente" | "ATIVO" | "INATIVO" | "PENDENTE";
   turmaId: string;
   modalidade: string;
   modalidades?: string[];

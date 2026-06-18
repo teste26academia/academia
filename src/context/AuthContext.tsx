@@ -75,6 +75,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               ? UserRole.ADMIN 
               : UserRole.ALUNO;
 
+            // PRIMEIRO ACESSO AUTOMÁTICO: Se for Aluno e não achou cadastro pelo email, criar ficha provisória PENDENTE
+            if (role === UserRole.ALUNO && !linkedAlunoId) {
+              try {
+                const studentId = `stu_${firebaseUser.uid}`;
+                const newAlunoRecord = {
+                  id: studentId,
+                  userId: firebaseUser.uid,
+                  nome: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Novo Aluno",
+                  email: firebaseUser.email || "",
+                  cpf: "",
+                  rg: "",
+                  dataNascimento: "2000-01-01",
+                  telefone: "",
+                  whatsapp: "",
+                  endereco: "",
+                  responsavel: "",
+                  foto: firebaseUser.photoURL || "",
+                  dataMatricula: new Date().toISOString().split("T")[0],
+                  graduacaoAtual: "Faixa Branca",
+                  dataUltimaGraduacao: new Date().toISOString().split("T")[0],
+                  status: "PENDENTE", // Status inicial PENDENTE
+                  turmaId: "turma_1",
+                  modalidade: "Não definida", // Inicialmente não definida
+                  observacoes: "Ficha acadêmica inicial gerada automaticamente no primeiro acesso.",
+                  statusFinanceiro: "PENDENTE",
+                  
+                  // Compatibilidade
+                  graduacao: "Faixa Branca",
+                  celular: "",
+                  planoTipo: "2x_semana",
+                  relativeUrl: "",
+                  mensalidade: 160,
+                  descontoFamiliaTipo: "nenhum",
+                  descontoFamiliaValor: 0
+                };
+                await setDoc(doc(db, "alunos", studentId), newAlunoRecord);
+                linkedAlunoId = studentId;
+                console.log("Ficha provisória de aluno criada automaticamente para primeiro acesso.");
+              } catch (createErr) {
+                console.error("Falha ao criar ficha acadêmica inicial para novo aluno:", createErr);
+              }
+            }
+
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               nome: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "Usuário",
@@ -101,7 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             
             // If the user profile exists but doesn't have an alunoId linked yet, double check if there's an Aluno record now
-            if (!loadedProfile.alunoId) {
+            if (!loadedProfile.alunoId && loadedProfile.role === UserRole.ALUNO) {
               try {
                 const studentsRef = collection(db, "alunos");
                 const q = query(studentsRef, where("email", "==", firebaseUser.email));
@@ -109,6 +152,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (!querySnapshot.empty) {
                   loadedProfile.alunoId = querySnapshot.docs[0].id;
                   await setDoc(userDocRef, loadedProfile, { merge: true });
+                } else {
+                  // Primeiro acesso automático para perfil existente sem alunoId linkado
+                  const studentId = `stu_${firebaseUser.uid}`;
+                  const newAlunoRecord = {
+                    id: studentId,
+                    userId: firebaseUser.uid,
+                    nome: firebaseUser.displayName || loadedProfile.nome || "Novo Aluno",
+                    email: firebaseUser.email || "",
+                    cpf: "",
+                    rg: "",
+                    dataNascimento: "2000-01-01",
+                    telefone: "",
+                    whatsapp: "",
+                    endereco: "",
+                    responsavel: "",
+                    foto: firebaseUser.photoURL || "",
+                    dataMatricula: new Date().toISOString().split("T")[0],
+                    graduacaoAtual: "Faixa Branca",
+                    dataUltimaGraduacao: new Date().toISOString().split("T")[0],
+                    status: "PENDENTE", // Status inicial PENDENTE
+                    turmaId: "turma_1",
+                    modalidade: "Não definida", // Inicialmente não definida
+                    observacoes: "Ficha acadêmica inicial gerada automaticamente no primeiro acesso para perfil sem associação.",
+                    statusFinanceiro: "PENDENTE",
+                    
+                    // Compatibilidade
+                    graduacao: "Faixa Branca",
+                    celular: "",
+                    planoTipo: "2x_semana",
+                    mensalidade: 160,
+                    descontoFamiliaTipo: "nenhum",
+                    descontoFamiliaValor: 0
+                  };
+                  await setDoc(doc(db, "alunos", studentId), newAlunoRecord);
+                  loadedProfile.alunoId = studentId;
+                  await setDoc(userDocRef, loadedProfile, { merge: true });
+                  console.log("Ficha provisória de aluno criada automaticamente para perfil existente sem alunoId.");
                 }
               } catch (studentErr) {
                 console.warn("Failed to double check existing Aluno link:", studentErr);

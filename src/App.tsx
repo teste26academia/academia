@@ -66,6 +66,7 @@ export default function App() {
   const [presenceFilter, setPresenceFilter] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
 
   // Aluno-specific state
+  const [filterStatus, setFilterStatus] = useState<"ATIVOS" | "INATIVOS" | "PENDENTES" | "TODOS">("ATIVOS");
   const [selectedCheckinDate, setSelectedCheckinDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [studentStatusMsg, setStudentStatusMsg] = useState<string>("");
   const [selectedFichaAluno, setSelectedFichaAluno] = useState<Aluno | null>(null);
@@ -542,40 +543,138 @@ export default function App() {
   };
 
   // 1.5. UPDATE Student Profile (Self profile update for regular students)
-  const handleUpdateCadastroProfile = async (dados: { nome: string; celular: string; endereco: string }) => {
+  const handleUpdateCadastroProfile = async (dados: { 
+    nome: string; 
+    celular: string; 
+    endereco: string;
+    cpf?: string;
+    rg?: string;
+    dataNascimento?: string;
+    foto?: string;
+    responsavel?: string;
+  }) => {
     if (!user || !userProfile) return;
     try {
-      // 1. Atualiza na coleção de usuários do Auth (users)
+      // 1. Opcionalmente atualiza também na coleção de usuários do Auth (users)
       const userRef = doc(db, "users", user.uid);
       await updateDoc(userRef, {
         nome: dados.nome,
         celular: dados.celular || "",
-        endereco: dados.endereco || ""
+        endereco: dados.endereco || "",
+        ...(dados.cpf ? { cpf: dados.cpf } : {}),
+        ...(dados.rg ? { rg: dados.rg } : {}),
+        ...(dados.dataNascimento ? { dataNascimento: dados.dataNascimento } : {}),
+        ...(dados.foto ? { foto: dados.foto } : {}),
+        ...(dados.responsavel ? { responsavel: dados.responsavel } : {})
       });
 
       // 2. Se o usuário atual possui alunoId, atualiza também a ficha do aluno (alunos)
-      if (userProfile.alunoId) {
-        const studentRef = doc(db, "alunos", userProfile.alunoId);
+      const targetAlunoId = userProfile.alunoId || `stu_${user.uid}`;
+      const studentRef = doc(db, "alunos", targetAlunoId);
+
+      // Calcular a completude com os novos dados
+      const currentData = alunos.find(a => a.id === targetAlunoId);
+      
+      const updatedData = {
+        ...currentData,
+        nome: dados.nome,
+        celular: dados.celular || "",
+        telefone: dados.celular || "",
+        endereco: dados.endereco || "",
+        cpf: dados.cpf || currentData?.cpf || "",
+        rg: dados.rg || currentData?.rg || "",
+        dataNascimento: dados.dataNascimento || currentData?.dataNascimento || "2000-01-01",
+        foto: dados.foto || currentData?.foto || "",
+        responsavel: dados.responsavel || currentData?.responsavel || ""
+      };
+
+      const isMenor = (() => {
+        if (!updatedData.dataNascimento || updatedData.dataNascimento === "2000-01-01") return false;
+        try {
+          const nasc = new Date(updatedData.dataNascimento);
+          const idadeDifMs = Date.now() - nasc.getTime();
+          const idadeDate = new Date(idadeDifMs);
+          const idade = Math.abs(idadeDate.getUTCFullYear() - 1970);
+          return idade < 18;
+        } catch {
+          return false;
+        }
+      })();
+
+      let completude = 0;
+      if (updatedData.cpf && updatedData.cpf.trim() !== "" && updatedData.cpf !== "(Não cadastrado)") completude += 15;
+      if (updatedData.rg && updatedData.rg.trim() !== "") completude += 15;
+      if (updatedData.dataNascimento && updatedData.dataNascimento.trim() !== "" && updatedData.dataNascimento !== "2000-01-01") completude += 15;
+      const phone = updatedData.celular || updatedData.telefone;
+      if (phone && phone.trim() !== "" && phone !== "(Não cadastrado)") completude += 15;
+      if (updatedData.endereco && updatedData.endereco.trim() !== "") completude += 15;
+      if (updatedData.foto && updatedData.foto.trim() !== "") completude += 10;
+      
+      if (isMenor) {
+        if (updatedData.responsavel && updatedData.responsavel.trim() !== "") completude += 15;
+      } else {
+        completude += 15;
+      }
+
+      let novoStatus = currentData?.status || "PENDENTE";
+      if ((novoStatus === "PENDENTE" || novoStatus === "Inativo") && completude >= 100) {
+        novoStatus = "ATIVO";
+        alert("Parabéns! Ficha cadastral COMPLETADA com sucesso. Seu status foi promovido para ATIVO!");
+      }
+
+      // Procurar se documento existe antes de atualizar
+      const studentSnap = await getDoc(studentRef);
+      if (studentSnap.exists()) {
         await updateDoc(studentRef, {
           nome: dados.nome,
           celular: dados.celular || "",
-          endereco: dados.endereco || ""
+          telefone: dados.celular || "",
+          endereco: dados.endereco || "",
+          cpf: dados.cpf || "",
+          rg: dados.rg || "",
+          dataNascimento: dados.dataNascimento || "2000-01-01",
+          foto: dados.foto || "",
+          responsavel: dados.responsavel || "",
+          status: novoStatus
         });
       } else {
-        // Se não possui alunoId mas existe aluno com o mesmo email cadastrado pelo admin
-        const alunosRef = collection(db, "alunos");
-        const qStr = user.email ? user.email.trim().toLowerCase() : "";
-        const q = query(alunosRef, where("email", "==", qStr));
-        const qSnap = await getDocs(q);
-        if (!qSnap.empty) {
-          const studentDocId = qSnap.docs[0].id;
-          await updateDoc(doc(db, "alunos", studentDocId), {
-            nome: dados.nome,
-            celular: dados.celular || "",
-            endereco: dados.endereco || ""
-          });
-        }
+        // Se o documento na coleção 'alunos' não existia, criamos agora de forma consistente
+        const todayString = new Date().toISOString().split("T")[0];
+        const newAluno: Aluno = {
+          id: targetAlunoId,
+          userId: user.uid,
+          nome: dados.nome,
+          email: user.email || "",
+          cpf: dados.cpf || "",
+          rg: dados.rg || "",
+          dataNascimento: dados.dataNascimento || "2000-01-01",
+          telefone: dados.celular || "",
+          whatsapp: dados.celular || "",
+          endereco: dados.endereco || "",
+          responsavel: dados.responsavel || "",
+          foto: dados.foto || "",
+          dataMatricula: todayString,
+          graduacaoAtual: "Faixa Branca",
+          dataUltimaGraduacao: todayString,
+          status: novoStatus,
+          turmaId: "turma_1",
+          modalidade: "Não definida",
+          observacoes: "Ficha criada via preenchimento de perfil.",
+          statusFinanceiro: "PENDENTE",
+          
+          graduacao: "Faixa Branca",
+          celular: dados.celular || "",
+          planoTipo: "2x_semana",
+          mensalidade: 160,
+          descontoFamiliaTipo: "nenhum",
+          descontoFamiliaValor: 0
+        };
+        await setDoc(studentRef, newAluno);
+        
+        // Linkar na conta de users também
+        await updateDoc(userRef, { alunoId: targetAlunoId });
       }
+
       alert("Cadastro atualizado com sucesso no Firestore!");
     } catch (e: any) {
       console.error("Erro ao atualizar cadastro:", e);
@@ -583,47 +682,21 @@ export default function App() {
     }
   };
 
-  // 2. DELETE Student (Admin action mapped to Firestore)
+  // 2. DELETE Student (Admin action mapped to logical INATIVO status in Firestore)
   const handleDeleteAluno = async (id: string) => {
     try {
-      // 1. Deletar todas as mensalidades associadas para manter a integridade
-      const studentMensalidades = pagamentos.filter((p) => p.alunoId === id);
-      for (const inv of studentMensalidades) {
-        await deleteDoc(doc(db, "mensalidades", inv.id));
-      }
+      // Alterar status para INATIVO no documento do aluno no Firestore
+      await updateDoc(doc(db, "alunos", id), {
+        status: "INATIVO"
+      });
 
-      // 2. Deletar todos os registros de presença deste aluno
-      const studentPresencas = presencas.filter((p) => p.alunoId === id);
-      for (const pres of studentPresencas) {
-        await deleteDoc(doc(db, "presencas", pres.id));
-      }
-
-      // 3. Desvincular o campo alunoId dos documentos correspondentes na coleção "users"
+      alert("Ficha do aluno inativada com sucesso! Todo o histórico de cobranças, presenças, exames e graduações foi preservado intacto.");
+    } catch (err: any) {
+      console.error("handleDeleteAluno (inativação lógica) failed:", err);
       try {
-        const usersRef = collection(db, "users");
-        const querySnapshot = await getDocs(usersRef);
-        for (const docSnap of querySnapshot.docs) {
-          const userData = docSnap.data();
-          if (userData.alunoId === id) {
-            await updateDoc(doc(db, "users", docSnap.id), {
-              alunoId: null
-            });
-          }
-        }
-      } catch (errUser) {
-        console.warn("Aviso: Falha ao desvincular o aluno de /users:", errUser);
-      }
-
-      // 4. Deletar o documento do aluno no Firestore
-      await deleteDoc(doc(db, "alunos", id));
-
-      alert("Aluno, cobranças (mensalidades) e registros de presença associados foram excluídos com sucesso!");
-    } catch (err) {
-      console.error("handleDeleteAluno failed:", err);
-      try {
-        handleFirestoreError(err, OperationType.DELETE, `alunos/${id}`);
+        handleFirestoreError(err, OperationType.UPDATE, `alunos/${id}`);
       } catch (e: any) {
-        alert("Erro ao excluir aluno do Firestore: " + e.message);
+        alert("Erro ao inativar aluno do Firestore: " + e.message);
       }
     }
   };
@@ -690,6 +763,10 @@ export default function App() {
         allUsers.push({ id: docSnap.id, ...docSnap.data() });
       });
 
+      // CARREGAR ALUNOS DO FIRESTORE EM TEMPO REAL PARA PROTEÇÃO EXTRA CONTRA DUPLICADOS E INATIVADOS
+      const dbAlunosSnap = await getDocs(collection(db, "alunos"));
+      const dbAlunosList = dbAlunosSnap.docs.map(d => ({ id: d.id, ...d.data() } as Aluno));
+
       let addedCount = 0;
       const todayString = new Date().toISOString().split("T")[0];
       const nextMonthString = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -700,8 +777,8 @@ export default function App() {
         const isAdmin = u.role === "ADMIN" || u.email?.toLowerCase() === "deciopadovanijr@gmail.com";
         if (isAdmin) continue;
 
-        // Check if user is already an Aluno (by matching ID, email, or userId)
-        const isAlreadyAluno = alunos.some(
+        // Check if user is already an Aluno (even if logical/inactivated, checking real DB list)
+        const isAlreadyAluno = dbAlunosList.some(
           (a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email?.toLowerCase()) || a.id === `stu_${u.id}`
         ) || !!u.alunoId;
 
@@ -725,10 +802,10 @@ export default function App() {
             dataMatricula: todayString,
             graduacaoAtual: "Faixa Branca",
             dataUltimaGraduacao: todayString,
-            status: "Ativo",
+            status: "PENDENTE", // Sincronizados iniciam como PENDENTE para auditoria operacional
             turmaId: u.turmaId || defaultTurmaId,
-            modalidade: "Kung Fu",
-            observacoes: "Usuário sincronizado do sistema de autenticação.",
+            modalidade: "Não definida", // Inicialmente não definida
+            observacoes: "Usuário sincronizado do sistema de autenticação como PENDENTE.",
             statusFinanceiro: "PENDENTE",
             
             // Compatibility fields
@@ -769,7 +846,7 @@ export default function App() {
         }
       }
 
-      alert(`Sincronização concluída! ${addedCount} novos usuários sem ficha foram cadastrados como alunos com graduação inicial Faixa Branca.`);
+      alert(`Sincronização blindada concluída! ${addedCount} novos usuários foram matriculados como alunos pendentes.`);
     } catch (err: any) {
       console.error("Sincronização de usuários falhou:", err);
       alert("Erro ao sincronizar usuários: " + err.message);
@@ -1688,6 +1765,40 @@ export default function App() {
                 <Search className="w-4 h-4 text-zinc-600 absolute right-3.5 top-1/2 -translate-y-1/2" />
               </div>
 
+              {/* Filtros de Aluno por Status operacional */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                {(["ATIVOS", "INATIVOS", "PENDENTES", "TODOS"] as const).map((fs) => {
+                  const isSel = filterStatus === fs;
+                  // Contagem inteligente correspondente
+                  const count = alunos.filter((a) => {
+                    const norm = (a.status || "").toUpperCase().trim();
+                    if (fs === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
+                    if (fs === "INATIVOS") return norm === "INATIVO";
+                    if (fs === "PENDENTES") return norm === "PENDENTE";
+                    return true;
+                  }).filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase())).length;
+
+                  return (
+                    <button
+                      key={fs}
+                      onClick={() => setFilterStatus(fs)}
+                      className={`px-3 py-1.5 rounded-xl border text-[10px] font-mono font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer ${
+                        isSel
+                          ? "bg-red-950/40 text-red-500 border-red-900 shadow-sm animate-fadeIn"
+                          : "bg-zinc-950 text-zinc-500 border-zinc-900/60 hover:text-zinc-400"
+                      }`}
+                    >
+                      <span>{fs}</span>
+                      <span className={`px-1.5 py-0.2 rounded-md text-[8.5px] font-sans ${
+                        isSel ? "bg-red-900/60 text-red-300" : "bg-zinc-900 text-zinc-650"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
               {/* Add Aluno inline modal form */}
               {showAddForm && activeRole === "ADMIN" && (
                 <div className="bg-[#141414] border border-zinc-900 p-4.5 rounded-2xl text-left space-y-4 animate-fadeIn">
@@ -1719,11 +1830,26 @@ export default function App() {
 
               {/* Student list elements em Grade Bento Premium */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="students-bento-grid">
-                {alunos.filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
-                  <p className="col-span-full text-center text-xs text-zinc-550 py-8 font-mono">Nenhum aluno encontrado na lista da academia.</p>
+                {alunos
+                  .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(a => {
+                    const norm = (a.status || "").toUpperCase().trim();
+                    if (filterStatus === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
+                    if (filterStatus === "INATIVOS") return norm === "INATIVO";
+                    if (filterStatus === "PENDENTES") return norm === "PENDENTE";
+                    return true;
+                  }).length === 0 ? (
+                  <p className="col-span-full text-center text-xs text-zinc-550 py-8 font-mono">Nenhum aluno encontrado com esses filtros.</p>
                 ) : (
                   alunos
                     .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .filter(a => {
+                      const norm = (a.status || "").toUpperCase().trim();
+                      if (filterStatus === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
+                      if (filterStatus === "INATIVOS") return norm === "INATIVO";
+                      if (filterStatus === "PENDENTES") return norm === "PENDENTE";
+                      return true;
+                    })
                     .map(a => (
                       <div 
                         key={a.id}
@@ -1826,7 +1952,7 @@ export default function App() {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    if (confirm(`Tem certeza de que deseja EXCLUIR permanentemente o aluno ${a.nome} e todo o seu histórico financeiro do sistema?`)) {
+                                    if (confirm(`Tem certeza de que deseja INATIVAR o aluno ${a.nome}? O acesso será suspenso, mas seu histórico completo (mensalidades, presenças, exames e graduações) permanecerá preservado.`)) {
                                       handleDeleteAluno(a.id);
                                     }
                                   }}
@@ -2039,6 +2165,7 @@ export default function App() {
                 sendPasswordReset={sendPasswordReset}
                 logout={logout}
                 onUpdateCadastro={handleUpdateCadastroProfile}
+                alunoFicha={defaultStudent}
               />
 
               {/* Global Config Settings Form ONLY if ADMIN */}

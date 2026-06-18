@@ -68,8 +68,70 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
   // Find index of student's current sash in roadmap
   const currentSashIndex = sashesRoadmap.findIndex(b => b.sash === aluno.graduacao);
 
+  // Calcular completude de forma leve para o aviso do portal
+  const completudeInfo = (() => {
+    let count = 0;
+    const pendentes: string[] = [];
+
+    if (aluno.cpf && aluno.cpf.trim() !== "" && aluno.cpf !== "(Não cadastrado)") count += 15;
+    else pendentes.push("CPF");
+
+    if (aluno.rg && aluno.rg.trim() !== "") count += 15;
+    else pendentes.push("RG");
+
+    if (aluno.dataNascimento && aluno.dataNascimento.trim() !== "" && aluno.dataNascimento !== "2000-01-01") count += 15;
+    else pendentes.push("Data de Nascimento");
+
+    const tel = aluno.telefone || aluno.celular;
+    if (tel && tel.trim() !== "" && tel !== "(Não cadastrado)") count += 15;
+    else pendentes.push("Telefone");
+
+    if (aluno.endereco && aluno.endereco.trim() !== "") count += 15;
+    else pendentes.push("Endereço");
+
+    if (aluno.foto && aluno.foto.trim() !== "") count += 10;
+    else pendentes.push("Foto");
+
+    let isMenor = false;
+    if (aluno.dataNascimento && aluno.dataNascimento !== "2000-01-01") {
+      try {
+        const nasc = new Date(aluno.dataNascimento);
+        const idadeDifMs = Date.now() - nasc.getTime();
+        const idadeDate = new Date(idadeDifMs);
+        const idade = Math.abs(idadeDate.getUTCFullYear() - 1970);
+        isMenor = idade < 18;
+      } catch {}
+    }
+
+    if (isMenor) {
+      if (aluno.responsavel && aluno.responsavel.trim() !== "") count += 15;
+      else pendentes.push("Responsável");
+    } else {
+      count += 15;
+    }
+
+    return { percent: Math.min(count, 100), pendentes };
+  })();
+
   return (
     <div className="space-y-6">
+      {/* Alerta de Completude de Cadastro no Topo do Painel */}
+      {completudeInfo.percent < 100 && (
+        <div className="p-4 bg-red-950/20 border border-red-900/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn text-left shadow-lg">
+          <div className="space-y-1">
+            <h4 className="text-xs font-black text-amber-500 uppercase tracking-wider font-mono flex items-center gap-1.5">
+              ⚠️ Portal Limitado - Cadastro Incompleto
+            </h4>
+            <p className="text-[11px] text-zinc-300 leading-relaxed font-sans">
+              Complete seu cadastro no menu <strong className="text-white uppercase">"Menu & Perfil"</strong> para liberar todos os recursos da plataforma acadêmica da escola.
+            </p>
+          </div>
+          <span className="shrink-0 text-[10px] bg-red-950 text-red-450 border border-red-900/45 font-mono font-bold px-2.5 py-1 rounded-xl">
+            {completudeInfo.percent}% Preenchido
+          </span>
+        </div>
+      )}
+
       {/* Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
