@@ -9,7 +9,10 @@ service cloud.firestore {
 
     // Helper para verificar se o usuário é o administrador principal pelo e-mail
     function isMainAdminEmail() {
-      return isSignedIn() && request.auth.token.email.lower() == "deciopadovanijr@gmail.com";
+      return isSignedIn() && 
+             request.auth.token != null && 
+             request.auth.token.email != null && 
+             request.auth.token.email == "deciopadovanijr@gmail.com";
     }
 
     // Retorna o perfil do usuário atual do Firestore (se existir)
@@ -22,6 +25,8 @@ service cloud.firestore {
       return isSignedIn() && (
         isMainAdminEmail() ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null &&
+         'role' in getUserData() &&
          (getUserData().role == "ADMIN" || 
           getUserData().role == "admin" || 
           getUserData().role == "Admin" ||
@@ -34,6 +39,8 @@ service cloud.firestore {
     function isInstructor() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData() != null &&
+        'role' in getUserData() &&
         (getUserData().role == "INSTRUTOR" || 
          getUserData().role == "instrutor" || 
          getUserData().role == "PROFESSOR" || 
@@ -50,9 +57,12 @@ service cloud.firestore {
     function isStudentOwner(alunoId) {
       return isSignedIn() && (
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         getUserData().alunoId != null && getUserData().alunoId == alunoId) ||
-        (resource != null && resource.data.userId == request.auth.uid) ||
-        (resource != null && request.auth.token.email != null && resource.data.email == request.auth.token.email)
+         getUserData() != null &&
+         'alunoId' in getUserData() &&
+         getUserData().alunoId != null && 
+         getUserData().alunoId == alunoId) ||
+        (resource != null && 'data' in resource && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
+        (resource != null && 'data' in resource && 'email' in resource.data && request.auth.token != null && request.auth.token.email != null && resource.data.email == request.auth.token.email)
       );
     }
 
@@ -64,7 +74,7 @@ service cloud.firestore {
       allow create: if isSignedIn() && isOwner(userId) && (
         isMainAdminEmail() || 
         (!request.resource.data.keys().hasAny(['permissions', 'cargo']) && 
-         (request.resource.data.role == "ALUNO" || request.resource.data.role == "aluno" || !request.resource.data.keys().hasAny(['role'])))
+         ('role' in request.resource.data && (request.resource.data.role == "ALUNO" || request.resource.data.role == "aluno") || !request.resource.data.keys().hasAny(['role'])))
       );
       allow update: if isSignedIn() && (
         isAdmin() || 
@@ -86,13 +96,13 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (request.auth.token.email != null && resource.data.email == request.auth.token.email)
+        (resource != null && 'data' in resource && 'email' in resource.data && request.auth.token != null && request.auth.token.email != null && resource.data.email == request.auth.token.email)
       );
       // Apenas administradores e professores/instrutores adicionam ou deletam alunos, ou o próprio aluno ao se auto-matricular
       allow create: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (request.resource.data.userId == request.auth.uid)
+        (request.resource != null && 'data' in request.resource && 'userId' in request.resource.data && request.resource.data.userId == request.auth.uid)
       );
       allow update: if isSignedIn() && (
         isAdmin() || 
@@ -116,16 +126,20 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       // Permitir criação se for admin/instrutor ou solicitação vinda do próprio aluno logado
       allow create: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (request.resource.data.status == "PENDING" && 
+        (request.resource != null && 'data' in request.resource && 'status' in request.resource.data && 'alunoId' in request.resource.data &&
+         request.resource.data.status == "PENDING" && 
          request.resource.data.alunoId != null && 
          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData() != null && 'alunoId' in getUserData() &&
          request.resource.data.alunoId == getUserData().alunoId)
       );
       allow update: if isSignedIn() && (isAdmin() || isInstructor());
@@ -137,7 +151,9 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
@@ -148,7 +164,9 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
@@ -159,7 +177,9 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
@@ -182,7 +202,9 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data && 
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
@@ -194,7 +216,9 @@ service cloud.firestore {
         isAdmin() || 
         isInstructor() || 
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          getUserData().alunoId != null && 
+         resource != null && 'data' in resource && 'alunosIds' in resource.data &&
          getUserData().alunoId in resource.data.alunosIds)
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
@@ -211,14 +235,18 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+        (resource != null && 'data' in resource && 'alunoId' in resource.data &&
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         getUserData() != null && 'alunoId' in getUserData() &&
          resource.data.alunoId == getUserData().alunoId)
       );
       allow write: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         request.resource.data.alunoId == getUserData().alunoId)
+         getUserData() != null && 'alunoId' in getUserData() &&
+         (request.resource != null && 'data' in request.resource && 'alunoId' in request.resource.data &&
+          request.resource.data.alunoId == getUserData().alunoId))
       );
     }
   }
