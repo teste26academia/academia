@@ -293,7 +293,7 @@ export function Perfil({
                   </div>
                   <div>
                     <span className="text-zinc-500 font-mono text-[9px] uppercase tracking-wider block">Graduação:</span>
-                    <span className="text-amber-500 font-bold font-sans">{alunoFicha.graduacaoAtual || alunoFicha.graduacao || "Faixa Branca"}</span>
+                    <span className="text-amber-500 font-bold font-sans">{alunoFicha.graduacao || "Preparatória - Branca"}</span>
                   </div>
                   <div>
                     <span className="text-zinc-500 font-mono text-[9px] uppercase tracking-wider block">Estilo/Modalidade:</span>

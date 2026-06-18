@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Aluno, Turma, Instrutor, Pagamento, GraduacaoSash, GlobalConfigs, Produto, Venda, Familia, Presenca } from "../types";
+import { Aluno, Turma, Instrutor, Pagamento, GlobalConfigs, Produto, Venda, Familia, Presenca } from "../types";
 import { Users, DollarSign, Award, Plus, Trash2, Search, UserPlus, BookOpen, Clock, UsersRound, Settings, CheckCircle2, AlertCircle, Sparkles, Megaphone, Smartphone, Activity, Pencil, BarChart3, Package, Download } from "lucide-react";
 import DiagnosticPanel from "./DiagnosticPanel";
 
@@ -133,7 +133,7 @@ export default function AdminPanel({
   const [cpf, setCpf] = useState("");
   const [rg, setRg] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
-  const [graduacao, setGraduacao] = useState<GraduacaoSash>(GraduacaoSash.BRANCA);
+  const [graduacao, setGraduacao] = useState<string>("Preparatória - Branca");
   const [turmaId, setTurmaId] = useState("");
   const [planoTipo, setPlanoTipo] = useState<"1x_semana" | "2x_semana" | "3x_semana" | "4x_semana" | "outro">("2x_semana");
   const [mensalidade, setMensalidade] = useState(160);
@@ -210,7 +210,7 @@ export default function AdminPanel({
     setCpf("");
     setRg("");
     setDataNascimento("");
-    setGraduacao(GraduacaoSash.BRANCA);
+    setGraduacao("Preparatória - Branca");
     setTurmaId("");
     setPlanoTipo("2x_semana");
     setMensalidade(160);
@@ -711,12 +711,66 @@ export default function AdminPanel({
                       <select
                         id="form-graduacao"
                         value={graduacao}
-                        onChange={(e) => setGraduacao(e.target.value as GraduacaoSash)}
+                        onChange={(e) => setGraduacao(e.target.value)}
                         className="w-full p-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none"
                       >
-                        {Object.values(GraduacaoSash).map((val) => (
-                          <option key={val} value={val}>{val}</option>
-                        ))}
+                        {(() => {
+                          const OBTEM_GRADUACOES_DE_MODALIDADE = (mod: string): string[] => {
+                            const normalized = mod.toLowerCase();
+                            if (normalized.includes("kung fu")) {
+                              return [
+                                "Preparatória - Branca",
+                                "1ª Fase - Branca Ponta Amarela",
+                                "2ª Fase - Branca Ponta Verde",
+                                "3ª Fase - Verde",
+                                "4ª Fase - Verde Ponta Marrom",
+                                "5ª Fase - Marrom",
+                                "6ª Fase - Marrom Ponta Preta",
+                                "7ª Fase - Preta",
+                                "1º Dhuen - Preta",
+                                "2º Dhuen - Preta",
+                                "3º Dhuen - Preta",
+                                "4º Dhuen - Preta",
+                                "5º Dhuen - Preta",
+                                "6º Dhuen - Preta",
+                                "7º Dhuen - Preta",
+                                "8º Dhuen - Preta",
+                                "9º Dhuen - Preta"
+                              ];
+                            }
+                            if (normalized.includes("tai chi")) {
+                              return [
+                                "Preparatória - Branca",
+                                "1ª Fase - Branca Ponta Amarela",
+                                "2ª Fase - Branca Ponta Verde",
+                                "3ª Fase - Verde"
+                              ];
+                            }
+                            if (normalized.includes("boxe") || normalized.includes("sanda")) {
+                              return [
+                                "Preparatória - Branca",
+                                "1ª Fase - Laranja",
+                                "2ª Fase - Vermelha",
+                                "3ª Fase - Azul",
+                                "4ª Fase - Marrom",
+                                "5ª Fase - Preta"
+                              ];
+                            }
+                            return [];
+                          };
+
+                          const allGrads = Array.from(new Set(
+                            modalidadesSelecionadas.flatMap(m => OBTEM_GRADUACOES_DE_MODALIDADE(m))
+                          ));
+
+                          if (allGrads.length === 0) {
+                            allGrads.push("Preparatória - Branca");
+                          }
+
+                          return allGrads.map((val) => (
+                            <option key={val} value={val}>{val}</option>
+                          ));
+                        })()}
                       </select>
                     </div>
 

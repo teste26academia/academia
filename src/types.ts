@@ -9,16 +9,7 @@ export enum UserRole {
   ALUNO = "ALUNO"
 }
 
-export enum GraduacaoSash {
-  BRANCA = "Faixa Branca",
-  AMARELA = "Faixa Amarela",
-  LARANJA = "Faixa Laranja",
-  VERMELHA = "Faixa Vermelha",
-  VERDE = "Faixa Verde",
-  AZUL = "Faixa Azul",
-  MARROM = "Faixa Marrom",
-  PRETA = "Faixa Preta"
-}
+
 
 export interface Aluno {
   id: string;
@@ -34,7 +25,7 @@ export interface Aluno {
   responsavel: string;
   foto: string;
   dataMatricula: string;
-  graduacaoAtual: string; // "Faixa Branca", "Faixa Amarela", etc.
+  graduacaoAtual: string; // "Preparatória - Branca", "1ª Fase - Branca Ponta Amarela", etc.
   dataUltimaGraduacao: string;
   status: "Ativo" | "Inativo" | "Pendente" | "ATIVO" | "INATIVO" | "PENDENTE";
   turmaId: string;
@@ -101,8 +92,8 @@ export interface GlobalConfigs {
 export interface HistoricoGraduacao {
   id: string;
   alunoId: string;
-  graduacaoAnterior: string; // "Faixa Branca", etc.
-  graduacaoNova: string; // "Faixa Amarela", etc.
+  graduacaoAnterior: string; // "Preparatória - Branca", etc.
+  graduacaoNova: string; // "1ª Fase - Branca Ponta Amarela", etc.
   dataGraduacao: string; // YYYY-MM-DD
   avaliador: string;
   observacoes: string;

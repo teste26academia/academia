@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserRole, Aluno, Turma, Instrutor, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia, AlunoModalidade, GraduacoesConfig } from "./types";
+import { UserRole, Aluno, Turma, Instrutor, Presenca, HistoricoGraduacao, Pagamento, GlobalConfigs, Exame, Produto, Venda, Familia, AlunoModalidade, GraduacoesConfig } from "./types";
 import {
   INITIAL_ALUNOS,
   INITIAL_TURMAS,
@@ -70,7 +70,17 @@ function getSubModalityGradeAndFaixa(modName: string, gradName: string) {
   if (modName === "Tai Chi Chuan") list = TAI_CHI_GRADUATIONS;
   if (modName === "Boxe Chinês") list = BOXE_CHINES_GRADUATIONS;
 
-  const matched = list.find(g => g.graduacao.toLowerCase() === gradName.toLowerCase());
+  const target = (gradName || "").toLowerCase().trim();
+
+  // Try to find an exact match or substring match or if target contains graduacao or faixa
+  const matched = list.find(g => {
+    const fullGradAndFaixa = `${g.graduacao} - ${g.faixa}`.toLowerCase();
+    return fullGradAndFaixa === target ||
+           fullGradAndFaixa.includes(target) || 
+           target.includes(g.graduacao.toLowerCase()) ||
+           (g.faixa !== "Branca" && target.includes(g.faixa.toLowerCase()));
+  });
+
   if (matched) {
     return {
       graduacao: matched.graduacao,
@@ -78,10 +88,42 @@ function getSubModalityGradeAndFaixa(modName: string, gradName: string) {
       ordem: matched.ordem
     };
   }
+
+  // Fallbacks: if "amarela/laranja/vermelha/verde/azul/marrom/preta"
+  if (target.includes("amarela")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("amarela") || g.graduacao.toLowerCase().includes("1ª"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("laranja")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("laranja"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("vermelha")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("vermelha"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("verde")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("verde") || g.graduacao.toLowerCase().includes("3ª"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("azul")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("azul"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("marrom")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("marrom"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+  if (target.includes("preta")) {
+    const item = list.find(g => g.faixa.toLowerCase().includes("preta") || g.graduacao.toLowerCase().includes("preta"));
+    if (item) return { graduacao: item.graduacao, faixa: item.faixa, ordem: item.ordem };
+  }
+
+  // Default fallback
   return {
-    graduacao: gradName,
-    faixa: "Branca",
-    ordem: 1
+    graduacao: list[0].graduacao,
+    faixa: list[0].faixa,
+    ordem: list[0].ordem
   };
 }
 
@@ -674,8 +716,8 @@ export default function App() {
           cpf: newAlunoData.cpf,
           rg: newAlunoData.rg || "",
           dataNascimento: newAlunoData.dataNascimento || "",
-          graduacao: newAlunoData.graduacao || "Faixa Branca",
-          graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Faixa Branca",
+          graduacao: newAlunoData.graduacao || "Preparatória - Branca",
+          graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Preparatória - Branca",
           turmaId: newAlunoData.turmaId,
           planoTipo: newAlunoData.planoTipo || "2x_semana",
           mensalidade: newAlunoData.mensalidade || 160,
@@ -705,8 +747,8 @@ export default function App() {
         id: newId,
         userId: newAlunoData.userId || "",
         statusFinanceiro: newAlunoData.statusFinanceiro || "EM DIA",
-        graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Faixa Branca",
-        graduacao: newAlunoData.graduacao || "Faixa Branca",
+        graduacaoAtual: newAlunoData.graduacaoAtual || newAlunoData.graduacao || "Preparatória - Branca",
+        graduacao: newAlunoData.graduacao || "Preparatória - Branca",
         telefone: newAlunoData.telefone || newAlunoData.celular || "",
         whatsapp: newAlunoData.whatsapp || newAlunoData.celular || "",
         status: newAlunoData.status || "Ativo",
@@ -879,7 +921,7 @@ export default function App() {
           responsavel: dados.responsavel || "",
           foto: dados.foto || "",
           dataMatricula: todayString,
-          graduacaoAtual: "Faixa Branca",
+          graduacaoAtual: "Preparatória - Branca",
           dataUltimaGraduacao: todayString,
           status: novoStatus,
           turmaId: "turma_1",
@@ -887,7 +929,7 @@ export default function App() {
           observacoes: "Ficha criada via preenchimento de perfil.",
           statusFinanceiro: "PENDENTE",
           
-          graduacao: "Faixa Branca",
+          graduacao: "Preparatória - Branca",
           celular: dados.celular || "",
           planoTipo: "2x_semana",
           mensalidade: 160,
@@ -1025,7 +1067,7 @@ export default function App() {
             responsavel: u.responsavel || "",
             foto: u.foto || "",
             dataMatricula: todayString,
-            graduacaoAtual: "Faixa Branca",
+            graduacaoAtual: "Preparatória - Branca",
             dataUltimaGraduacao: todayString,
             status: "PENDENTE", // Sincronizados iniciam como PENDENTE para auditoria operacional
             turmaId: u.turmaId || defaultTurmaId,
@@ -1034,7 +1076,7 @@ export default function App() {
             statusFinanceiro: "PENDENTE",
             
             // Compatibility fields
-            graduacao: "Faixa Branca",
+            graduacao: "Preparatória - Branca",
             celular: u.telefone || u.celular || "",
             planoTipo: "2x_semana",
             mensalidade: 160,
@@ -1116,8 +1158,8 @@ export default function App() {
 
         // Também atualiza o documento do aluno principal (para compatibilidade retrô sem quebrar telas existentes)
         await updateDoc(doc(db, "alunos", aluno.id), {
-          graduacao: gradeDetails.faixa,
-          graduacaoAtual: `${gradeDetails.graduacao} (${gradeDetails.faixa})`,
+          graduacao: `${gradeDetails.graduacao} - ${gradeDetails.faixa}`,
+          graduacaoAtual: `${gradeDetails.graduacao} - ${gradeDetails.faixa}`,
           dataUltimaGraduacao: exameDataObj.dataExame
         });
 
@@ -1128,8 +1170,8 @@ export default function App() {
           alunoId: aluno.id,
           alunoNome: aluno.nome,
           modalidade: chosenMod,
-          graduacaoAnterior: aluno.graduacao || aluno.graduacaoAtual || "Faixa Branca",
-          graduacaoNova: `${gradeDetails.graduacao} (${gradeDetails.faixa})`,
+          graduacaoAnterior: aluno.graduacao || "Preparatória - Branca",
+          graduacaoNova: `${gradeDetails.graduacao} - ${gradeDetails.faixa}`,
           dataGraduacao: exameDataObj.dataExame,
           avaliador: exameDataObj.avaliador,
           resultado: "Aprovado"
@@ -1721,7 +1763,7 @@ export default function App() {
         celular: "(Não cadastrado)",
         cpf: "(Não cadastrado)",
         dataNascimento: "",
-        graduacao: GraduacaoSash.BRANCA,
+        graduacao: "Preparatória - Branca",
         dataUltimaGraduacao: "",
         status: "Ativo" as const,
         turmaId: "turma_1",
@@ -2310,7 +2352,7 @@ export default function App() {
                             <button
                               onClick={() => {
                                 setAlunoSelecionadoExame(a);
-                                setExameGradPretendida(a.graduacao || "Faixa Amarela");
+                                setExameGradPretendida(a.graduacao || "Preparatória - Branca");
                                 setExameData(new Date().toISOString().split("T")[0]);
                                 setExameNotaTec(8);
                                 setExameNotaTeor(8);
@@ -2397,15 +2439,75 @@ export default function App() {
                           onChange={(e) => setExameGradPretendida(e.target.value)}
                           className="w-full bg-zinc-900 border border-zinc-800 p-2 rounded-lg focus:border-red-700 outline-none text-white font-mono text-[11px]"
                         >
-                          <option value="Faixa Branca">Faixa Branca</option>
-                          <option value="Faixa Amarela">Faixa Amarela</option>
-                          <option value="Faixa Laranja">Faixa Laranja</option>
-                          <option value="Faixa Verde">Faixa Verde</option>
-                          <option value="Faixa Azul">Faixa Azul</option>
-                          <option value="Faixa Cinza">Faixa Cinza</option>
-                          <option value="Faixa Marrom">Faixa Marrom</option>
-                          <option value="Faixa Preta">Faixa Preta (1º Duan)</option>
-                          <option value="Faixa Vermelha">Faixa Vermelha</option>
+                          {(() => {
+                            const studentMods: string[] = [];
+                            const rawModStr = alunoSelecionadoExame.modalidade || "";
+                            const rawModsArr = alunoSelecionadoExame.modalidades || [];
+                            
+                            // Parse modalities
+                            const list = rawModsArr.length > 0 
+                              ? rawModsArr 
+                              : rawModStr.split(",").map((x: string) => x.trim()).filter(Boolean);
+                              
+                            const normalized = list.map((m: string) => {
+                              if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
+                              if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+                              return "Kung Fu";
+                            });
+
+                            const uniqueMods = Array.from(new Set(normalized.length > 0 ? normalized : ["Kung Fu"]));
+
+                            const gradsByMod = (m: string) => {
+                              if (m === "Kung Fu") {
+                                return [
+                                  "Preparatória - Branca",
+                                  "1ª Fase - Branca Ponta Amarela",
+                                  "2ª Fase - Branca Ponta Verde",
+                                  "3ª Fase - Verde",
+                                  "4ª Fase - Verde Ponta Marrom",
+                                  "5ª Fase - Marrom",
+                                  "6ª Fase - Marrom Ponta Preta",
+                                  "7ª Fase - Preta",
+                                  "1º Dhuen - Preta",
+                                  "2º Dhuen - Preta",
+                                  "3º Dhuen - Preta",
+                                  "4º Dhuen - Preta",
+                                  "5º Dhuen - Preta",
+                                  "6º Dhuen - Preta",
+                                  "7º Dhuen - Preta",
+                                  "8º Dhuen - Preta",
+                                  "9º Dhuen - Preta"
+                                ];
+                              }
+                              if (m === "Tai Chi Chuan") {
+                                return [
+                                  "Preparatória - Branca",
+                                  "1ª Fase - Branca Ponta Amarela",
+                                  "2ª Fase - Branca Ponta Verde",
+                                  "3ª Fase - Verde"
+                                ];
+                              }
+                              if (m === "Boxe Chinês") {
+                                return [
+                                  "Preparatória - Branca",
+                                  "1ª Fase - Laranja",
+                                  "2ª Fase - Vermelha",
+                                  "3ª Fase - Azul",
+                                  "4ª Fase - Marrom",
+                                  "5ª Fase - Preta"
+                                ];
+                              }
+                              return ["Preparatória - Branca"];
+                            };
+
+                            const allOptions = Array.from(new Set(
+                              (uniqueMods as string[]).flatMap((m: string) => gradsByMod(m))
+                            ));
+
+                            return allOptions.map(opt => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ));
+                          })()}
                         </select>
                       </div>
 

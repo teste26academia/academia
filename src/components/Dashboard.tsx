@@ -329,7 +329,7 @@ export function Dashboard({
                 Olá, <span className="text-red-500 uppercase">{defaultStudent?.nome || "Membro"}</span>!
               </h2>
               <p className="text-xs text-zinc-400 leading-normal">
-                Faixa <strong className="text-amber-400">{defaultStudent?.graduacaoAtual ? defaultStudent.graduacaoAtual : "Branca"}</strong> na modalidade <strong className="text-zinc-200">{defaultStudent?.modalidade || "Kung Fu"}</strong>. Seu status financeiro:{" "}
+                Graduação <strong className="text-amber-400">{defaultStudent?.graduacao || "Preparatória - Branca"}</strong> na modalidade <strong className="text-zinc-200">{defaultStudent?.modalidade || "Kung Fu"}</strong>. Seu status financeiro:{" "}
                 <span className={`font-black uppercase text-[10px] ${defaultStudent?.statusFinanceiro && defaultStudent.statusFinanceiro.toUpperCase() === "EM DIA" ? "text-emerald-400" : "text-rose-500"}`}>
                   {defaultStudent?.statusFinanceiro || "Regular"}
                 </span>
@@ -403,7 +403,7 @@ export function Dashboard({
                   </div>
                   <div>
                     <p className="text-[8px] text-zinc-400 font-mono uppercase leading-none">Graduação</p>
-                    <p className="text-[11px] font-bold text-amber-400">{defaultStudent?.graduacaoAtual || "Faixa Branca"}</p>
+                    <p className="text-[11px] font-bold text-amber-400">{defaultStudent?.graduacao || "Preparatória - Branca"}</p>
                   </div>
                 </div>
               </div>

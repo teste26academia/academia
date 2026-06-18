@@ -155,7 +155,7 @@ export default function FichaAlunoModal({
         dataUltimaGraduacao: found.dataUltimaGraduacao
       };
     }
-    const mapped = mapLegacyToNewGrad(aluno.graduacaoAtual || aluno.graduacao || "Faixa Branca", modName);
+    const mapped = mapLegacyToNewGrad(aluno.graduacao || "Preparatória - Branca", modName);
     return {
       graduacaoAtual: mapped.graduacao,
       faixaAtual: mapped.faixa,
@@ -243,7 +243,7 @@ export default function FichaAlunoModal({
               <p className="text-[10px] text-zinc-500 font-mono flex flex-wrap gap-x-2">
                 <span>MATRÍCULA: {formatarData(aluno.dataMatricula)}</span>
                 <span>•</span>
-                <span className="text-amber-500 font-bold uppercase">{aluno.graduacao || aluno.graduacaoAtual || "Faixa Branca"}</span>
+                <span className="text-amber-500 font-bold uppercase">{aluno.graduacao || "Preparatória - Branca"}</span>
               </p>
             </div>
           </div>

@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   responsavel: "",
                   foto: firebaseUser.photoURL || "",
                   dataMatricula: new Date().toISOString().split("T")[0],
-                  graduacaoAtual: "Faixa Branca",
+                  graduacaoAtual: "Preparatória - Branca",
                   dataUltimaGraduacao: new Date().toISOString().split("T")[0],
                   status: "PENDENTE", // Status inicial PENDENTE
                   turmaId: "turma_1",
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   statusFinanceiro: "PENDENTE",
                   
                   // Compatibilidade
-                  graduacao: "Faixa Branca",
+                  graduacao: "Preparatória - Branca",
                   celular: "",
                   planoTipo: "2x_semana",
                   relativeUrl: "",
@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     responsavel: "",
                     foto: firebaseUser.photoURL || "",
                     dataMatricula: new Date().toISOString().split("T")[0],
-                    graduacaoAtual: "Faixa Branca",
+                    graduacaoAtual: "Preparatória - Branca",
                     dataUltimaGraduacao: new Date().toISOString().split("T")[0],
                     status: "PENDENTE", // Status inicial PENDENTE
                     turmaId: "turma_1",
@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     statusFinanceiro: "PENDENTE",
                     
                     // Compatibilidade
-                    graduacao: "Faixa Branca",
+                    graduacao: "Preparatória - Branca",
                     celular: "",
                     planoTipo: "2x_semana",
                     mensalidade: 160,

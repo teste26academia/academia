@@ -218,7 +218,7 @@ export function Relatorios({
                     onClick={() => {
                       const ativos = alunos.filter(a => !a.status || a.status === "ATIVO" || a.status === "Ativo");
                       const headers = ["ID", "Nome", "E-mail", "WhatsApp", "CPF", "Status", "Graduacao"];
-                      const rows = ativos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Branca"]);
+                      const rows = ativos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Preparatória - Branca"]);
                       downloadCSV("alunos_ativos", headers, rows);
                     }}
                     className="px-3 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
@@ -230,7 +230,7 @@ export function Relatorios({
                     type="button"
                     onClick={() => {
                       const headers = ["ID", "Nome", "E-mail", "WhatsApp", "CPF", "Status", "Graduacao"];
-                      const rows = alunos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Branca"]);
+                      const rows = alunos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Preparatória - Branca"]);
                       downloadCSV("corpo_docente", headers, rows);
                     }}
                     className="px-3 py-1.5 bg-red-850 hover:bg-red-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
@@ -271,7 +271,7 @@ export function Relatorios({
                     {alunos.map(a => (
                       <tr key={a.id} className="hover:bg-zinc-900/40">
                         <td className="p-2.5 text-white font-bold">{a.nome}</td>
-                        <td className="p-2.5 font-mono text-[11px] text-amber-500">{a.graduacao || a.graduacaoAtual || "Branca"}</td>
+                        <td className="p-2.5 font-mono text-[11px] text-amber-500">{a.graduacao || "Preparatória - Branca"}</td>
                         <td className="p-2.5">
                           <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
                             (!a.status || a.status === "ATIVO" || a.status === "Ativo")
