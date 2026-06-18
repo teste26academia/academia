@@ -371,7 +371,7 @@ export default function StudentPanel({ aluno, turma, presencas, pagamentos, onSo
         </div>
 
         {activeRoadmaps.map((rm) => {
-          const matchedIndex = rm.nodes.findIndex(n => n.sash.toLowerCase() === rm.currentSash.toLowerCase());
+          const matchedIndex = rm.nodes.findIndex(n => (n.sash || "").toLowerCase() === (rm.currentSash || "").toLowerCase());
           const currentSashIndex = matchedIndex >= 0 ? matchedIndex : 0;
 
           return (

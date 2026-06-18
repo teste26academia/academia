@@ -136,8 +136,9 @@ export default function FichaAlunoModal({
       raw = ["Kung Fu"];
     }
     return raw.map(m => {
-      if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
-      if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+      const lowerM = (m || "").toLowerCase();
+      if (lowerM.includes("tai chi") || lowerM.includes("taichi")) return "Tai Chi Chuan";
+      if (lowerM.includes("boxe") || lowerM.includes("sanda")) return "Boxe Chinês";
       return "Kung Fu";
     });
   };

@@ -209,6 +209,36 @@
         "enderecoAcademia": { "type": "string" }
       },
       "required": ["id", "descontoFamiliarPercentualPadrao", "descontoFamiliarFixoPadrao", "avisoMural", "contatoSuporte", "enderecoAcademia"]
+    },
+    "GraduacoesConfig": {
+      "title": "GraduacoesConfig",
+      "description": "Regras de sequência e tempos de graduação por estilo de modalidade",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "modalidade": { "type": "string" },
+        "graduacao": { "type": "string" },
+        "faixa": { "type": "string" },
+        "tempoEstimadoMeses": { "type": "number" },
+        "ordem": { "type": "number" }
+      },
+      "required": ["id", "modalidade", "graduacao", "faixa", "tempoEstimadoMeses", "ordem"]
+    },
+    "AlunoModalidade": {
+      "title": "AlunoModalidade",
+      "description": "Prática de modalidade específica ativa do aluno",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "alunoId": { "type": "string" },
+        "modalidade": { "type": "string" },
+        "graduacaoAtual": { "type": "string" },
+        "faixaAtual": { "type": "string" },
+        "ordemGraduacao": { "type": "number" },
+        "dataUltimaGraduacao": { "type": "string" },
+        "ativo": { "type": "boolean" }
+      },
+      "required": ["id", "alunoId", "modalidade", "graduacaoAtual", "faixaAtual", "ordemGraduacao", "dataUltimaGraduacao", "ativo"]
     }
   },
   "firestore": {
@@ -259,6 +289,14 @@
     "/familias/{familiaId}": {
       "schema": "Familia",
       "description": "Agrupamento de alunos para fins de desconto familiar"
+    },
+    "/graduacoes_config/{configId}": {
+      "schema": "GraduacoesConfig",
+      "description": "Configurações de ordem de graduação e tempos por modalidade"
+    },
+    "/aluno_modalidades/{alModId}": {
+      "schema": "AlunoModalidade",
+      "description": "Vínculo de modalidades individuais e progresso de cada aluno"
     }
   }
 }

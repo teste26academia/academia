@@ -199,5 +199,27 @@ service cloud.firestore {
       );
       allow write: if isSignedIn() && (isAdmin() || isInstructor());
     }
+
+    // 12. graduacoes_config
+    match /graduacoes_config/{configId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (isAdmin() || isInstructor());
+    }
+
+    // 13. aluno_modalidades
+    match /aluno_modalidades/{alModId} {
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         resource.data.alunoId == getUserData().alunoId)
+      );
+      allow write: if isSignedIn() && (
+        isAdmin() || 
+        isInstructor() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         request.resource.data.alunoId == getUserData().alunoId)
+      );
+    }
   }
 }

@@ -90,11 +90,11 @@ export function Alunos({
 
       {/* Student list elements */}
       <div className="space-y-2.5" id="students-list-container">
-        {alunos.filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+        {alunos.filter(a => (a.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase())).length === 0 ? (
           <p className="text-center text-xs text-zinc-550 py-8">Nenhum aluno encontrado na lista da academia.</p>
         ) : (
           alunos
-            .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+            .filter(a => (a.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase()))
             .map(a => (
               <div 
                 key={a.id}

@@ -589,27 +589,36 @@ export default function App() {
 
   // Helper to align a student's enrolled modalities with matching entries in "aluno_modalidades"
   const syncStudentModalitiesRecords = async (studentId: string, newAlunoData: any) => {
+    if (!studentId || studentId === "undefined") {
+      console.warn("syncStudentModalitiesRecords abortado: ID do aluno está indefinido.");
+      return;
+    }
+    if (!newAlunoData) {
+      console.warn("syncStudentModalitiesRecords abortado: dados do aluno estão vazios.");
+      return;
+    }
     try {
       const officialMods = ["Kung Fu", "Tai Chi Chuan", "Boxe Chinês"];
       let activeModsInput: string[] = [];
       if (newAlunoData.modalidades && newAlunoData.modalidades.length > 0) {
         activeModsInput = newAlunoData.modalidades;
       } else if (newAlunoData.modalidade) {
-        activeModsInput = newAlunoData.modalidade.split(",").map((x: string) => x.trim()).filter(Boolean);
+        activeModsInput = String(newAlunoData.modalidade).split(",").map((x: string) => x.trim()).filter(Boolean);
       } else {
         activeModsInput = ["Kung Fu"];
       }
 
       const normalizedActiveMods = activeModsInput.map((m: string) => {
-        if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
-        if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+        const lowerM = (m || "").toLowerCase();
+        if (lowerM.includes("tai chi") || lowerM.includes("taichi")) return "Tai Chi Chuan";
+        if (lowerM.includes("boxe") || lowerM.includes("sanda")) return "Boxe Chinês";
         return "Kung Fu";
       });
 
       for (const modName of officialMods) {
         const isEnrolled = (normalizedActiveMods as string[]).includes(modName);
         const alModId = `am_${studentId}_${modName.replace(/\s+/g, "")}`;
-        const existingRecord = alunoModalidades.find(am => am.alunoId === studentId && am.modalidade === modName);
+        const existingRecord = alunoModalidades.find(am => am && am.alunoId === studentId && am.modalidade === modName);
 
         if (isEnrolled) {
           if (existingRecord) {
@@ -618,15 +627,15 @@ export default function App() {
               ativo: true
             }, { merge: true });
           } else {
-            const legacyRank = newAlunoData.graduacao || newAlunoData.graduacaoAtual || "Preparatória";
+            const legacyRank = newAlunoData.graduacao || newAlunoData.graduacaoAtual || "Preparatória - Branca";
             const gradeDetails = getSubModalityGradeAndFaixa(modName, legacyRank);
             await setDoc(doc(db, "aluno_modalidades", alModId), {
               id: alModId,
               alunoId: studentId,
               modalidade: modName,
-              graduacaoAtual: gradeDetails.graduacao,
-              faixaAtual: gradeDetails.faixa,
-              ordemGraduacao: gradeDetails.ordem,
+              graduacaoAtual: gradeDetails.graduacao || "Preparatória",
+              faixaAtual: gradeDetails.faixa || "Branca",
+              ordemGraduacao: gradeDetails.ordem || 1,
               dataUltimaGraduacao: newAlunoData.dataUltimaGraduacao || new Date().toISOString().split("T")[0],
               ativo: true
             });
@@ -652,37 +661,42 @@ export default function App() {
 
     const migrateLegacyStudentsAndExams = async () => {
       for (const student of alunos) {
+        if (!student || !student.id || student.id === "undefined") {
+          continue;
+        }
+
         let studentMods: string[] = [];
         if (student.modalidades && student.modalidades.length > 0) {
           studentMods = student.modalidades;
         } else if (student.modalidade) {
-          studentMods = student.modalidade.split(",").map(x => x.trim()).filter(Boolean);
+          studentMods = String(student.modalidade).split(",").map(x => x.trim()).filter(Boolean);
         } else {
           studentMods = ["Kung Fu"];
         }
 
         const normalizedMods = studentMods.map(m => {
-          if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
-          if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+          const lowerM = (m || "").toLowerCase();
+          if (lowerM.includes("tai chi") || lowerM.includes("taichi")) return "Tai Chi Chuan";
+          if (lowerM.includes("boxe") || lowerM.includes("sanda")) return "Boxe Chinês";
           return "Kung Fu";
         });
 
         for (const modName of normalizedMods) {
           const alModId = `am_${student.id}_${modName.replace(/\s+/g, "")}`;
-          const existing = alunoModalidades.find(am => am.alunoId === student.id && am.modalidade === modName);
+          const existing = alunoModalidades.find(am => am && am.alunoId === student.id && am.modalidade === modName);
           
           if (!existing) {
-            console.log(`Migrando estrutura do aluno legado ${student.nome} para a modalidade ${modName}`);
-            const legacyRank = student.graduacao || student.graduacaoAtual || "Preparatória";
+            console.log(`Migrando estrutura do aluno legado ${student.nome || "Sem Nome"} para a modalidade ${modName}`);
+            const legacyRank = student.graduacao || student.graduacaoAtual || "Preparatória - Branca";
             const gradeDetails = getSubModalityGradeAndFaixa(modName, legacyRank);
             
             await setDoc(doc(db, "aluno_modalidades", alModId), {
               id: alModId,
               alunoId: student.id,
               modalidade: modName,
-              graduacaoAtual: gradeDetails.graduacao,
-              faixaAtual: gradeDetails.faixa,
-              ordemGraduacao: gradeDetails.ordem,
+              graduacaoAtual: gradeDetails.graduacao || "Preparatória",
+              faixaAtual: gradeDetails.faixa || "Branca",
+              ordemGraduacao: gradeDetails.ordem || 1,
               dataUltimaGraduacao: student.dataUltimaGraduacao || new Date().toISOString().split("T")[0],
               ativo: true
             });

@@ -192,9 +192,9 @@ export default function AdminPanel({
   };
 
   const filteredAlunos = alunos.filter(a =>
-    a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.cpf.includes(searchTerm)
+    (a.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+    (a.email || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+    (a.cpf || "").includes(searchTerm || "")
   ).filter(a => {
     const norm = (a.status || "").toUpperCase().trim();
     if (filterStatusAdmin === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
@@ -542,9 +542,9 @@ export default function AdminPanel({
                     if (fs === "PENDENTES") return norm === "PENDENTE";
                     return true;
                   }).filter(a =>
-                    a.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    a.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    a.cpf.includes(searchTerm)
+                    (a.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+                    (a.email || "").toLowerCase().includes((searchTerm || "").toLowerCase()) ||
+                    (a.cpf || "").includes(searchTerm || "")
                   ).length;
 
                   return (
@@ -1705,7 +1705,7 @@ export default function AdminPanel({
                   {pagamentos
                     .filter(p => {
                       const name = p.alunoNome || "";
-                      return name.toLowerCase().includes(searchTermFinanceiro.toLowerCase());
+                      return name.toLowerCase().includes((searchTermFinanceiro || "").toLowerCase());
                     })
                     .map(p => {
                       const isPago = p.status === "PAGO" || p.status === "Pago" || p.status === "EM DIA";
