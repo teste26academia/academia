@@ -212,18 +212,33 @@ export function Relatorios({
                   <h3 className="text-sm font-black text-white uppercase font-sans">Relatório Consolidado de Alunos</h3>
                   <p className="text-[10px] text-zinc-500 font-mono">Consolidação cadastral de status, matrículas e corpos discentes</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const headers = ["ID", "Nome", "E-mail", "WhatsApp", "CPF", "Status", "Graduacao"];
-                    const rows = alunos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Branca"]);
-                    downloadCSV("corpo_docente", headers, rows);
-                  }}
-                  className="px-3 py-1.5 bg-red-850 hover:bg-red-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  Exportar CSV
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const ativos = alunos.filter(a => !a.status || a.status === "ATIVO" || a.status === "Ativo");
+                      const headers = ["ID", "Nome", "E-mail", "WhatsApp", "CPF", "Status", "Graduacao"];
+                      const rows = ativos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Branca"]);
+                      downloadCSV("alunos_ativos", headers, rows);
+                    }}
+                    className="px-3 py-1.5 bg-emerald-900 hover:bg-emerald-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Exportar Ativos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const headers = ["ID", "Nome", "E-mail", "WhatsApp", "CPF", "Status", "Graduacao"];
+                      const rows = alunos.map(a => [a.id, a.nome, a.email, a.celular || a.telefone || "", a.cpf || "", a.status || "Ativo", a.graduacao || "Branca"]);
+                      downloadCSV("corpo_docente", headers, rows);
+                    }}
+                    className="px-3 py-1.5 bg-red-850 hover:bg-red-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Exportar Todos
+                  </button>
+                </div>
               </div>
 
               {/* Stats boxes */}
@@ -359,7 +374,7 @@ export function Relatorios({
                   onClick={() => {
                     const headers = ["ID", "Aluno ID", "Aluno Nome", "Competencia", "Vencimento", "Valor R$", "Status", "Pgto Data", "Modo"];
                     const rows = pagamentos.map(p => [p.id, p.alunoId, p.alunoNome || "", p.competencia || p.referencia || "", p.vencimento, p.valor, p.status, p.dataPagamento || "", p.formaPagamento || ""]);
-                    downloadCSV("financeiro_geral", headers, rows);
+                    downloadCSV("financeiro_mensal", headers, rows);
                   }}
                   className="px-3 py-1.5 bg-red-850 hover:bg-red-800 text-white font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer"
                 >
