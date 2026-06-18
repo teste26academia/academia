@@ -61,8 +61,8 @@ service cloud.firestore {
          getUserData() != null &&
          'alunoId' in getUserData() &&
          getUserData().alunoId == alunoId) ||
-        (resource != null && 'data' in resource && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
-        (resource != null && 'data' in resource && 'email' in resource.data && request.auth.token != null && 'email' in request.auth.token && resource.data.email == request.auth.token.email)
+        (resource != null && 'userId' in resource.data && resource.data.userId == request.auth.uid) ||
+        (resource != null && 'email' in resource.data && request.auth.token != null && 'email' in request.auth.token && resource.data.email == request.auth.token.email)
       );
     }
 
@@ -71,7 +71,7 @@ service cloud.firestore {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // --- BLUEPRINTS DE VALIDAÇÃO DE ENTIDADES ---
+    // --- BLUEPRINTS DE VALIDAÇÃO DE ENTIDADES (Opcionais no write) ---
 
     function isValidUserProfile(data) {
       return data.keys().hasAll(['uid', 'nome', 'email', 'role']) &&
@@ -79,138 +79,6 @@ service cloud.firestore {
              data.nome is string && data.nome.size() <= 200 &&
              data.email is string && data.email.size() <= 200 &&
              data.role is string && (data.role == "ADMIN" || data.role == "admin" || data.role == "INSTRUTOR" || data.role == "instrutor" || data.role == "ALUNO" || data.role == "aluno");
-    }
-
-    function isValidInstrutor(data) {
-      return data.keys().hasAll(['id', 'nome', 'funcao', 'telefone', 'email', 'ativo']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.nome is string && data.nome.size() <= 200 &&
-             data.funcao is string && data.funcao.size() <= 150 &&
-             data.telefone is string && data.telefone.size() <= 50 &&
-             data.email is string && data.email.size() <= 200 &&
-             data.ativo is bool;
-    }
-
-    function isValidAluno(data) {
-      return data.keys().hasAll(['id', 'nome', 'email', 'status', 'statusFinanceiro']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.nome is string && data.nome.size() <= 200 &&
-             data.email is string && data.email.size() <= 200;
-    }
-
-    function isValidTurma(data) {
-      return data.keys().hasAll(['id', 'nomeEstilo', 'instrutorId', 'instrutorNome', 'diasSemana', 'horario', 'categoria', 'capacidade']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.nomeEstilo is string && data.nomeEstilo.size() <= 200 &&
-             data.instrutorId is string && data.instrutorId.size() <= 128 &&
-             data.instrutorNome is string && data.instrutorNome.size() <= 200 &&
-             data.diasSemana is list &&
-             data.horario is string && data.horario.size() <= 150 &&
-             data.categoria is string &&
-             data.capacidade is number;
-    }
-
-    function isValidPresenca(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'data', 'status']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.data is string && data.data.size() <= 50 &&
-             data.status is string;
-    }
-
-    function isValidMensalidade(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'referencia', 'vencimento', 'valor', 'desconto', 'valorFinal', 'status']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.referencia is string && data.referencia.size() <= 50 &&
-             data.vencimento is string && data.vencimento.size() <= 50 &&
-             data.valor is number &&
-             data.desconto is number &&
-             data.valorFinal is number &&
-             data.status is string;
-    }
-
-    function isValidGraduacao(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'graduacaoAnterior', 'graduacaoNova', 'dataGraduacao', 'avaliador', 'resultado']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.graduacaoAnterior is string && data.graduacaoAnterior.size() <= 150 &&
-             data.graduacaoNova is string && data.graduacaoNova.size() <= 150 &&
-             data.dataGraduacao is string && data.dataGraduacao.size() <= 50 &&
-             data.avaliador is string && data.avaliador.size() <= 200 &&
-             data.resultado is string;
-    }
-
-    function isValidExame(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'graduacaoPretendida', 'avaliador', 'dataExame', 'notaTecnica', 'notaTeorica', 'resultado']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.graduacaoPretendida is string && data.graduacaoPretendida.size() <= 150 &&
-             data.avaliador is string && data.avaliador.size() <= 200 &&
-             data.dataExame is string && data.dataExame.size() <= 50 &&
-             data.notaTecnica is number &&
-             data.notaTeorica is number &&
-             data.resultado is string;
-    }
-
-    function isValidConfig(data) {
-      return data.keys().hasAll(['id', 'descontoFamiliarPercentualPadrao', 'descontoFamiliarFixoPadrao', 'avisoMural', 'contatoSuporte', 'enderecoAcademia']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.descontoFamiliarPercentualPadrao is number &&
-             data.descontoFamiliarFixoPadrao is number &&
-             data.avisoMural is string &&
-             data.contatoSuporte is string &&
-             data.enderecoAcademia is string;
-    }
-
-    function isValidProduto(data) {
-      return data.keys().hasAll(['id', 'nome', 'categoria', 'estoque', 'ativo']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.nome is string && data.nome.size() <= 200 &&
-             data.categoria is string && data.categoria.size() <= 150 &&
-             data.estoque is number &&
-             data.ativo is bool;
-    }
-
-    function isValidVenda(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'produtoId', 'quantidade', 'valorUnitario', 'valorTotal', 'formaPagamento', 'data']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.produtoId is string && data.produtoId.size() <= 128 &&
-             data.quantidade is number &&
-             data.valorUnitario is number &&
-             data.valorTotal is number &&
-             data.formaPagamento is string &&
-             data.data is string;
-    }
-
-    function isValidFamilia(data) {
-      return data.keys().hasAll(['id', 'nomeFamilia', 'alunosIds']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.nomeFamilia is string && data.nomeFamilia.size() <= 200 &&
-             data.alunosIds is list;
-    }
-
-    function isValidGraduacoesConfig(data) {
-      return data.keys().hasAll(['id', 'modalidade', 'ordem', 'graduacao', 'faixa', 'ativo']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.modalidade is string && data.modalidade.size() <= 150 &&
-             data.ordem is number &&
-             data.graduacao is string && data.graduacao.size() <= 150 &&
-             data.faixa is string && data.faixa.size() <= 100 &&
-             data.ativo is bool;
-    }
-
-    function isValidAlunoModalidade(data) {
-      return data.keys().hasAll(['id', 'alunoId', 'modalidade', 'graduacaoAtual', 'faixaAtual', 'ordemGraduacao', 'dataUltimaGraduacao', 'ativo']) &&
-             data.id is string && data.id.size() <= 128 &&
-             data.alunoId is string && data.alunoId.size() <= 128 &&
-             data.modalidade is string && data.modalidade.size() <= 150 &&
-             data.graduacaoAtual is string && data.graduacaoAtual.size() <= 150 &&
-             data.faixaAtual is string && data.faixaAtual.size() <= 100 &&
-             data.ordemGraduacao is number &&
-             data.dataUltimaGraduacao is string && data.dataUltimaGraduacao.size() <= 50 &&
-             data.ativo is bool;
     }
 
     // --- DEFINIÇÕES DE REGRAS POR COLEÇÃO ESPECÍFICA ---
@@ -242,12 +110,12 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'email' in resource.data && request.auth.token != null && 'email' in request.auth.token && resource.data.email == request.auth.token.email)
+        (resource != null && 'email' in resource.data && request.auth.token != null && 'email' in request.auth.token && resource.data.email == request.auth.token.email)
       );
       allow create: if isSignedIn() && isValidId(alunoId) && (
         isAdmin() || 
         isInstructor() || 
-        (request.resource != null && 'data' in request.resource && 'userId' in request.resource.data && request.resource.data.userId == request.auth.uid)
+        (request.resource != null && 'userId' in request.resource.data && request.resource.data.userId == request.auth.uid)
       );
       allow update: if isSignedIn() && isValidId(alunoId) && (
         isAdmin() || 
@@ -270,12 +138,12 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow create: if isSignedIn() && isValidId(presencaId) && (
         isAdmin() || 
         isInstructor() || 
-        (request.resource != null && 'data' in request.resource && 'status' in request.resource.data && 'alunoId' in request.resource.data &&
+        (request.resource != null && 'status' in request.resource.data && 'alunoId' in request.resource.data &&
          request.resource.data.status == "PENDING" && isStudentOwner(request.resource.data.alunoId))
       );
       allow update: if isSignedIn() && isValidId(presencaId) && (isAdmin() || isInstructor());
@@ -287,7 +155,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow write: if isSignedIn() && isValidId(mensalidadeId) && (isAdmin() || isInstructor());
     }
@@ -297,7 +165,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow write: if isSignedIn() && isValidId(graduacaoId) && (isAdmin() || isInstructor());
     }
@@ -307,7 +175,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow write: if isSignedIn() && isValidId(exameId) && (isAdmin() || isInstructor());
     }
@@ -329,7 +197,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow write: if isSignedIn() && isValidId(vendaId) && (isAdmin() || isInstructor());
     }
@@ -342,7 +210,7 @@ service cloud.firestore {
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
          getUserData() != null && 'alunoId' in getUserData() &&
          getUserData().alunoId != null && 
-         resource != null && 'data' in resource && 'alunosIds' in resource.data &&
+         resource != null && 'alunosIds' in resource.data &&
          getUserData().alunoId in resource.data.alunosIds)
       );
       allow write: if isSignedIn() && isValidId(familiaId) && (isAdmin() || isInstructor());
@@ -359,12 +227,12 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         isAdmin() || 
         isInstructor() || 
-        (resource != null && 'data' in resource && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
+        (resource != null && 'alunoId' in resource.data && isStudentOwner(resource.data.alunoId))
       );
       allow write: if isSignedIn() && isValidId(alModId) && (
         isAdmin() || 
         isInstructor() || 
-        (request.resource != null && 'data' in request.resource && 'alunoId' in request.resource.data && isStudentOwner(request.resource.data.alunoId))
+        (request.resource != null && 'alunoId' in request.resource.data && isStudentOwner(request.resource.data.alunoId))
       );
     }
   }
