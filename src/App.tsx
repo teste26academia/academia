@@ -286,7 +286,7 @@ export default function App() {
         } else {
           const list: Turma[] = [];
           querySnapshot.forEach((doc) => {
-            list.push(doc.data() as Turma);
+            list.push({ id: doc.id, ...doc.data() } as Turma);
           });
           setTurmas(list);
         }
@@ -319,7 +319,7 @@ export default function App() {
         } else {
           const list: Aluno[] = [];
           querySnapshot.forEach((doc) => {
-            list.push(doc.data() as Aluno);
+            list.push({ id: doc.id, ...doc.data() } as Aluno);
           });
           setAlunos(list);
         }
@@ -349,7 +349,7 @@ export default function App() {
           } else {
             const list: Pagamento[] = [];
             querySnapshot.forEach((doc) => {
-              list.push(doc.data() as Pagamento);
+              list.push({ id: doc.id, ...doc.data() } as Pagamento);
             });
             setPagamentos(list);
           }
@@ -382,7 +382,7 @@ export default function App() {
           } else {
             const list: Presenca[] = [];
             querySnapshot.forEach((doc) => {
-              list.push(doc.data() as Presenca);
+              list.push({ id: doc.id, ...doc.data() } as Presenca);
             });
             setPresencas(list);
           }
@@ -415,7 +415,7 @@ export default function App() {
           } else {
             const list: HistoricoGraduacao[] = [];
             querySnapshot.forEach((doc) => {
-              list.push(doc.data() as HistoricoGraduacao);
+              list.push({ id: doc.id, ...doc.data() } as HistoricoGraduacao);
             });
             setGraduacoes(list);
           }
@@ -444,7 +444,7 @@ export default function App() {
         const unsubExames = onSnapshot(q, (querySnapshot) => {
           const list: Exame[] = [];
           querySnapshot.forEach((doc) => {
-            list.push(doc.data() as Exame);
+            list.push({ id: doc.id, ...doc.data() } as Exame);
           });
           setExames(list);
         });
@@ -462,7 +462,7 @@ export default function App() {
       const unsubProdutos = onSnapshot(produtosRef, (querySnapshot) => {
         const list: Produto[] = [];
         querySnapshot.forEach((doc) => {
-          list.push(doc.data() as Produto);
+          list.push({ id: doc.id, ...doc.data() } as Produto);
         });
         setProdutos(list);
       });
@@ -484,7 +484,7 @@ export default function App() {
         const unsubVendas = onSnapshot(q, (querySnapshot) => {
           const list: Venda[] = [];
           querySnapshot.forEach((doc) => {
-            list.push(doc.data() as Venda);
+            list.push({ id: doc.id, ...doc.data() } as Venda);
           });
           setVendas(list);
         });
@@ -502,7 +502,7 @@ export default function App() {
       const unsubFamilias = onSnapshot(familiasRef, (querySnapshot) => {
         const list: Familia[] = [];
         querySnapshot.forEach((doc) => {
-          list.push(doc.data() as Familia);
+          list.push({ id: doc.id, ...doc.data() } as Familia);
         });
         setFamilias(list);
       });
@@ -517,7 +517,7 @@ export default function App() {
       const unsubInst = onSnapshot(instRef, (querySnapshot) => {
         const list: Instrutor[] = [];
         querySnapshot.forEach((doc) => {
-          list.push(doc.data() as Instrutor);
+          list.push({ id: doc.id, ...doc.data() } as Instrutor);
         });
         setInstrutores(list);
       }, (err) => {
@@ -542,7 +542,7 @@ export default function App() {
         const unsubAm = onSnapshot(q, (querySnapshot) => {
           const list: AlunoModalidade[] = [];
           querySnapshot.forEach((doc) => {
-            list.push(doc.data() as AlunoModalidade);
+            list.push({ id: doc.id, ...doc.data() } as AlunoModalidade);
           });
           setAlunoModalidades(list);
         }, (err) => {
@@ -562,7 +562,7 @@ export default function App() {
       const unsubGc = onSnapshot(gcRef, (querySnapshot) => {
         const list: GraduacoesConfig[] = [];
         querySnapshot.forEach((doc) => {
-          list.push(doc.data() as GraduacoesConfig);
+          list.push({ id: doc.id, ...doc.data() } as GraduacoesConfig);
         });
         setGraduacoesConfig(list);
       }, (err) => {
