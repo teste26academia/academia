@@ -303,9 +303,9 @@ export default function App() {
     try {
       const alunosRef = collection(db, "alunos");
       const emailVariations = [
-        userProfile.email,
-        userProfile.email.toLowerCase(),
-        userProfile.email.toUpperCase()
+        userProfile?.email || "",
+        (userProfile?.email || "").toLowerCase(),
+        (userProfile?.email || "").toUpperCase()
       ].filter((v, i, self) => v && self.indexOf(v) === i);
 
       const q = isPowerUser 
@@ -654,13 +654,20 @@ export default function App() {
     }
   };
 
-  // Automatic background migration logic for legacy students
-  useEffect(() => {
-    if (!isAdmin && userProfile?.role !== "INSTRUTOR") return;
-    if (alunos.length === 0) return;
+  // Manual migration logic for legacy students (admin trigger only)
+  const [migrating, setMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
 
-    const migrateLegacyStudentsAndExams = async () => {
-      for (const student of alunos) {
+  const handleManualLegacyMigration = async () => {
+    if (!isAdmin && userProfile?.role !== "INSTRUTOR") {
+      setMigrationStatus("Permissão negada para migração.");
+      return;
+    }
+    setMigrating(true);
+    setMigrationStatus("Migrando...");
+    try {
+      let count = 0;
+      for (const student of (alunos || [])) {
         if (!student || !student.id || student.id === "undefined") {
           continue;
         }
@@ -669,12 +676,12 @@ export default function App() {
         if (student.modalidades && student.modalidades.length > 0) {
           studentMods = student.modalidades;
         } else if (student.modalidade) {
-          studentMods = String(student.modalidade).split(",").map(x => x.trim()).filter(Boolean);
+          studentMods = String(student.modalidade).split(",").map((x: string) => x.trim()).filter(Boolean);
         } else {
           studentMods = ["Kung Fu"];
         }
 
-        const normalizedMods = studentMods.map(m => {
+        const normalizedMods = studentMods.map((m: string) => {
           const lowerM = (m || "").toLowerCase();
           if (lowerM.includes("tai chi") || lowerM.includes("taichi")) return "Tai Chi Chuan";
           if (lowerM.includes("boxe") || lowerM.includes("sanda")) return "Boxe Chinês";
@@ -683,7 +690,7 @@ export default function App() {
 
         for (const modName of normalizedMods) {
           const alModId = `am_${student.id}_${modName.replace(/\s+/g, "")}`;
-          const existing = alunoModalidades.find(am => am && am.alunoId === student.id && am.modalidade === modName);
+          const existing = (alunoModalidades || []).find((am: any) => am && am.alunoId === student.id && am.modalidade === modName);
           
           if (!existing) {
             console.log(`Migrando estrutura do aluno legado ${student.nome || "Sem Nome"} para a modalidade ${modName}`);
@@ -700,19 +707,21 @@ export default function App() {
               dataUltimaGraduacao: student.dataUltimaGraduacao || new Date().toISOString().split("T")[0],
               ativo: true
             });
+            count++;
           }
         }
       }
-    };
-
-    const timer = setTimeout(() => {
-      migrateLegacyStudentsAndExams().catch(err => {
-        console.error("Falha ao migrar estrutura de modalidades dos alunos:", err);
-      });
-    }, 2500);
-
-    return () => clearTimeout(timer);
-  }, [alunos, alunoModalidades, isAdmin, userProfile]);
+      setMigrationStatus(`Migração concluída! ${count} alunos processados.`);
+    } catch (err: any) {
+      console.error("Falha ao migrar estrutura de modalidades dos alunos:", err);
+      setMigrationStatus(`Erro: ${err?.message || err}`);
+    } finally {
+      setMigrating(false);
+      setTimeout(() => {
+        setMigrationStatus(null);
+      }, 6000);
+    }
+  };
 
   // 1. ADD Student (Admin Form mapped to Firestore)
   const handleAddAluno = async (newAlunoData: any) => {
@@ -1055,13 +1064,13 @@ export default function App() {
 
       for (const u of allUsers) {
         // Exclude admin role or principal administrator Decio
-        const isAdmin = u.role === "ADMIN" || u.email?.toLowerCase() === "deciopadovanijr@gmail.com";
+        const isAdmin = (u?.role || "").toUpperCase() === "ADMIN" || (u?.email || "").toLowerCase() === "deciopadovanijr@gmail.com";
         if (isAdmin) continue;
 
         // Check if user is already an Aluno (even if logical/inactivated, checking real DB list)
         const isAlreadyAluno = dbAlunosList.some(
-          (a) => a.userId === u.id || (a.email && a.email.toLowerCase() === u.email?.toLowerCase()) || a.id === `stu_${u.id}`
-        ) || !!u.alunoId;
+          (a) => a?.userId === u?.id || (a?.email && (a.email || "").toLowerCase() === (u?.email || "").toLowerCase()) || a?.id === `stu_${u?.id}`
+        ) || !!u?.alunoId;
 
         if (!isAlreadyAluno) {
           const studentId = `stu_${u.id}`;
@@ -2075,8 +2084,22 @@ export default function App() {
 
       {/* Admin general recognized email banner */}
       {isAdmin && activeBottomTab === "inicio" && (
-        <div className="bg-red-950/25 border-b border-red-900/40 py-2 px-4 text-left text-[10px] font-mono text-amber-500 leading-tight">
-          ⭐ Professor Administrador (<strong className="text-white">deciopadovanijr@gmail.com</strong>) com acesso administrativo total às coleções.
+        <div className="bg-red-950/25 border-b border-red-900/40 py-2 px-4 text-left text-[10px] font-mono text-amber-500 leading-tight flex flex-wrap items-center justify-between gap-2.5">
+          <div>
+            ⭐ Professor Administrador (<strong className="text-white">deciopadovanijr@gmail.com</strong>) com acesso administrativo total às coleções.
+            {migrationStatus && (
+              <span className="ml-2 px-1.5 py-0.5 rounded bg-zinc-900 text-amber-300 font-bold border border-zinc-800 animate-fadeIn">
+                {migrationStatus}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={handleManualLegacyMigration}
+            disabled={migrating}
+            className="px-2.5 py-1 text-[9px] uppercase font-bold tracking-wider rounded border border-amber-900 bg-amber-950/30 text-amber-400 hover:bg-amber-500 hover:text-black transition-all cursor-pointer disabled:opacity-50 shrink-0"
+          >
+            {migrating ? "Migrando..." : "Executar Migração de Modalidades Legadas"}
+          </button>
         </div>
       )}
 
@@ -2209,7 +2232,7 @@ export default function App() {
                     if (fs === "INATIVOS") return norm === "INATIVO";
                     if (fs === "PENDENTES") return norm === "PENDENTE";
                     return true;
-                  }).filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase())).length;
+                  }).filter(a => (a?.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase())).length;
 
                   return (
                     <button
@@ -2277,7 +2300,7 @@ export default function App() {
               {/* Student list elements em Grade Bento Premium */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="students-bento-grid">
                 {alunos
-                  .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .filter(a => (a?.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase()))
                   .filter(a => {
                     const norm = (a.status || "").toUpperCase().trim();
                     if (filterStatus === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
@@ -2288,7 +2311,7 @@ export default function App() {
                   <p className="col-span-full text-center text-xs text-zinc-550 py-8 font-mono">Nenhum aluno encontrado com esses filtros.</p>
                 ) : (
                   alunos
-                    .filter(a => a.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .filter(a => (a?.nome || "").toLowerCase().includes((searchTerm || "").toLowerCase()))
                     .filter(a => {
                       const norm = (a.status || "").toUpperCase().trim();
                       if (filterStatus === "ATIVOS") return norm === "ATIVO" || norm === "" || !a.status;
