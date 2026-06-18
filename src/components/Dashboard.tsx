@@ -59,10 +59,16 @@ export function Dashboard({
   const totalAlunos = alunos.length;
 
   // 2. Alunos ativos
-  const alunosAtivos = alunos.filter(a => a.status === "Ativo").length;
+  const alunosAtivos = alunos.filter(a => {
+    const s = (a.status || "").toUpperCase().trim();
+    return s === "ATIVO" || s === "" || !a.status;
+  }).length;
 
   // 3. Alunos inativos
-  const alunosInativos = alunos.filter(a => a.status === "Inativo").length;
+  const alunosInativos = alunos.filter(a => {
+    const s = (a.status || "").toUpperCase().trim();
+    return s === "INATIVO";
+  }).length;
 
   // 4. Presenças do mês (Filtrando as presenças na modalidade realizadas no mês atual)
   const presencasDoMes = presencas.filter(p => 

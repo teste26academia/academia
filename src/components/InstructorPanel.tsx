@@ -186,7 +186,7 @@ export default function InstructorPanel({
 
   // Mapeia presenças arquivadas no Firestore para pintar os botões com status real
   const getPresencaGravada = (alunoId: string) => {
-    return presencas.find(p => p.alunoId === alunoId && p.data === selectedDate);
+    return presencas.find(p => p.alunoId === alunoId && p.data === selectedDate && p.turmaId === activeTurma?.id);
   };
 
   // 5. Salvar Presença Reativamente com atualização em tempo real no Firestore!
@@ -201,7 +201,7 @@ export default function InstructorPanel({
     const currentObs = attendanceState[stu.id]?.obs || "";
 
     const presencaDocumento: Presenca = {
-      id: `p_inst_${selectedDate}_${stu.id}`,
+      id: `p_inst_${selectedDate}_${stu.id}_${activeTurma.id}`,
       alunoId: stu.id,
       alunoNome: stu.nome,
       turmaId: activeTurma.id,
