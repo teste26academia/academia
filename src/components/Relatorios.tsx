@@ -14,7 +14,7 @@ import {
   UsersRound,
   DollarSign
 } from "lucide-react";
-import { Pagamento, Aluno, Turma, Presenca, Produto, Venda, Familia } from "../types";
+import { Pagamento, Aluno, Turma, Presenca, Produto, Venda, Familia, AlunoModalidade, Exame } from "../types";
 
 interface RelatoriosProps {
   pagamentos: Pagamento[];
@@ -26,6 +26,8 @@ interface RelatoriosProps {
   vendas?: Venda[];
   familias?: Familia[];
   activeRole?: string;
+  alunoModalidades?: AlunoModalidade[];
+  exames?: Exame[];
 }
 
 export function Relatorios({ 
@@ -37,9 +39,17 @@ export function Relatorios({
   produtos = [],
   vendas = [],
   familias = [],
-  activeRole = "ALUNO"
+  activeRole = "ALUNO",
+  alunoModalidades = [],
+  exames = []
 }: RelatoriosProps) {
   const [activeReport, setActiveReport] = useState<string | null>(null);
+
+  // States to support rich interactiveness and filters over official gradings and exams
+  const [filterModalidade, setFilterModalidade] = useState<string>("TODAS");
+  const [filterFaixa, setFilterFaixa] = useState<string>("TODAS");
+  const [filterGraduacao, setFilterGraduacao] = useState<string>("TODAS");
+  const [filterStatus, setFilterStatus] = useState<string>("TODOS");
 
   // Exclude sensitive headers or format cells for safe parsing
   const downloadCSV = (title: string, headers: string[], rows: any[][]) => {
@@ -114,6 +124,20 @@ export function Relatorios({
                 <div>
                   <p className="font-extrabold text-white text-xs uppercase text-red-500">Inadimplentes e Cobranças Vencidas</p>
                   <p className="text-[10px] font-mono font-medium text-zinc-500">Relação de alunos com faturas em atraso</p>
+                </div>
+              </div>
+              <ChevronRight className="w-4 h-4 text-zinc-600" />
+            </div>
+
+            <div 
+              onClick={() => setActiveReport("graduacoes_exames")}
+              className="bg-zinc-950 border border-zinc-900 hover:border-red-900 p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all"
+            >
+              <div className="flex items-center gap-3">
+                <Award className="w-5 h-5 text-amber-500 animate-pulse" />
+                <div>
+                  <p className="font-extrabold text-white text-xs uppercase">Graduações, Faixas & Exames Oficiais</p>
+                  <p className="text-[10px] font-mono font-medium text-zinc-500">Alunos por modalidade, faixa, graduação e próximos candidatos</p>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-zinc-600" />
@@ -545,6 +569,333 @@ export function Relatorios({
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {activeReport === "graduacoes_exames" && (
+            <div className="space-y-4 font-sans animate-fadeIn">
+              <div className="border-b border-zinc-900 pb-2.5 flex justify-between items-center flex-wrap gap-2">
+                <div>
+                  <h3 className="text-sm font-black text-white uppercase">Relatório Oficial de Graduações, Faixas & Exames</h3>
+                  <p className="text-[10px] text-zinc-500 font-mono">Quadro dinâmico de graduações oficiais da Associação Liga Garra de Águia PG</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const headers = ["ID Registro", "Aluno ID", "Modalidade", "Graduacao", "Faixa", "Ordem", "Status Aluno"];
+                    const rows = alunoModalidades.map(am => {
+                      const stud = alunos.find(a => a.id === am.alunoId);
+                      return [am.id, am.alunoId, am.modalidade, am.graduacaoAtual, am.faixaAtual, am.ordemGraduacao, stud?.status || "Ativo"];
+                    });
+                    downloadCSV("graduacoes_oficiais_alunos", headers, rows);
+                  }}
+                  className="px-3 py-1.5 bg-amber-650 hover:bg-amber-500 text-zinc-950 font-black text-[10px] rounded-lg uppercase font-mono tracking-wider flex items-center gap-1 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  Exportar CSV
+                </button>
+              </div>
+
+              {/* Filtros robustos: Modalidade, Faixa, Graduação, Status */}
+              <div className="bg-[#141414] border border-zinc-900 p-4 rounded-2xl grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
+                <div>
+                  <label className="block text-[9px] font-mono uppercase text-zinc-500 mb-1 font-bold">Modalidade</label>
+                  <select
+                    value={filterModalidade}
+                    onChange={(e) => setFilterModalidade(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-805 p-2 text-[10.5px] rounded-xl focus:border-red-900 focus:outline-none text-zinc-300 font-mono bg-zinc-950"
+                  >
+                    <option value="TODAS">TODAS</option>
+                    <option value="Kung Fu">Kung Fu</option>
+                    <option value="Tai Chi Chuan">Tai Chi Chuan</option>
+                    <option value="Boxe Chinês">Boxe Chinês</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-mono uppercase text-zinc-500 mb-1 font-bold">Status Aluno</label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-805 p-2 text-[10.5px] rounded-xl focus:border-red-900 focus:outline-none text-zinc-300 font-mono bg-zinc-950"
+                  >
+                    <option value="TODOS">TODOS</option>
+                    <option value="Ativos">Ativos</option>
+                    <option value="Inativos">Inativos</option>
+                    <option value="Pendentes">Pendentes</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-mono uppercase text-zinc-500 mb-1 font-bold">Faixa</label>
+                  <select
+                    value={filterFaixa}
+                    onChange={(e) => setFilterFaixa(e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-805 p-2 text-[10.5px] rounded-xl focus:border-red-900 focus:outline-none text-zinc-300 font-mono bg-zinc-950"
+                  >
+                    <option value="TODAS">TODAS</option>
+                    <option value="Branca">Branca / Símiles</option>
+                    <option value="Amarela">Amarela / Símiles</option>
+                    <option value="Laranja">Laranja / Símiles</option>
+                    <option value="Vermelha font-bold">Vermelha / Símiles</option>
+                    <option value="Verde">Verde / Símiles</option>
+                    <option value="Marrom bg-amber-900">Marrom / Símiles</option>
+                    <option value="Cinza">Cinza / Símiles</option>
+                    <option value="Preta">Preta / Grau Superior</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-mono uppercase text-zinc-500 mb-1 font-bold">Graduação</label>
+                  <input
+                    type="text"
+                    placeholder="Filtrar por nome..."
+                    value={filterGraduacao === "TODAS" ? "" : filterGraduacao}
+                    onChange={(e) => setFilterGraduacao(e.target.value ? e.target.value : "TODAS")}
+                    className="w-full bg-zinc-950 border border-zinc-805 p-2 text-[10.5px] rounded-xl focus:border-red-900 focus:outline-none text-zinc-300 placeholder-zinc-700 bg-zinc-950"
+                  />
+                </div>
+              </div>
+
+              {/* KPIs de Resultados das Consultas */}
+              {(() => {
+                const matchedModalidades = alunoModalidades.filter(am => {
+                  const student = alunos.find(a => am.alunoId === a.id);
+                  if (!student) return false;
+
+                  // Filter status
+                  if (filterStatus !== "TODOS") {
+                    const normStat = (student.status || "Ativo").toUpperCase();
+                    if (filterStatus === "Ativos" && normStat !== "ATIVO") return false;
+                    if (filterStatus === "Inativos" && normStat !== "INATIVO") return false;
+                    if (filterStatus === "Pendentes" && normStat !== "PENDENTE") return false;
+                  }
+
+                  // Filter modalidade
+                  if (filterModalidade !== "TODAS" && am.modalidade !== filterModalidade) return false;
+
+                  // Filter faixa
+                  if (filterFaixa !== "TODAS") {
+                    if (!(am.faixaAtual || "").toLowerCase().includes(filterFaixa.toLowerCase())) return false;
+                  }
+
+                  // Filter graduacao
+                  if (filterGraduacao !== "TODAS") {
+                    if (!(am.graduacaoAtual || "").toLowerCase().includes(filterGraduacao.toLowerCase())) return false;
+                  }
+
+                  return am.ativo !== false;
+                });
+
+                // Calculate KPIs
+                const kungFuCount = matchedModalidades.filter(am => am.modalidade === "Kung Fu").length;
+                const taiChiCount = matchedModalidades.filter(am => am.modalidade === "Tai Chi Chuan").length;
+                const boxeCount = matchedModalidades.filter(am => am.modalidade === "Boxe Chinês").length;
+
+                return (
+                  <div className="space-y-4">
+                    {/* Stats panel */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 bg-zinc-950 border border-zinc-900/40 p-4 rounded-2xl">
+                      <div className="p-3 bg-black/40 border border-zinc-900 rounded-xl relative overflow-hidden">
+                        <span className="text-[8px] font-mono text-zinc-550 block uppercase">Total Matriculado</span>
+                        <span className="text-base font-black font-mono text-white">{matchedModalidades.length} registros</span>
+                      </div>
+                      <div className="p-3 bg-black/40 border border-zinc-900 rounded-xl">
+                        <span className="text-[8px] font-mono text-zinc-550 block uppercase">Alunos Kung Fu</span>
+                        <span className="text-base font-black font-mono text-red-500">{kungFuCount}</span>
+                      </div>
+                      <div className="p-3 bg-black/40 border border-zinc-900 rounded-xl">
+                        <span className="text-[8px] font-mono text-zinc-550 block uppercase">Alunos Tai Chi Chuan</span>
+                        <span className="text-base font-black font-mono text-cyan-400">{taiChiCount}</span>
+                      </div>
+                      <div className="p-3 bg-black/40 border border-zinc-900 rounded-xl">
+                        <span className="text-[8px] font-mono text-zinc-550 block uppercase">Alunos Boxe Chinês</span>
+                        <span className="text-base font-black font-mono text-orange-400">{boxeCount}</span>
+                      </div>
+                    </div>
+
+                    {/* Section 1: Alunos por Modalidade, Graduação e Faixa */}
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden p-4 text-left space-y-3">
+                      <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">🎭 Distribuição de Alunos Por Graduação e Faixa</h4>
+                      <div className="max-h-72 overflow-y-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-black font-mono text-[9px] text-zinc-555 uppercase border-b border-zinc-900">
+                              <th className="p-2.5">Nome Aluno</th>
+                              <th className="p-2.5">Modalidade</th>
+                              <th className="p-2.5">Graduação Oficial</th>
+                              <th className="p-2.5">Faixa Corresponder</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-900 text-zinc-400 font-sans">
+                            {matchedModalidades.length === 0 ? (
+                              <tr>
+                                <td colSpan={4} className="p-6 text-center text-zinc-650 font-mono text-[10px]">Nenhum registro correspondente aos filtros.</td>
+                              </tr>
+                            ) : (
+                              matchedModalidades.map(am => {
+                                const stud = alunos.find(a => a.id === am.alunoId);
+                                return (
+                                  <tr key={am.id} className="hover:bg-zinc-900/30">
+                                    <td className="p-2.5 text-white font-bold">{stud?.nome || "Aluno Excluído"}</td>
+                                    <td className="p-2.5 font-bold">
+                                      <span className={`px-2 py-0.5 rounded text-[8.5px] uppercase ${
+                                        am.modalidade === "Kung Fu" ? "bg-red-950/40 text-red-400" :
+                                        am.modalidade === "Tai Chi Chuan" ? "bg-cyan-950/40 text-cyan-400" : "bg-orange-950/40 text-orange-400"
+                                      }`}>
+                                        {am.modalidade}
+                                      </span>
+                                    </td>
+                                    <td className="p-2.5 font-mono text-zinc-300 font-medium text-[11px]">{am.graduacaoAtual}</td>
+                                    <td className="p-2.5">
+                                      <span className="inline-flex py-0.5 px-2 rounded-md bg-zinc-900 text-[10px] font-bold text-amber-400 border border-zinc-800 font-mono">
+                                        🥋 {am.faixaAtual}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 2: Próximos candidatos a exame (última graduação à mais de 3 meses) */}
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden p-4 text-left space-y-3">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">🎯 Próximos Candidatos Indicados Para Exame de Faixa</h4>
+                        <p className="text-[9.5px] text-zinc-555 font-mono leading-none mt-1">Carência de avaliação mínima sugerida de 3 meses para Kung Fu/Tai Chi/Boxe</p>
+                      </div>
+
+                      <div className="max-h-64 overflow-y-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-black font-mono text-[9px] text-zinc-555 uppercase border-b border-zinc-900">
+                              <th className="p-2.5">Aluno</th>
+                              <th className="p-2.5">Modalidade</th>
+                              <th className="p-2.5">Carência Atual</th>
+                              <th className="p-2.5">Última Promoção</th>
+                              <th className="p-2.5 text-right">Ação</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-900 text-zinc-400 font-sans">
+                            {(() => {
+                              // We list any students with active modalities and check time since am.dataUltimaGraduacao
+                              const candidates = matchedModalidades.map(am => {
+                                const stud = alunos.find(a => a.id === am.alunoId);
+                                if (!stud || stud.status === "Inativo") return null;
+
+                                const dateStr = am.dataUltimaGraduacao || stud.dataUltimaGraduacao || stud.dataMatricula || new Date().toISOString().split("T")[0];
+                                const diffMs = Date.now() - new Date(dateStr).getTime();
+                                const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                                const meses = Math.floor(dias / 30);
+
+                                return {
+                                  am,
+                                  stud,
+                                  dias,
+                                  meses,
+                                  dateStr
+                                };
+                              })
+                              .filter(Boolean)
+                              .filter((x: any) => x.meses >= 3)
+                              .sort((a: any, b: any) => b.dias - a.dias);
+
+                              if (candidates.length === 0) {
+                                return (
+                                  <tr>
+                                    <td colSpan={5} className="p-6 text-center text-emerald-400 font-mono text-[10px]">🥋 Nenhum aluno elegível no momento (todos avaliados recentemente).</td>
+                                  </tr>
+                                );
+                              }
+
+                              return candidates.map((c: any) => (
+                                <tr key={c.am.id} className="hover:bg-zinc-900/30">
+                                  <td className="p-2.5 text-white font-bold">{c.stud.nome}</td>
+                                  <td className="p-2.5 text-[10.5px] font-bold text-zinc-350">{c.am.modalidade}</td>
+                                  <td className="p-2.5">
+                                    <span className="text-amber-500 font-mono font-bold text-[11px]">
+                                      {c.meses} meses ({c.dias} dias)
+                                    </span>
+                                  </td>
+                                  <td className="p-2.5 font-mono text-[10.5px] text-zinc-500">
+                                    {new Date(c.dateStr).toLocaleDateString("pt-BR")}
+                                  </td>
+                                  <td className="p-2.5 text-right">
+                                    <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-550 border border-amber-900/50 text-[8.5px] font-black uppercase font-mono tracking-wider">
+                                      Indicado
+                                    </span>
+                                  </td>
+                                </tr>
+                              ));
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Histórico e Evolução das Graduações (Últimos Exames registrados) */}
+                    <div className="bg-zinc-950 border border-zinc-900 rounded-2xl overflow-hidden p-4 text-left space-y-3">
+                      <h4 className="text-xs font-black uppercase text-amber-500 tracking-wider">📈 Evolução Histórica de Exames Executados (Estatística)</h4>
+                      <div className="max-h-60 overflow-y-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-black font-mono text-[9px] text-zinc-555 uppercase border-b border-zinc-900">
+                              <th className="p-2.5">Aluno</th>
+                              <th className="p-2.5">Faixa Avaliada</th>
+                              <th className="p-2.5 font-mono">Nota Final</th>
+                              <th className="p-2.5">Avaliador</th>
+                              <th className="p-2.5 text-right">Resultado</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-900 text-zinc-400 font-sans">
+                            {exames.filter(e => {
+                              if (filterModalidade === "TODAS") return true;
+                              // Match if candidate modality matches
+                              const stud = alunos.find(a => a.id === e.alunoId);
+                              if (!stud) return false;
+                              return (stud.modalidade || "").includes(filterModalidade);
+                            }).length === 0 ? (
+                              <tr>
+                                <td colSpan={5} className="p-6 text-center text-zinc-650 font-mono text-[10px]">Nenhum exame cadastrado para a modalidade ativa.</td>
+                              </tr>
+                            ) : (
+                              exames
+                                .filter(e => {
+                                  if (filterModalidade === "TODAS") return true;
+                                  const stud = alunos.find(a => a.id === e.alunoId);
+                                  if (!stud) return false;
+                                  return (stud.modalidade || "").includes(filterModalidade);
+                                })
+                                .sort((a,b) => new Date(b.dataExame).getTime() - new Date(a.dataExame).getTime())
+                                .map(e => (
+                                  <tr key={e.id} className="hover:bg-zinc-900/30">
+                                    <td className="p-2.5 text-white font-bold">{e.alunoNome}</td>
+                                    <td className="p-2.5 font-mono text-zinc-300 text-[10.5px]">{e.graduacaoPretendida}</td>
+                                    <td className="p-2.5 font-mono font-bold text-zinc-200">
+                                      {(((e.notaTecnica || 8) + (e.notaTeorica || 8)) / 2).toFixed(1)} / 10
+                                    </td>
+                                    <td className="p-2.5 text-zinc-500 font-mono text-[11px]">{e.avaliador || "Mestre Décio"}</td>
+                                    <td className="p-2.5 text-right">
+                                      <span className={`px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase font-mono ${
+                                        e.resultado === "Aprovado" ? "bg-emerald-950 text-emerald-450" :
+                                        e.resultado === "Reprovado" ? "bg-red-950 text-red-500" : "bg-neutral-900 text-zinc-400"
+                                      }`}>
+                                        {e.resultado}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

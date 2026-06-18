@@ -11,7 +11,107 @@ interface FichaAlunoModalProps {
   graduacoes: HistoricoGraduacao[];
   exames: Exame[];
   onClose: () => void;
+  alunoModalidades?: AlunoModalidade[];
+  graduacoesConfig?: GraduacoesConfig[];
 }
+
+const KUNG_FU_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Branca Ponta Amarela" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Branca Ponta Verde" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Verde" },
+  { ordem: 5, graduacao: "4ª Fase", faixa: "Verde Ponta Marrom" },
+  { ordem: 6, graduacao: "5ª Fase", faixa: "Marrom" },
+  { ordem: 7, graduacao: "6ª Fase", faixa: "Marrom Ponta Preta" },
+  { ordem: 8, graduacao: "7ª Fase", faixa: "Preta" },
+  { ordem: 9, graduacao: "1º Dhuen", faixa: "Preta" },
+  { ordem: 10, graduacao: "2º Dhuen", faixa: "Preta" }
+];
+
+const TAI_CHI_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Branca Ponta Amarela" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Branca Ponta Verde" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Verde" }
+];
+
+const BOXE_CHINES_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Laranja" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Vermelha" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Azul" },
+  { ordem: 5, graduacao: "4ª Fase", faixa: "Marrom" },
+  { ordem: 6, graduacao: "5ª Fase", faixa: "Preta" }
+];
+
+function mapLegacyToNewGrad(legacy: string, mod: string): { graduacao: string; faixa: string; ordem: number } {
+  const normSymbol = (legacy || "").toLowerCase();
+  
+  if (mod === "Kung Fu") {
+    if (normSymbol.includes("branca") && normSymbol.includes("amarela")) {
+      return { graduacao: "1ª Fase", faixa: "Branca Ponta Amarela", ordem: 2 };
+    }
+    if (normSymbol.includes("branca") && normSymbol.includes("verde")) {
+      return { graduacao: "2ª Fase", faixa: "Branca Ponta Verde", ordem: 3 };
+    }
+    if (normSymbol.includes("verde") && normSymbol.includes("marrom")) {
+      return { graduacao: "4ª Fase", faixa: "Verde Ponta Marrom", ordem: 5 };
+    }
+    if (normSymbol.includes("verde")) {
+      return { graduacao: "3ª Fase", faixa: "Verde", ordem: 4 };
+    }
+    if (normSymbol.includes("marrom") && normSymbol.includes("preta")) {
+      return { graduacao: "6ª Fase", faixa: "Marrom Ponta Preta", ordem: 7 };
+    }
+    if (normSymbol.includes("marrom")) {
+      return { graduacao: "5ª Fase", faixa: "Marrom", ordem: 6 };
+    }
+    if (normSymbol.includes("dhuen") || normSymbol.includes("duen") || normSymbol.includes("duan")) {
+      if (normSymbol.includes("2")) return { graduacao: "2º Dhuen", faixa: "Preta", ordem: 10 };
+      return { graduacao: "1º Dhuen", faixa: "Preta", ordem: 9 };
+    }
+    if (normSymbol.includes("preta")) {
+      return { graduacao: "7ª Fase", faixa: "Preta", ordem: 8 };
+    }
+    return { graduacao: "Preparatória", faixa: "Branca", ordem: 1 };
+  }
+
+  if (mod === "Tai Chi Chuan") {
+    if (normSymbol.includes("branca") && normSymbol.includes("amarela")) {
+      return { graduacao: "1ª Fase", faixa: "Branca Ponta Amarela", ordem: 2 };
+    }
+    if (normSymbol.includes("branca") && normSymbol.includes("verde")) {
+      return { graduacao: "2ª Fase", faixa: "Branca Ponta Verde", ordem: 3 };
+    }
+    if (normSymbol.includes("verde")) {
+      return { graduacao: "3ª Fase", faixa: "Verde", ordem: 4 };
+    }
+    return { graduacao: "Preparatória", faixa: "Branca", ordem: 1 };
+  }
+
+  if (mod === "Boxe Chinês" || mod.includes("Boxe")) {
+    if (normSymbol.includes("laranja")) {
+      return { graduacao: "1ª Fase", faixa: "Laranja", ordem: 2 };
+    }
+    if (normSymbol.includes("vermelha")) {
+      return { graduacao: "2ª Fase", faixa: "Vermelha", ordem: 3 };
+    }
+    if (normSymbol.includes("azul")) {
+      return { graduacao: "3ª Fase", faixa: "Azul", ordem: 4 };
+    }
+    if (normSymbol.includes("marrom")) {
+      return { graduacao: "4ª Fase", faixa: "Marrom", ordem: 5 };
+    }
+    if (normSymbol.includes("preta")) {
+      return { graduacao: "5ª Fase", faixa: "Preta", ordem: 6 };
+    }
+    return { graduacao: "Preparatória", faixa: "Branca", ordem: 1 };
+  }
+
+  return { graduacao: "Preparatória", faixa: "Branca", ordem: 1 };
+}
+
+import { AlunoModalidade, GraduacoesConfig } from "../types";
 
 export default function FichaAlunoModal({
   aluno,
@@ -19,9 +119,65 @@ export default function FichaAlunoModal({
   pagamentos,
   graduacoes,
   exames,
-  onClose
+  onClose,
+  alunoModalidades = [],
+  graduacoesConfig = []
 }: FichaAlunoModalProps) {
   const [activeSubTab, setActiveSubTab] = useState<"dados" | "presencas" | "mensalidades" | "graduacoes">("dados");
+
+  // Determine actual student modalities list
+  const getStudentModalities = () => {
+    let raw: string[] = [];
+    if (aluno.modalidades && aluno.modalidades.length > 0) {
+      raw = aluno.modalidades;
+    } else if (aluno.modalidade) {
+      raw = aluno.modalidade.split(",").map(x => x.trim()).filter(Boolean);
+    } else {
+      raw = ["Kung Fu"];
+    }
+    return raw.map(m => {
+      if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
+      if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+      return "Kung Fu";
+    });
+  };
+
+  const studentModsList = getStudentModalities();
+
+  const getModalityGraduation = (modName: string) => {
+    const studentModalitiesFiltered = alunoModalidades.filter(am => am.alunoId === aluno.id && am.ativo);
+    const found = studentModalitiesFiltered.find(am => am.modalidade === modName);
+    if (found) {
+      return {
+        graduacaoAtual: found.graduacaoAtual,
+        faixaAtual: found.faixaAtual,
+        ordemGraduacao: found.ordemGraduacao,
+        dataUltimaGraduacao: found.dataUltimaGraduacao
+      };
+    }
+    const mapped = mapLegacyToNewGrad(aluno.graduacaoAtual || aluno.graduacao || "Faixa Branca", modName);
+    return {
+      graduacaoAtual: mapped.graduacao,
+      faixaAtual: mapped.faixa,
+      ordemGraduacao: mapped.ordem,
+      dataUltimaGraduacao: aluno.dataUltimaGraduacao || ""
+    };
+  };
+
+  const getNextGraduation = (modName: string, currentOrdem: number) => {
+    let list = KUNG_FU_GRADUATIONS;
+    if (modName === "Tai Chi Chuan") list = TAI_CHI_GRADUATIONS;
+    if (modName === "Boxe Chinês") list = BOXE_CHINES_GRADUATIONS;
+
+    const nextItem = list.find(g => g.ordem === currentOrdem + 1);
+    if (nextItem) {
+      return {
+        graduacao: nextItem.graduacao,
+        faixa: nextItem.faixa
+      };
+    }
+    return null;
+  };
 
   // Filter historical data specifically for this student
   const filteredPresencas = presencas.filter(p => p.alunoId === aluno.id);
@@ -173,20 +329,19 @@ export default function FichaAlunoModal({
                     <span className="text-zinc-500">Última Graduação:</span>
                     <span className="font-bold text-zinc-250">{formatarData(aluno.dataUltimaGraduacao)}</span>
                   </div>
-                  <div className="flex justify-between font-mono flex-col gap-1 text-left mt-1">
-                    <span className="text-zinc-500 font-mono">Modalidade(s) Matriculada(s):</span>
-                    <div className="flex flex-wrap gap-1.5 mt-0.5">
-                      {aluno.modalidades && aluno.modalidades.length > 0 ? (
-                        aluno.modalidades.map((m, idx) => (
-                          <span key={idx} className="bg-red-950/50 text-red-400 border border-red-900 px-2 py-0.5 rounded text-[9px] uppercase font-mono font-bold">
-                            {m}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="bg-red-950/50 text-red-400 border border-red-900 px-2 py-0.5 rounded text-[9px] uppercase font-mono font-bold">
-                          {aluno.modalidade || "Kung Fu"}
-                        </span>
-                      )}
+                  <div className="flex justify-between font-mono flex-col gap-1.5 text-left mt-2 border-t border-zinc-900 pt-2">
+                    <span className="text-zinc-500 font-mono">Modalidade(s) & Graduação Atual:</span>
+                    <div className="flex flex-col gap-2">
+                      {studentModsList.map((m) => {
+                        const gradInfo = getModalityGraduation(m);
+                        const icon = m === "Kung Fu" ? "🥋" : m === "Tai Chi Chuan" ? "☯" : "🥊";
+                        return (
+                          <div key={m} className="bg-zinc-900 border border-zinc-850 p-2 rounded flex flex-col font-mono text-[10.5px]">
+                            <span className="text-white font-bold uppercase block">{icon} {m}</span>
+                            <span className="text-amber-500 font-medium block mt-0.5">{gradInfo.graduacaoAtual} ({gradInfo.faixaAtual})</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="flex justify-between font-mono">
@@ -326,9 +481,54 @@ export default function FichaAlunoModal({
           {/* TAB 4: EXAMES DE FAIXAS E HISTÓRICO DE GRADUAÇÃO */}
           {activeSubTab === "graduacoes" && (
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-xs font-mono">
-                <span className="text-zinc-500">Atestados de Grau:</span>
-                <span className="text-amber-500 font-bold uppercase">{aluno.graduacao || aluno.graduacaoAtual || "Faixa Branca"} Atual</span>
+              
+              {/* Seção das Graduações Oficiais do Aluno por Modalidade */}
+              <div className="bg-[#121212] border border-zinc-900 rounded-2xl p-4.5 space-y-4">
+                <h4 className="text-[10px] font-mono text-amber-500 font-black uppercase tracking-wider border-b border-zinc-900 pb-1.5">Estrutura Oficial de Graduações</h4>
+                <div className="space-y-4 divide-y divide-zinc-900">
+                  {studentModsList.map((modName, index) => {
+                    const gradInfo = getModalityGraduation(modName);
+                    const nextGrad = getNextGraduation(modName, gradInfo.ordemGraduacao);
+                    const icon = modName === "Kung Fu" ? "🥋" : modName === "Tai Chi Chuan" ? "☯" : "🥊";
+                    
+                    return (
+                      <div key={modName} className={`pt-3.5 ${index === 0 ? "pt-0 border-t-0" : "border-t"}`}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-black text-white uppercase font-sans tracking-wide">
+                            {icon} {modName.toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                          <div>
+                            <p className="text-zinc-500 text-[10px] uppercase">Graduação Atual:</p>
+                            <p className="text-zinc-200 font-black">{gradInfo.graduacaoAtual}</p>
+                          </div>
+                          <div>
+                            <p className="text-zinc-500 text-[10px] uppercase">Faixa:</p>
+                            <p className="text-amber-500 font-black">{gradInfo.faixaAtual}</p>
+                          </div>
+                          {nextGrad ? (
+                            <div className="sm:col-span-2 pt-1.5 border-t border-zinc-900/40 mt-1">
+                              <p className="text-zinc-500 text-[10px] uppercase">Próxima Graduação:</p>
+                              <p className="text-xs font-black text-emerald-400">
+                                {nextGrad.graduacao} - {nextGrad.faixa}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="sm:col-span-2 pt-1.5 border-t border-zinc-900/40 mt-1">
+                              <p className="text-zinc-500 text-[10px] uppercase">Próxima Graduação:</p>
+                              <p className="text-xs font-black text-indigo-400">Grau Máximo Atingido nesta Modalidade</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="border-t border-zinc-900 pt-4 flex justify-between items-center text-xs font-mono">
+                <span className="text-zinc-500 uppercase tracking-wider text-[10px] font-bold">Histórico de Exames / Registros:</span>
               </div>
 
               {filteredExames.length === 0 && filteredGraduacoes.length === 0 ? (

@@ -206,3 +206,23 @@ export interface Familia {
   // Compatibility fields
   nome?: string;
 }
+
+export interface GraduacoesConfig {
+  id: string;
+  modalidade: string;
+  ordem: number;
+  graduacao: string;
+  faixa: string;
+  ativo: boolean;
+}
+
+export interface AlunoModalidade {
+  id: string;
+  alunoId: string;
+  modalidade: string;
+  graduacaoAtual: string;
+  faixaAtual: string;
+  ordemGraduacao: number;
+  dataUltimaGraduacao: string;
+  ativo: boolean;
+}

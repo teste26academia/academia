@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserRole, Aluno, Turma, Instrutor, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia } from "./types";
+import { UserRole, Aluno, Turma, Instrutor, Presenca, HistoricoGraduacao, Pagamento, GraduacaoSash, GlobalConfigs, Exame, Produto, Venda, Familia, AlunoModalidade, GraduacoesConfig } from "./types";
 import {
   INITIAL_ALUNOS,
   INITIAL_TURMAS,
@@ -35,6 +35,55 @@ import {
   getDoc,
   getDocs
 } from "firebase/firestore";
+
+const KUNG_FU_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Branca Ponta Amarela" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Branca Ponta Verde" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Verde" },
+  { ordem: 5, graduacao: "4ª Fase", faixa: "Verde Ponta Marrom" },
+  { ordem: 6, graduacao: "5ª Fase", faixa: "Marrom" },
+  { ordem: 7, graduacao: "6ª Fase", faixa: "Marrom Ponta Preta" },
+  { ordem: 8, graduacao: "7ª Fase", faixa: "Preta" },
+  { ordem: 9, graduacao: "1º Dhuen", faixa: "Preta" },
+  { ordem: 10, graduacao: "2º Dhuen", faixa: "Preta" }
+];
+
+const TAI_CHI_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Branca Ponta Amarela" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Branca Ponta Verde" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Verde" }
+];
+
+const BOXE_CHINES_GRADUATIONS = [
+  { ordem: 1, graduacao: "Preparatória", faixa: "Branca" },
+  { ordem: 2, graduacao: "1ª Fase", faixa: "Laranja" },
+  { ordem: 3, graduacao: "2ª Fase", faixa: "Vermelha" },
+  { ordem: 4, graduacao: "3ª Fase", faixa: "Azul" },
+  { ordem: 5, graduacao: "4ª Fase", faixa: "Marrom" },
+  { ordem: 6, graduacao: "5ª Fase", faixa: "Preta" }
+];
+
+function getSubModalityGradeAndFaixa(modName: string, gradName: string) {
+  let list = KUNG_FU_GRADUATIONS;
+  if (modName === "Tai Chi Chuan") list = TAI_CHI_GRADUATIONS;
+  if (modName === "Boxe Chinês") list = BOXE_CHINES_GRADUATIONS;
+
+  const matched = list.find(g => g.graduacao.toLowerCase() === gradName.toLowerCase());
+  if (matched) {
+    return {
+      graduacao: matched.graduacao,
+      faixa: matched.faixa,
+      ordem: matched.ordem
+    };
+  }
+  return {
+    graduacao: gradName,
+    faixa: "Branca",
+    ordem: 1
+  };
+}
 
 export default function App() {
   const { 
@@ -74,7 +123,8 @@ export default function App() {
 
   // Exames manual registry states
   const [alunoSelecionadoExame, setAlunoSelecionadoExame] = useState<Aluno | null>(null);
-  const [exameGradPretendida, setExameGradPretendida] = useState<string>("Faixa Amarela");
+  const [exameModalidade, setExameModalidade] = useState<string>("Kung Fu");
+  const [exameGradPretendida, setExameGradPretendida] = useState<string>("Preparatória");
   const [exameData, setExameData] = useState<string>(new Date().toISOString().split("T")[0]);
   const [exameNotaTec, setExameNotaTec] = useState<number>(8);
   const [exameNotaTeor, setExameNotaTeor] = useState<number>(8);
@@ -98,6 +148,8 @@ export default function App() {
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [familias, setFamilias] = useState<Familia[]>([]);
   const [instrutores, setInstrutores] = useState<Instrutor[]>([]);
+  const [alunoModalidades, setAlunoModalidades] = useState<AlunoModalidade[]>([]);
+  const [graduacoesConfig, setGraduacoesConfig] = useState<GraduacoesConfig[]>([]);
   const [isSyncingUsers, setIsSyncingUsers] = useState<boolean>(false);
 
   // DB Sync Status States
@@ -435,6 +487,50 @@ export default function App() {
       console.error("Falha ao sincronizar instrutores:", e);
     }
 
+    // 6.7. aluno_modalidades live subscription
+    try {
+      const amRef = collection(db, "aluno_modalidades");
+      const q = isPowerUser 
+        ? amRef 
+        : (userProfile.alunoId 
+            ? query(amRef, where("alunoId", "==", userProfile.alunoId)) 
+            : null);
+
+      if (q) {
+        const unsubAm = onSnapshot(q, (querySnapshot) => {
+          const list: AlunoModalidade[] = [];
+          querySnapshot.forEach((doc) => {
+            list.push(doc.data() as AlunoModalidade);
+          });
+          setAlunoModalidades(list);
+        }, (err) => {
+          console.warn("Utilizando lista de aluno_modalidades vazia localmente:", err);
+        });
+        unsubscribes.push(unsubAm);
+      } else {
+        setAlunoModalidades([]);
+      }
+    } catch (e) {
+      console.error("Falha ao sincronizar aluno_modalidades:", e);
+    }
+
+    // 6.8. graduacoes_config live subscription
+    try {
+      const gcRef = collection(db, "graduacoes_config");
+      const unsubGc = onSnapshot(gcRef, (querySnapshot) => {
+        const list: GraduacoesConfig[] = [];
+        querySnapshot.forEach((doc) => {
+          list.push(doc.data() as GraduacoesConfig);
+        });
+        setGraduacoesConfig(list);
+      }, (err) => {
+        console.warn("Utilizando lista de graduacoes_config vazia localmente:", err);
+      });
+      unsubscribes.push(unsubGc);
+    } catch (e) {
+      console.error("Falha ao sincronizar graduacoes_config:", e);
+    }
+
     // Finish loader
     const timer = setTimeout(() => {
       setDbLoading(false);
@@ -448,6 +544,119 @@ export default function App() {
 
   // Rule 2 check: Email deciopadovanijr@gmail.com or profile role is auto-recognized as Master Admin
   const isCurrentlyAdminByEmail = userProfile?.role === "ADMIN" || user?.email === "deciopadovanijr@gmail.com";
+
+  // Helper to align a student's enrolled modalities with matching entries in "aluno_modalidades"
+  const syncStudentModalitiesRecords = async (studentId: string, newAlunoData: any) => {
+    try {
+      const officialMods = ["Kung Fu", "Tai Chi Chuan", "Boxe Chinês"];
+      let activeModsInput: string[] = [];
+      if (newAlunoData.modalidades && newAlunoData.modalidades.length > 0) {
+        activeModsInput = newAlunoData.modalidades;
+      } else if (newAlunoData.modalidade) {
+        activeModsInput = newAlunoData.modalidade.split(",").map((x: string) => x.trim()).filter(Boolean);
+      } else {
+        activeModsInput = ["Kung Fu"];
+      }
+
+      const normalizedActiveMods = activeModsInput.map((m: string) => {
+        if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
+        if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+        return "Kung Fu";
+      });
+
+      for (const modName of officialMods) {
+        const isEnrolled = (normalizedActiveMods as string[]).includes(modName);
+        const alModId = `am_${studentId}_${modName.replace(/\s+/g, "")}`;
+        const existingRecord = alunoModalidades.find(am => am.alunoId === studentId && am.modalidade === modName);
+
+        if (isEnrolled) {
+          if (existingRecord) {
+            await setDoc(doc(db, "aluno_modalidades", alModId), {
+              ...existingRecord,
+              ativo: true
+            }, { merge: true });
+          } else {
+            const legacyRank = newAlunoData.graduacao || newAlunoData.graduacaoAtual || "Preparatória";
+            const gradeDetails = getSubModalityGradeAndFaixa(modName, legacyRank);
+            await setDoc(doc(db, "aluno_modalidades", alModId), {
+              id: alModId,
+              alunoId: studentId,
+              modalidade: modName,
+              graduacaoAtual: gradeDetails.graduacao,
+              faixaAtual: gradeDetails.faixa,
+              ordemGraduacao: gradeDetails.ordem,
+              dataUltimaGraduacao: newAlunoData.dataUltimaGraduacao || new Date().toISOString().split("T")[0],
+              ativo: true
+            });
+          }
+        } else {
+          if (existingRecord) {
+            await setDoc(doc(db, "aluno_modalidades", alModId), {
+              ...existingRecord,
+              ativo: false
+            }, { merge: true });
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao sincronizar modalidades do aluno no Firestore:", err);
+    }
+  };
+
+  // Automatic background migration logic for legacy students
+  useEffect(() => {
+    if (!isAdmin && userProfile?.role !== "INSTRUTOR") return;
+    if (alunos.length === 0) return;
+
+    const migrateLegacyStudentsAndExams = async () => {
+      for (const student of alunos) {
+        let studentMods: string[] = [];
+        if (student.modalidades && student.modalidades.length > 0) {
+          studentMods = student.modalidades;
+        } else if (student.modalidade) {
+          studentMods = student.modalidade.split(",").map(x => x.trim()).filter(Boolean);
+        } else {
+          studentMods = ["Kung Fu"];
+        }
+
+        const normalizedMods = studentMods.map(m => {
+          if (m.toLowerCase().includes("tai chi") || m.toLowerCase().includes("taichi")) return "Tai Chi Chuan";
+          if (m.toLowerCase().includes("boxe") || m.toLowerCase().includes("sanda")) return "Boxe Chinês";
+          return "Kung Fu";
+        });
+
+        for (const modName of normalizedMods) {
+          const alModId = `am_${student.id}_${modName.replace(/\s+/g, "")}`;
+          const existing = alunoModalidades.find(am => am.alunoId === student.id && am.modalidade === modName);
+          
+          if (!existing) {
+            console.log(`Migrando estrutura do aluno legado ${student.nome} para a modalidade ${modName}`);
+            const legacyRank = student.graduacao || student.graduacaoAtual || "Preparatória";
+            const gradeDetails = getSubModalityGradeAndFaixa(modName, legacyRank);
+            
+            await setDoc(doc(db, "aluno_modalidades", alModId), {
+              id: alModId,
+              alunoId: student.id,
+              modalidade: modName,
+              graduacaoAtual: gradeDetails.graduacao,
+              faixaAtual: gradeDetails.faixa,
+              ordemGraduacao: gradeDetails.ordem,
+              dataUltimaGraduacao: student.dataUltimaGraduacao || new Date().toISOString().split("T")[0],
+              ativo: true
+            });
+          }
+        }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      migrateLegacyStudentsAndExams().catch(err => {
+        console.error("Falha ao migrar estrutura de modalidades dos alunos:", err);
+      });
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, [alunos, alunoModalidades, isAdmin, userProfile]);
 
   // 1. ADD Student (Admin Form mapped to Firestore)
   const handleAddAluno = async (newAlunoData: any) => {
@@ -484,6 +693,7 @@ export default function App() {
           status: newAlunoData.status || "Ativo"
         });
 
+        await syncStudentModalitiesRecords(existingId, newAlunoData);
         alert("Dados do aluno atualizados com sucesso!");
         return;
       }
@@ -509,6 +719,7 @@ export default function App() {
       };
 
       await setDoc(doc(db, "alunos", newId), newAluno);
+      await syncStudentModalitiesRecords(newId, newAlunoData);
 
       // Automatically generate first invoice honoring net family discount calculation!
       const discountVal = newAluno.descontoFamiliaTipo === "percentual"
@@ -870,24 +1081,43 @@ export default function App() {
   };
 
   // 2.7. Registrar / Editar Exame de Faixa (Persistência real na coleção exames do Firestore)
-  const handleSaveExame = async (exameDataObj: Omit<Exame, "id" | "alunoId" | "alunoNome">, aluno: Aluno) => {
+  const handleSaveExame = async (exameDataObj: Omit<Exame, "id" | "alunoId" | "alunoNome"> & { modalidade?: string }, aluno: Aluno) => {
     try {
       const newExId = "ex_" + Date.now();
-      const novoExame: Exame = {
+      const chosenMod = exameDataObj.modalidade || exameModalidade || "Kung Fu";
+      const novoExame: Exame & { modalidade?: string } = {
         id: newExId,
         alunoId: aluno.id,
         alunoNome: aluno.nome,
+        modalidade: chosenMod,
         ...exameDataObj
       };
       
       // Persiste na coleção "exames"
       await setDoc(doc(db, "exames", newExId), novoExame);
       
-      // Se aprovado, atualiza também a faixa graduação atual do aluno na coleção "alunos"
+      // Se aprovado, atualiza também a faixa graduação atual do aluno na coleção "alunos" E "aluno_modalidades"
       if (exameDataObj.resultado === "Aprovado" || exameDataObj.resultado === "APROVADO") {
+        // Encontra os detalhes oficiais da graduação promovida
+        const gradeDetails = getSubModalityGradeAndFaixa(chosenMod, exameDataObj.graduacaoPretendida);
+
+        // Atualiza a coleção aluno_modalidades
+        const alModId = `am_${aluno.id}_${chosenMod.replace(/\s+/g, "")}`;
+        await setDoc(doc(db, "aluno_modalidades", alModId), {
+          id: alModId,
+          alunoId: aluno.id,
+          modalidade: chosenMod,
+          graduacaoAtual: gradeDetails.graduacao,
+          faixaAtual: gradeDetails.faixa,
+          ordemGraduacao: gradeDetails.ordem,
+          dataUltimaGraduacao: exameDataObj.dataExame,
+          ativo: true
+        });
+
+        // Também atualiza o documento do aluno principal (para compatibilidade retrô sem quebrar telas existentes)
         await updateDoc(doc(db, "alunos", aluno.id), {
-          graduacao: exameDataObj.graduacaoPretendida,
-          graduacaoAtual: exameDataObj.graduacaoPretendida,
+          graduacao: gradeDetails.faixa,
+          graduacaoAtual: `${gradeDetails.graduacao} (${gradeDetails.faixa})`,
           dataUltimaGraduacao: exameDataObj.dataExame
         });
 
@@ -897,8 +1127,9 @@ export default function App() {
           id: newGradId,
           alunoId: aluno.id,
           alunoNome: aluno.nome,
+          modalidade: chosenMod,
           graduacaoAnterior: aluno.graduacao || aluno.graduacaoAtual || "Faixa Branca",
-          graduacaoNova: exameDataObj.graduacaoPretendida,
+          graduacaoNova: `${gradeDetails.graduacao} (${gradeDetails.faixa})`,
           dataGraduacao: exameDataObj.dataExame,
           avaliador: exameDataObj.avaliador,
           resultado: "Aprovado"
@@ -2136,6 +2367,7 @@ export default function App() {
                   pagamentos={pagamentos}
                   graduacoes={graduacoes}
                   exames={exames}
+                  alunoModalidades={alunoModalidades}
                   onClose={() => setSelectedFichaAluno(null)}
                 />
               )}
@@ -2318,6 +2550,8 @@ export default function App() {
               vendas={vendas}
               familias={familias}
               activeRole={activeRole}
+              alunoModalidades={alunoModalidades}
+              exames={exames}
             />
           )}
 
